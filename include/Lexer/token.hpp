@@ -78,10 +78,12 @@ enum TokenType {
     INIT,
     NEW,
     STATIC,
+
+    NOTHING
 };
 
 struct Token {
-    TokenType tp;
+    TokenType tp = NOTHING;
     std::string value;
 
     Token(TokenType tp_, std::string val_);

@@ -9,6 +9,8 @@
 #include "token.hpp"
 #include "AST.h"
 
+#include <vector>
+
 class Parser {
     Lexer lexer;
     Token current_token = Token(EOFT, "");
@@ -22,13 +24,13 @@ class Parser {
     AST func_body();
     AST class_body();
 
-    AST statement_list();
+    std::vector<AST> statement_list();
 
     void statement_terminator();
 
     void ignore_nl();
 
-    AST statement(bool with_term);
+    AST statement(bool with_term = true);
 
     AST classstatement();
     AST newInitializer();
@@ -60,7 +62,7 @@ class Parser {
 
     AST factor();
 public:
-    explicit Parser(const Lexer &lexer);
+    explicit Parser(Lexer lexer);
     void set_text(std::string t);
 };
 
