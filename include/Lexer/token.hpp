@@ -1,6 +1,9 @@
-#pragma once
 #include <string>
+#include <algorithm>
+#include <vector>
 
+#ifndef ODO_PORT_TOKEN_H
+#define ODO_PORT_TOKEN_H
 enum TokenType {
     NULLT,           // empty value
     EOFT,            // empty token
@@ -88,3 +91,7 @@ struct Token {
 
     Token(TokenType tp_, std::string val_);
 };
+
+bool contains_type(std::vector<TokenType> arr, TokenType t);
+
+#endif

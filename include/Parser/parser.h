@@ -17,8 +17,6 @@ class Parser {
 
     void eat(TokenType tp);
 
-    AST program();
-
     AST block();
 
     AST func_body();
@@ -43,9 +41,9 @@ class Parser {
     AST ifstatement();
 
     AST function();
-    AST parameters();
+    std::vector<AST> parameters();
 
-    AST declaration();
+    AST declaration(const Token&);
 
     AST ternary_op();
 
@@ -62,7 +60,9 @@ class Parser {
 
     AST factor();
 public:
+
     explicit Parser(Lexer lexer);
+    AST program();
     void set_text(std::string t);
 };
 
