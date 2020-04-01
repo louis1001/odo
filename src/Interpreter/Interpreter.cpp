@@ -91,7 +91,7 @@ Value* Interpreter::visit(AST node) {
             return visit_BinOp(node.token, node.nodes["left"], node.nodes["right"]);
             break;
         case UnaryOp:
-//            return visit_UnaryOp(node.token, node.nodes["right"]);
+            return visit_UnaryOp(node.token, node.nodes["right"]);
             break;
         case NoOp:
             return null;
@@ -690,6 +690,31 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
     return nullptr;
 }
 
+Value* Interpreter::visit_UnaryOp(Token token, AST &left) {
+    auto result = visit(left);
+
+    switch (token.tp) {
+        case PLUS:
+            break;
+        case MINUS:
+            if (result->type.name == "int") {
+                auto actual_value = result->as_int();
+
+                result->val = actual_value * -1;
+                return result;
+            }
+
+            if (result->type.name == "double") {
+                auto actual_value = result->as_double();
+
+                result->val = actual_value * -1;
+                return result;
+            }
+            break;
+        default:
+            break;
+    }
+}
 
 Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args) {
     if (callDepth >= MAX_CALL_DEPTH) {

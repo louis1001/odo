@@ -7,7 +7,7 @@
 int main(int argc, char* argv[]) {
     std::string co = R"code(
     # Dude... I completly forgot about  *continue*
-    for(int i = 0; i < 10; i = i+1) {
+    for(int i = 0; i < 10; i++) {
         println("Iteracion ", i)
     }
 

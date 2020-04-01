@@ -44,7 +44,11 @@ class Interpreter {
 
     Value* visit_Block(std::vector<AST> vector);
 
+    Value* visit_BinOp(Token token, AST &ast, AST &ast1);
+    Value* visit_UnaryOp(Token token, AST &ast);
+
     Value* visit_TernaryOp(AST cond, AST trueb, AST falseb);
+
 
     Value* visit_If(AST cond, AST trueb, AST falseb);
     Value* visit_For(AST ini, AST cond, AST incr, AST body);
@@ -65,7 +69,6 @@ public:
     explicit Interpreter(Parser p=Parser());
     std::string value_to_string(Value);
 
-    Value* visit_BinOp(Token token, AST &ast, AST &ast1);
 };
 
 #endif //ODO_PORT_INTERPRETER_H

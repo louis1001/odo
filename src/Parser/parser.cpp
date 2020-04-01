@@ -635,21 +635,22 @@ AST Parser::postfix() {
                 }
                 auto one = Token(INT, "1");
                 AST operation = {
-                        BinOp,
-                        .token=binOP,
-                        .nodes={
-                                {"left", node},
-                                {"right", {
-                                                 Int,
-                                                 .token=one
-                                         }},
-                        }};
+                    BinOp,
+                    .token=binOP,
+                    .nodes={
+                        {"left", node},
+                        {"right", {
+                             Int,
+                             .token=one
+                        }},
+                    }};
 
                 node = {
-                        Assignment,
-                        .nodes={
-                                {"right", operation}
-                        }
+                    Assignment,
+                    .nodes={
+                        {"token", node},
+                        {"right", operation}
+                    }
                 };
                 break;
             }
@@ -662,10 +663,13 @@ AST Parser::postfix() {
                 switch (current_token.tp) {
                     case PLUSE:
                         binOP = Token(PLUS, "+");
+                        break;
                     case MINUSE:
                         binOP = Token(MINUS, "-");
+                        break;
                     case MULE:
                         binOP = Token(MUL, "*");
+                        break;
                     default:
                         break;
                 }
