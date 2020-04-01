@@ -6,27 +6,28 @@
 
 int main(int argc, char* argv[]) {
     std::string co = R"code(
-# Dude... I completly forgot about  *continue*
-
+    # Dude... I completly forgot about  *continue*
     for(int i = 0; i < 10; i = i+1) {
-        # Something
+        println("Iteracion ", i)
     }
 
     int i = 0;
     while i < 20 {
-        # Something
+        println("While ", i)
         i = i+1
     }
 
     int j = 0;
     loop {
-        # Something
+        println("Looping ", j)
         j = j+1
 
         if j > 30 {
             break
         }
     }
+
+    print(factorial(30))
     )code";
 
     if (argc > 1) {
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Code:\n" << co << "\n\n";
     std::cout << "***************************************************\n";
 
-    auto val = testing_badly.visit(result);
+    testing_badly.visit(result);
 
     // If there's a file to be read
 

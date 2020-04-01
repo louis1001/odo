@@ -5,6 +5,7 @@
 #include "Interpreter/Interpreter.h"
 
 #include <cmath>
+#include <iostream>
 
 Interpreter::Interpreter(Parser p): parser(std::move(p)) {
     any_type = {.name="any", .isType=true, .kind=PrimitiveType};
@@ -40,6 +41,35 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
     globalTable.addSymbol(nullSym);
 
     returning = nullptr;
+
+    add_native_function("print", [&](auto values) {
+        for (auto v : values) {
+            std::cout << value_to_string(*v);
+        }
+        return null;
+    });
+
+    add_native_function("println", [&](auto values) {
+        for (auto v : values) {
+            std::cout << value_to_string(*v);
+        }
+        std::cout << "\n";
+        return null;
+    });
+
+    add_native_function("factorial", [&](auto v){
+        if (!v.empty() && v[0]->type.name == "int") {
+            int arg1 = v[0]->as_int();
+            int result = 1;
+            for(int i = 1; i <= arg1; i++) {
+                result = result * i;
+            }
+            return create_literal(std::to_string(result), "int");
+        }
+        std::cout << "factorial function should be called with 1 int argument.";
+        throw 1;
+        return null;
+    });
 
     // Something about setting up the character that clears the screen?
 }
@@ -117,7 +147,7 @@ Value* Interpreter::visit(AST node) {
 //            return visit_FuncExpression(node.token, node.lst_AST, node.type, node.nodes["body"]);
             break;
         case FuncCall:
-//            return visit_FuncCall(node.nodes["fun"], node.token, node.lst_AST);
+            return visit_FuncCall(node.nodes["fun"], node.token, node.lst_AST);
             break;
         case FuncBody:
 //            return visit_FuncBody(node.lst_AST);
@@ -190,6 +220,15 @@ std::string Interpreter::value_to_string(Value v) {
     }
 
     return result;
+}
+
+int Interpreter::add_native_function(const std::string& name, NativeFunction callback) {
+    auto result = native_functions.find(name);
+    if (result != native_functions.end())
+        return -1;
+
+    native_functions[name] = std::move(callback);
+    return 0;
 }
 
 Value* Interpreter::create_literal(std::string val, const std::string& kind) {
@@ -649,6 +688,29 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
             break;
     }
     return nullptr;
+}
+
+
+Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args) {
+    if (callDepth >= MAX_CALL_DEPTH) {
+        //TODO: Handle Error
+        // Error! Max call depth exceeded
+    }
+
+    if (fname.tp != NOTHING){
+        auto found_in_natives = native_functions.find(fname.value);
+
+        if (found_in_natives != native_functions.end()) {
+            std::vector<Value*> arguments_visited;
+            for(auto arg : args){
+                arguments_visited.push_back(visit(arg));
+            }
+
+            return found_in_natives->second(arguments_visited);
+        }
+    }
+
+    throw 1;
 }
 
 Symbol *Interpreter::getMemberVarSymbol(const AST& mem) {

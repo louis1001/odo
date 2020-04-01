@@ -13,7 +13,7 @@
 #include <vector>
 
 #define MAX_CALL_DEPTH 1000
-class Interpreter;
+typedef std::function<Value*(std::vector<Value*>)> NativeFunction;
 
 class Interpreter {
     Parser parser;
@@ -31,6 +31,9 @@ class Interpreter {
     bool breaking = false;
     Value* returning;
     int callDepth = 0;
+
+    std::map<std::string, NativeFunction> native_functions;
+    int add_native_function(const std::string& name, NativeFunction callback);
 
     Value* create_literal(std::string val, const std::string& kind);
 
@@ -52,6 +55,8 @@ class Interpreter {
     Value* visit_Assignment(AST expr, AST val);
 
     Value* visit_Variable(Token token);
+
+    Value* visit_FuncCall(AST expr, Token fname, std::vector<AST> args);
 
     Symbol *getMemberVarSymbol(const AST& mem);
 
