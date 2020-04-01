@@ -39,6 +39,7 @@ enum ASTType {
     While,
     Loop,
     Break,
+    Continue,
     Null,
 
     Debug,

@@ -74,6 +74,7 @@ enum TokenType {
     WHILE,
     LOOP,
     BREAK,
+    CONTINUE,
 
     DEBUG,
 

@@ -1,9 +1,12 @@
 #include "Lexer/lexer.hpp"
 
+#include <utility>
+
 #define NULLCHR '\0'
 
-Lexer::Lexer(std::string txt): text(txt) {
+Lexer::Lexer(std::string txt): text(std::move(txt)) {
     current_pos = -1;
+    current_char = NULLCHR;
     advance();
 }
 
@@ -18,6 +21,7 @@ const std::map<std::string, Token> Lexer::reservedKeywords = {
     {"while", Token(::WHILE, "while")},
     {"loop", Token(::LOOP, "loop")},
     {"break", Token(::BREAK, "break")},
+    {"continue", Token(::CONTINUE, "continue")},
     {"class", Token(::CLASS, "class")},
     {"new", Token(::NEW, "new")},
     {"static", Token(::STATIC, "static")},
@@ -72,7 +76,7 @@ void Lexer::ignoreComment() {
 }
 
 Token Lexer::number() {
-    std::string result = "";
+    std::string result;
 
     bool foundPoint = false;
 
@@ -167,7 +171,6 @@ Token Lexer::getNextToken() {
     } else {
         switch (current_char) {
             case '"':
-                return Token(STR, string());
             case '\'':
                 return Token(STR, string());
             case '+':
@@ -294,7 +297,7 @@ Token Lexer::getNextToken() {
             case '\n':
                 advance();
                 current_line += 1;
-                line_start = current_pos;
+                line_start = (int)current_pos;
 
                 return Token(NL, "\n");
             default:

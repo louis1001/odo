@@ -7,20 +7,24 @@
 int main(int argc, char* argv[]) {
     std::string co = R"code(
     # Dude... I completly forgot about  *continue*
+    # Dude (part 2)... I completly forgot about  *modulo*
     for(int i = 0; i < 10; i++) {
+        if i == 2 || i == 4 {
+            continue
+        }
         println("Iteracion ", i)
     }
 
     int i = 0;
     while i < 20 {
         println("While ", i)
-        i = i+1
+        i++
     }
 
     int j = 0;
     loop {
         println("Looping ", j)
-        j = j+1
+        j++
 
         if j > 30 {
             break

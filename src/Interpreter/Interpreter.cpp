@@ -119,6 +119,9 @@ Value* Interpreter::visit(AST node) {
         case Break:
             breaking = true;
             return null;
+        case Continue:
+            continuing = true;
+            return null;
         case Block:
             return visit_Block(node.lst_AST);
 
@@ -283,6 +286,9 @@ Value* Interpreter::visit_Block(std::vector<AST> statements) {
     auto result = null;
     for (auto st : statements) {
         result = visit(st);
+        if (breaking || continuing || returning) {
+            break;
+        }
     }
 
     currentScope = blockScope.getParent();
@@ -323,13 +329,23 @@ Value* Interpreter::visit_For(AST ini, AST cond, AST incr, AST body) {
     auto forScope = SymbolTable("for:loop", {}, currentScope);
     currentScope = &forScope;
 
-    visit(ini);
+    visit(std::move(ini));
     // TODO: Handle error
     // Error if cond is not bool
     while(visit(cond)->as_bool()){
-        visit(body);
+        if (continuing) {
+            continuing = false;
+            continue;
+        } else {
+            visit(body);
+        }
+
         if (breaking) {
             breaking = false;
+            break;
+        }
+
+        if (returning) {
             break;
         }
 
@@ -342,7 +358,7 @@ Value* Interpreter::visit_For(AST ini, AST cond, AST incr, AST body) {
     return null;
 }
 
-Value *Interpreter::visit_While(AST cond, AST body) {
+Value *Interpreter::visit_While(const AST& cond, AST body) {
     auto whileScope = SymbolTable("while:loop", {}, currentScope);
     currentScope = &whileScope;
 
@@ -352,6 +368,13 @@ Value *Interpreter::visit_While(AST cond, AST body) {
         visit(body);
         if (breaking) {
             breaking = false;
+            break;
+        }
+        if (continuing) {
+            continuing = false;
+            continue;
+        }
+        if (returning) {
             break;
         }
     }
@@ -369,6 +392,13 @@ Value *Interpreter::visit_Loop(AST body) {
         visit(body);
         if (breaking) {
             breaking = false;
+            break;
+        }
+        if (continuing) {
+            continuing = false;
+            continue;
+        }
+        if (returning) {
             break;
         }
     }
@@ -563,10 +593,10 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
             if (leftVisited->type == rightVisited->type) {
                 if (leftVisited->type.name == "int") {
                     auto result = leftVisited->as_int() == rightVisited->as_int();
-                    return create_literal(result ? "true" : "false", "int");
+                    return create_literal(result ? "true" : "false", "bool");
                 } else if (leftVisited->type.name == "double") {
                     auto result = leftVisited->as_double() == rightVisited->as_double();
-                    return create_literal(result ? "true" : "false", "double");
+                    return create_literal(result ? "true" : "false", "bool");
                 } else if (leftVisited->type.name == "bool") {
                     auto result = leftVisited->as_bool() == rightVisited->as_bool();
                     return create_literal(result ? "true" : "false", "bool");

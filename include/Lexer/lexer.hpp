@@ -13,7 +13,7 @@ class Lexer {
 
     char current_char;
 
-    bool isAlpha(char c);
+    static bool isAlpha(char c);
 
     void ignoreWhitespace();
     void ignoreMulticomment();

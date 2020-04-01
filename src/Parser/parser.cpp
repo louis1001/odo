@@ -147,6 +147,10 @@ AST Parser::statement(bool with_term) {
             eat(BREAK);
             ex = {Break};
             break;
+        case CONTINUE:
+            eat(CONTINUE);
+            ex = {Continue};
+            break;
         case STATIC:
             eat(STATIC);
             ex = {StaticStatement, .nodes={

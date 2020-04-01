@@ -29,6 +29,7 @@ class Interpreter {
     Symbol any_type;
 
     bool breaking = false;
+    bool continuing = false;
     Value* returning;
     int callDepth = 0;
 
@@ -52,7 +53,7 @@ class Interpreter {
 
     Value* visit_If(AST cond, AST trueb, AST falseb);
     Value* visit_For(AST ini, AST cond, AST incr, AST body);
-    Value* visit_While(AST cond, AST body);
+    Value* visit_While(const AST& cond, AST body);
     Value* visit_Loop(AST body);
 
     Value* visit_VarDeclaration(const Token& var_type, Token name, AST initial);
