@@ -62,6 +62,7 @@ class Parser {
 public:
 
     explicit Parser(Lexer lexer);
+    Parser();
     AST program();
     void set_text(std::string t);
 };

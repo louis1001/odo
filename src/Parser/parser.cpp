@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Parser/parser.h"
+#include "utils.h"
 
 Parser::Parser(Lexer lexer) : lexer(std::move(lexer)) {}
 
@@ -161,6 +162,7 @@ AST Parser::statement(bool with_term) {
         case RPAR:
             return AST { NoOp };
         case DEBUG:
+            eat(DEBUG);
             return AST{Debug};
         default:
             ex = ternary_op();
@@ -352,7 +354,7 @@ AST Parser::ifstatement() {
             .nodes={
                 {"expr", exp},
                 {"trueb", trueBlock},
-                {"falseb", AST()}
+                {"falseb", {NoOp}}
             }
         };
     } else {
@@ -363,7 +365,7 @@ AST Parser::ifstatement() {
             .nodes={
                 {"expr", exp},
                 {"trueb", trueSta},
-                {"falseb", AST()}
+                {"falseb", {NoOp}}
             }
         };
     }
@@ -421,7 +423,7 @@ AST Parser::declaration(const Token& token) {
     auto varName = current_token;
     eat(ID);
 
-    AST assignment;
+    AST assignment = {NoOp};
 
     if (current_token.tp == LBRA) {
         auto tp = token;
@@ -738,6 +740,7 @@ AST Parser::postfix() {
 
                 node = {
                     FuncCall,
+                    .nodes = {{"fun", node}},
                     .token=name,
                     .lst_AST=argList
                 };
@@ -747,7 +750,10 @@ AST Parser::postfix() {
                 eat(LBRA);
                 node = {
                     Index,
-                    .nodes={{"expr", ternary_op()}}
+                    .nodes = {
+                        {"val", node},
+                        {"expr", ternary_op()},
+                    }
                 };
                 eat(RBRA);
                 break;
@@ -920,4 +926,6 @@ AST Parser::factor() {
 
     return AST { NoOp };
 }
+
+Parser::Parser(): lexer(Lexer()) {}
 

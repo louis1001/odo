@@ -91,7 +91,4 @@ struct Token {
 
     Token(TokenType tp_, std::string val_);
 };
-
-bool contains_type(std::vector<TokenType> arr, TokenType t);
-
 #endif

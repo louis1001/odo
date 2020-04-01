@@ -151,7 +151,8 @@ Token Lexer::getNextToken() {
             advance();
             ignoreMulticomment();
         } else {
-            current_pos--;
+            current_pos -= 2;
+            advance();
         }
     }
 
