@@ -64,6 +64,7 @@ public:
     explicit Parser(Lexer lexer);
     Parser();
     AST program();
+    std::vector<AST> program_content();
     void set_text(std::string t);
 };
 

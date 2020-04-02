@@ -2,68 +2,69 @@
 #include "Lexer/lexer.hpp"
 #include "Parser/parser.h"
 
+#include <fstream>
+#include <sstream>
+
 #include "Interpreter/Interpreter.h"
 
+std::string readWhole(std::istream& in) {
+    // Taken from https://stackoverflow.com/a/116220
+    std::stringstream sstr;
+    sstr << in.rdbuf();
+    return sstr.str();
+}
+
 int main(int argc, char* argv[]) {
-    std::string co = R"code(
-# Find all fibonacci numbers up to n and store them in a list
-int n = 1000
-
-int a = 1
-int b = 0
-int c = 0
-
-int results[] = []
-
-while c < n {
-    b = a
-    a = c
-    c = a + b
-
-    results += c
-}
-
-for(int i = 0; i < length(results); i++) {
-    println("[", i, "]: ", results[i])
-}
-
-println()
-println("Testing a separator")
-println("v^"*50)
-
-println("Testing a list with some repeating values")
-println([0]*20)
-    )code";
+    std::string input_file;
 
     if (argc > 1) {
-        co = argv[1];
+        input_file = argv[1];
     }
 
-    Lexer actual_lex("");
-    Parser actual_parser(actual_lex);
-
-    actual_parser.set_text(co);
-    auto result = actual_parser.program();
-
-    Interpreter testing_badly;
-
-    testing_badly.visit(result);
+    Interpreter inter;
 
     // If there's a file to be read
-
+    if (!input_file.empty()) {
         // Opening file and reading contents:
-        // text lines.
+        std::ifstream argumentFile(input_file);
+        if (argumentFile.fail()) {
+            std::cerr << "Unable to open file '" << input_file << "'.";
+        }
+        std::string code = readWhole(argumentFile);
+
+        argumentFile.close();
 
         // Handle potential errors
-            // Interpreting the text inside the file.
-
+        // Interpreting the text inside the file.
+//      try {
+        inter.interpret(code);
+//      }
     // Else
-        // Show an interactive prompt
+    } else {
+        bool continuing = true;
 
-        // Handle potential errors
+        inter.add_native_function("exit", [&](auto vals){
+            continuing = false;
+            return inter.get_null();
+        });
+
+        while (continuing)
+        {
+            // Show an interactive prompt
+            std::cout << "> ";
+            std::string code;
+            std::getline(std::cin, code);
+
+            // Handle potential errors
+//        try
             // Evaluate the input
+            auto result = inter.eval(code);
 
             // Show the result
-
+            std::cout << "\n" << inter.value_to_string(*result) << "\n";
+//        }
+        }
+        std::cout << "Bye! :)\n";
+    }
     return 0;
 }

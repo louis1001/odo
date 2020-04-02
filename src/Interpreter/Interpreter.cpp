@@ -1076,3 +1076,30 @@ Symbol *Interpreter::getMemberVarSymbol(const AST& mem) {
 
     return varSym;
 }
+
+void Interpreter::interpret(std::string code) {
+    parser.set_text(code);
+
+    auto root = parser.program();
+
+    visit(root);
+}
+
+Value* Interpreter::eval(std::string code) {
+    parser.set_text(code);
+
+    auto statements = parser.program_content();
+
+//    try{
+    currentScope = &replScope;
+
+    Value* result = null;
+    for (auto node : statements) {
+        result = visit(node);
+    }
+
+    currentScope = &globalTable;
+//    }
+
+    return result;
+}

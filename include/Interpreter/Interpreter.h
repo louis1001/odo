@@ -34,7 +34,6 @@ class Interpreter {
     int callDepth = 0;
 
     std::map<std::string, NativeFunction> native_functions;
-    int add_native_function(const std::string& name, NativeFunction callback);
 
     Value* create_literal(std::string val, const std::string& kind);
 
@@ -70,10 +69,14 @@ class Interpreter {
     Symbol *getMemberVarSymbol(const AST& mem);
 
 public:
+    void interpret(std::string);
+    Value* eval(std::string);
     Value* visit(AST node);
     explicit Interpreter(Parser p=Parser());
     std::string value_to_string(Value);
+    int add_native_function(const std::string& name, NativeFunction callback);
 
+    Value* get_null() { return null; }
 };
 
 #endif //ODO_PORT_INTERPRETER_H

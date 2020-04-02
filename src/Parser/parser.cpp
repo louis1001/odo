@@ -937,3 +937,7 @@ AST Parser::factor() {
 
 Parser::Parser(): lexer(Lexer()) {}
 
+std::vector<AST> Parser::program_content() {
+    return statement_list();
+}
+
