@@ -1,0 +1,62 @@
+# TODO: functions in this file are not ready yet
+# randInt, read...
+
+string words[] = [
+    "subsequent",
+    "face",
+    "cuddly",
+    "ignore",
+    "request",
+    "warlike",
+    "brush",
+    "hellish",
+    "haircut",
+    "belong",
+    "guard",
+    "bolt"
+]
+
+int picked = randInt(length(words))
+string secret = words[picked]
+int w_length = length(secret)
+string guessed[] = ["_"] * w_length
+int right_guesses = 0
+int errors = 0
+
+int max_errors = 5
+
+println(errors)
+while ((right_guesses < w_length) && (errors < max_errors)) {
+    clear()
+    println("Current guesses: ")
+    for(int i = 0; i < w_length; i++) {
+        print(guessed[i], "")
+    }
+    println()
+    println("Erros:", errors, "/", max_errors)
+
+    string guess = read()[0]
+
+    int curr_rights = 0
+    for(int i = 0; i < w_length; i++) {
+        if secret[i] == guess {
+            curr_rights++
+            guessed[i] = guess
+            right_guesses++
+        }
+    }
+
+    if curr_rights == 0 {
+        errors++
+    }
+
+    println()
+}
+
+if errors == max_errors {
+    println("Lo siento!")
+} else {
+    println("Bien hecho!")
+}
+
+println("La palabra era:", secret)

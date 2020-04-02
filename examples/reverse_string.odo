@@ -1,0 +1,11 @@
+
+println("Testing reversing a string")
+
+string first = "A palindrome is the ideal test for this file" # read()
+
+string result = ""
+for(int i = length(first)-1; i >= 0; i--) {
+    result += first[i]
+}
+
+println(result)

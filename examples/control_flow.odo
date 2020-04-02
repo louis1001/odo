@@ -1,0 +1,54 @@
+int a = 10;
+
+while a > 0 {
+    println("Reducing a from ", a, " to ", a - 1);
+    a--;
+}
+
+println();
+println();
+println();
+
+int size = 10;
+for (int i = 0; i < size; i++){
+    for (int j = 0; j < size-i; j++){
+        print("+");
+    }
+
+    for (int j = 0; j < i*2; j++){
+        print(" ");
+    }
+
+    for (int j = 0; j < size-i; j++){
+        print("+");
+    }
+    println();
+}
+
+for (int i = 0; i < size; i++){
+    for (int j = 0; j < i; j++){
+        print("+");
+    }
+
+    for (int j = 0; j < (size-i)*2; j++){
+        print(" ");
+    }
+
+    for (int j = 0; j < i; j++){
+        print("+");
+    }
+    println();
+}
+
+println("End");
+
+int first = 10;
+int second = 12;
+
+if first > second {
+    println("The first number ", first, " is greater than the second ", second);
+} else if first < second {
+    println("The first number ", first, " is less than the second ", second);
+} else {
+    println("Both numbers are the same: ", first, " = ", second);
+}

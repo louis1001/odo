@@ -1,0 +1,14 @@
+# Any higher number would break int sizes.
+int n = 45
+
+int x = 0
+int y = 0
+int z = 1
+
+for(int i = 0; i < n; i++){
+    println(i, ":", z)
+    x = y
+    y = z
+    z = z + x
+}
+
