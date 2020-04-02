@@ -574,7 +574,7 @@ AST Parser::expression() {
 AST Parser::term() {
     auto node = prod();
 
-    auto termType = {MUL, DIV};
+    auto termType = {MUL, DIV, MOD};
 
     while (contains_type(termType, current_token.tp)) {
         auto c_token = current_token;

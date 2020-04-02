@@ -571,6 +571,16 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
                 throw 1;
             }
             break;
+        case MOD:
+            if (leftVisited->type == rightVisited->type && leftVisited->type.name == "int") {
+                auto result = leftVisited->as_int() % rightVisited->as_int();
+                return create_literal(std::to_string(result), "int");
+            }else {
+                // TODO: Handle Error
+                // ValueError! Modulo operation must be with operands of type int
+                throw 1;
+            }
+            break;
         case POW:
             if (leftVisited->type == rightVisited->type) {
                 if (leftVisited->type.name == "int") {
@@ -697,7 +707,7 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
         case AND:
             if (leftVisited->type == rightVisited->type && leftVisited->type.name == "bool") {
                 auto result = leftVisited->as_bool() && rightVisited->as_bool();
-                return create_literal(result ? "true" : "false", "double");
+                return create_literal(result ? "true" : "false", "bool");
             }else {
                 // TODO: Handle Error
                 // ValueError! Division operation must be with operands of type double
@@ -707,7 +717,7 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
         case OR:
             if (leftVisited->type == rightVisited->type && leftVisited->type.name == "bool") {
                 auto result = leftVisited->as_bool() || rightVisited->as_bool();
-                return create_literal(result ? "true" : "false", "double");
+                return create_literal(result ? "true" : "false", "bool");
             }else {
                 // TODO: Handle Error
                 // ValueError! Division operation must be with operands of type double

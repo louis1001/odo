@@ -204,6 +204,20 @@ Token Lexer::getNextToken() {
                     return Token(MULE, "*=");
                 }
                 return Token(MUL, "*");
+            case '/':
+                advance();
+                if (current_char == '='){
+                    advance();
+                    return Token(DIVE, "/=");
+                }
+                return Token(DIV, "/");
+            case '%':
+                advance();
+                if (current_char == '='){
+                    advance();
+                    return Token(MODE, "%=");
+                }
+                return Token(MOD, "%");
             case '^':
                 advance();
                 if (current_char == '='){
@@ -235,9 +249,6 @@ Token Lexer::getNextToken() {
                 }
 
                 return Token(GT, "<");
-            case '/':
-                advance();
-                return Token(DIV, "/");
             case '(':
                 advance();
                 return Token(LPAR, "(");

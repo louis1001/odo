@@ -39,6 +39,8 @@ enum TokenType {
     MULE,           // *=
     DIV,            // /
     DIVE,           // /=
+    MOD,            // /
+    MODE,           // /=
 
     AND,            // &&
     OR,             // ||
