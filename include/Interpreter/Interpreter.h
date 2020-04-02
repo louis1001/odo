@@ -26,7 +26,7 @@ class Interpreter {
     SymbolTable replScope;
 
     Value* null;
-    Symbol any_type;
+    Symbol* any_type;
 
     bool breaking = false;
     bool continuing = false;
@@ -57,9 +57,13 @@ class Interpreter {
     Value* visit_Loop(AST body);
 
     Value* visit_VarDeclaration(const Token& var_type, Token name, AST initial);
+    Value* visit_ListDeclaration(const Token& var_type, Token name, AST initial);
     Value* visit_Assignment(AST expr, AST val);
-
     Value* visit_Variable(Token token);
+
+    Value* visit_Index(AST val, AST expr);
+
+    Value* visit_ListExpression(std::vector<AST> elements);
 
     Value* visit_FuncCall(AST expr, Token fname, std::vector<AST> args);
 

@@ -57,6 +57,7 @@ public:
 
     Symbol* findSymbol(const std::string&);
     Symbol* addSymbol(Symbol);
+    Symbol* addListType(Symbol*);
     bool symbolExists(const std::string&);
 
     SymbolTable* getParent() { return parent; }

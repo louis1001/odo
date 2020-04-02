@@ -6,33 +6,33 @@
 
 int main(int argc, char* argv[]) {
     std::string co = R"code(
-    # Dude... I completly forgot about  *continue*
-    # Dude (part 2)... I completly forgot about  *modulo*
-    for(int i = 0; i < 10; i++) {
-        if (i%2 == 0) {
-            continue
-        }
-        println("Iteracion ", i)
-    }
+# Find all fibonacci numbers up to n and store them in a list
+int n = 1000
 
-    int i = 0;
-    while i < 20 {
-        println("While ", i)
-        i++
-    }
+int a = 1
+int b = 0
+int c = 0
 
-    int j = 0;
-    loop {
-        println("Looping ", j)
-        j++
+int results[] = []
 
-        if j > 30 {
-            break
-        }
-    }
+while c < n {
+    b = a
+    a = c
+    c = a + b
 
-    print(factorial(30))
+    results += c
+}
 
+for(int i = 0; i < length(results); i++) {
+    println("[", i, "]: ", results[i])
+}
+
+println()
+println("Testing a separator")
+println("v^"*50)
+
+println("Testing a list with some repeating values")
+println([0]*20)
     )code";
 
     if (argc > 1) {
@@ -46,9 +46,6 @@ int main(int argc, char* argv[]) {
     auto result = actual_parser.program();
 
     Interpreter testing_badly;
-
-    std::cout << "Code:\n" << co << "\n\n";
-    std::cout << "***************************************************\n";
 
     testing_badly.visit(result);
 

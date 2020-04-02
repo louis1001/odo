@@ -73,6 +73,31 @@ Symbol* SymbolTable::addSymbol(Symbol sym) {
     return &symbols[sym.name];
 }
 
+Symbol* SymbolTable::addListType(Symbol* tp) {
+    auto foundAsListType = symbols.find(tp->name+"[]");
+    if (foundAsListType != symbols.end())
+        return &foundAsListType->second;
+
+    auto foundS = symbols.find(tp->name);
+
+    if (foundS != symbols.end()) {
+        if (!foundS->second.isType) {
+            // TODO: Handle errors
+            // TypeError! Symbol(identifier) [sym.tp.name] is not a type
+            throw 1;
+        }
+    }
+
+    symbols[tp->name+"[]"] = Symbol{
+        tp,
+        tp->name+"[]",
+        .kind=ListType,
+        .isType=true
+    };
+
+    return &symbols[tp->name + "[]"];
+}
+
 bool SymbolTable::symbolExists(const std::string& name) {
     return symbols.find(name) != symbols.end();
 }

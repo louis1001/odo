@@ -115,3 +115,18 @@ int Value::as_int() {
 double Value::as_double() {
     return std::any_cast<double>(val);
 }
+
+std::vector<Value*> Value::as_list_value() {
+    auto list_symbols = std::any_cast< std::vector<Symbol> >(val);
+
+    std::vector<Value*> results;
+    results.reserve(list_symbols.size());
+    for (const auto& s : list_symbols) {
+        results.push_back(s.value);
+    }
+    return results;
+}
+
+std::vector<Symbol> Value::as_list_symbol() {
+    return std::any_cast< std::vector<Symbol> >(val);
+}

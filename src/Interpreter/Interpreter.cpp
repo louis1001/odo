@@ -8,17 +8,20 @@
 #include <iostream>
 
 Interpreter::Interpreter(Parser p): parser(std::move(p)) {
-    any_type = {.name="any", .isType=true, .kind=PrimitiveType};
+    auto any_symbol = Symbol{.name="any", .isType=true, .kind=PrimitiveType};
 
     std::map<std::string, Symbol> buildInTypes = {
-        {"any", any_type},
-        {"int", {.name = "int", .tp = &any_type, .isType=true, .kind=PrimitiveType}},
-        {"double", {.name = "double", .tp = &any_type, .isType=true, .kind=PrimitiveType}},
-        {"string", {.name = "string", .tp = &any_type, .isType=true, .kind=PrimitiveType}},
-        {"bool", {.name = "bool", .tp = &any_type, .isType=true, .kind=PrimitiveType}},
-        {"pointer", {.name = "pointer", .tp = &any_type, .isType=true, .kind=PrimitiveType}},
-        {"NullType", {.name = "NullType", .tp = &any_type, .isType=true, .kind=PrimitiveType}}
+        {"any", any_symbol}
     };
+
+    any_type = &any_symbol;
+
+    buildInTypes["int"] = Symbol{.name = "int", .tp = any_type, .isType=true, .kind=PrimitiveType};
+    buildInTypes["double"] = Symbol{.name = "double", .tp = any_type, .isType=true, .kind=PrimitiveType};
+    buildInTypes["string"] = Symbol{.name = "string", .tp = any_type, .isType=true, .kind=PrimitiveType};
+    buildInTypes["bool"] = Symbol{.name = "bool", .tp = any_type, .isType=true, .kind=PrimitiveType};
+    buildInTypes["pointer"] = Symbol{.name = "pointer", .tp = any_type, .isType=true, .kind=PrimitiveType};
+    buildInTypes["NullType"] = Symbol{.name = "NullType", .tp = any_type, .isType=true, .kind=PrimitiveType};
 
     globalTable = SymbolTable("global", buildInTypes);
     currentScope = &globalTable;
@@ -71,6 +74,22 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         return null;
     });
 
+    add_native_function("length", [&](std::vector<Value*> v){
+        // TODO: Error Handling
+        if (!v.empty()) {
+            auto arg = v[0];
+            if (arg->type.name == "string") {
+                size_t len = arg->as_string().size();
+                return create_literal(std::to_string(len), "int");
+            } else if (arg->kind == ListVal) {
+                size_t len = arg->as_list_value().size();
+                return create_literal(std::to_string(len), "int");
+            }
+        }
+        throw 1;
+        return null;
+    });
+
     // Something about setting up the character that clears the screen?
 }
 
@@ -97,7 +116,7 @@ Value* Interpreter::visit(AST node) {
             return null;
 
         case Index:
-//            return visit_Index(nodes.nodes["val"], node.nodes["right"]);
+            return visit_Index(node.nodes["val"], node.nodes["expr"]);
             break;
 
         // Control Flow
@@ -129,7 +148,7 @@ Value* Interpreter::visit(AST node) {
         case Declaration:
             return visit_VarDeclaration(node.type, node.token, node.nodes["initial"]);
         case ListDeclaration:
-//            return visit_ListDeclaration(node.type, node.token, node.nodes["initial"]);
+            return visit_ListDeclaration(node.type, node.token, node.nodes["initial"]);
             break;
         case Variable:
             return visit_Variable(node.token);
@@ -139,7 +158,7 @@ Value* Interpreter::visit(AST node) {
             break;
 
         case ListExpression:
-//            return visit_ListExpression(node.lst_AST);
+            return visit_ListExpression(node.lst_AST);
             break;
 
         // Functions
@@ -218,8 +237,19 @@ std::string Interpreter::value_to_string(Value v) {
             // Error!
             throw 1;
         }
+    } else if (v.type.kind == ListType) {
+        result += "[";
+        auto values_in_v = v.as_list_value();
+        for (auto val = values_in_v.begin(); val < values_in_v.end(); val++) {
+            result += value_to_string(**val);
+
+            if (val != values_in_v.end()-1) {
+                result += ", ";
+            }
+        }
+        result += "]";
     } else {
-        result = "<value> at:" + std::to_string(v.address);
+        result = "<value> at: " + std::to_string(v.address);
     }
 
     return result;
@@ -453,6 +483,60 @@ Value* Interpreter::visit_VarDeclaration(const Token& var_type, Token name, AST 
     return null;
 }
 
+Value *Interpreter::visit_ListDeclaration(const Token &var_type, Token name, AST initial) {
+    if (currentScope->symbolExists(name.value)) {
+        // TODO: Handle Errors
+        // NameError! Duplicate Variable name.value
+        throw 1;
+    }
+
+    auto base_type = currentScope->findSymbol(var_type.value);
+    if (!(base_type && base_type->isType)) {
+        // TODO: Handle Errors
+        // NameError! Invalid type: base_type.value
+        throw 1;
+    }
+
+    Symbol* newVar;
+    Value* valueReturn = null;
+
+    Symbol* list_type;
+
+    auto found_in_table = globalTable.findSymbol(base_type->name + "[]");
+    if (found_in_table) {
+        list_type = found_in_table;
+    } else {
+        list_type = globalTable.addSymbol({
+            base_type, base_type->name + "[]",
+            .isType=true,
+            .kind=ListType
+        });
+    }
+
+    if (initial.tp != NoOp) {
+        auto newValue = visit(initial);
+
+        newVar = currentScope->addSymbol({
+            list_type,
+            name.value,
+            newValue
+        });
+
+        newValue->addReference(*newVar);
+        newValue->kind = ListVal;
+        valueReturn = newValue;
+
+        return valueReturn;
+    }
+
+    currentScope->addSymbol({
+        list_type,
+        name.value
+    });
+
+    return valueReturn;
+}
+
 // TODO: add getMemberVar function.
 Value* Interpreter::visit_Assignment(AST expr, AST val) {
     auto varSym = getMemberVarSymbol(expr);
@@ -502,17 +586,176 @@ Value* Interpreter::visit_Variable(Token token) {
     }
 }
 
+Value* Interpreter::visit_Index(AST val, AST expr) {
+    auto visited_val = visit(val);
+
+    if (visited_val->type.name == "string") {
+        auto str = visited_val->as_string();
+
+        auto visited_indx = visit(expr);
+        if (visited_indx->type.name == "int") {
+            auto int_indx = visited_indx->as_int();
+
+            if (int_indx >= 0 && int_indx < str.size()) {
+                return create_literal(std::to_string(str[int_indx]), "string");
+            } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
+                size_t actual_indx = str.size() - int_indx;
+                return create_literal(std::to_string(str[actual_indx]), "string");
+            } else {
+                // TODO: Handle Error
+                // Error! Indexing string out of bounds
+                throw 1;
+            }
+        } else {
+            // TODO: Handle Error
+            // Error! Strings can only be indexed with integer values
+            throw 1;
+        }
+    } else if (visited_val->kind == ListVal){
+        auto list_value = visited_val->as_list_value();
+        auto visited_indx = visit(expr);
+        if (visited_indx->type.name == "int") {
+            auto int_indx = visited_indx->as_int();
+
+            if (int_indx >= 0 && int_indx < list_value.size()) {
+                return list_value[int_indx];
+            } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
+                size_t actual_indx = list_value.size() - int_indx;
+                return list_value[actual_indx];
+            } else {
+                // TODO: Handle Error
+                // Error! Indexing string out of bounds
+                throw 1;
+            }
+        } else {
+            // TODO: Handle Error
+            // Error! Lists can only be indexed with integer values
+            throw 1;
+        }
+    } else {
+        // TODO: Handle error
+        //Error! Index operator is only valid for string and lists values.
+        throw 1;
+    }
+
+    return null;
+}
+
+Value *Interpreter::visit_ListExpression(std::vector<AST> elements) {
+    Symbol* list_t = nullptr;
+    std::vector<Symbol> list_syms;
+
+    for (auto el : elements) {
+        auto visited_element = visit(el);
+        auto type_of_el = currentScope->findSymbol(visited_element->type.name);
+
+        if (!list_t) {
+            auto list_type_name = visited_element->type.name + "[]";
+
+            // TODO: Fix. Apparently list types are stored only in the global scope.
+            auto found_type = globalTable.findSymbol(list_type_name);
+            if (found_type) {
+                list_t = found_type;
+            } else {
+                list_t = globalTable.addListType(type_of_el);
+            }
+        }
+
+        Value* actual_value;
+
+        if (visited_element->type.kind == PrimitiveType) {
+            actual_value = valueTable.copyValue(*visited_element);
+        } else {
+            actual_value = visited_element;
+        }
+
+        auto el_symbol = Symbol{
+            type_of_el,
+            "list_element",
+            actual_value
+        };
+
+        actual_value->addReference(el_symbol);
+        list_syms.push_back(el_symbol);
+    }
+
+    Symbol* list_type;
+    if (list_t) {
+        list_type = list_t;
+    } else {
+        list_type = globalTable.addListType(any_type);
+    }
+
+    auto in_val_table = valueTable.addNewValue(*list_type, list_syms);
+    in_val_table->kind = ListVal;
+    return in_val_table;
+}
+
 Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
     auto leftVisited = visit(left);
     auto rightVisited = visit(right);
 
-    auto leftVal = leftVisited->val;
-    auto rightVal = rightVisited->val;
-
     switch (token.tp) {
         case PLUS:
-            // TODO: left or right as Lists
-            if (leftVisited->type == rightVisited->type) {
+            if (leftVisited->kind == ListVal) {
+                Value* new_list;
+
+                if (rightVisited->kind == ListVal) {
+                    std::vector<Symbol> new_elements;
+
+                    for (auto el : leftVisited->as_list_symbol()) {
+                        auto val = el.value;;
+
+                        if (val->type.kind == PrimitiveType) {
+                            val = valueTable.copyValue(*val);
+                        }
+
+                        Symbol new_symbol = {el.tp, el.name, val};
+                        val->addReference(new_symbol);
+                        new_elements.push_back(new_symbol);
+                    }
+                    for (auto el : rightVisited->as_list_symbol()) {
+                        auto val = el.value;;
+
+                        if (val->type.kind == PrimitiveType) {
+                            val = valueTable.copyValue(*val);
+                        }
+
+                        Symbol new_symbol = {el.tp, el.name, val};
+                        val->addReference(new_symbol);
+                        new_elements.push_back(new_symbol);
+                    }
+
+                    new_list = valueTable.addNewValue(leftVisited->type, new_elements);
+                    new_list->kind = ListVal;
+                    return new_list;
+                } else {
+                    std::vector<Symbol> new_elements;
+
+                    for (auto el : leftVisited->as_list_symbol()) {
+                        auto val = el.value;
+
+                        if (val->type.kind == PrimitiveType) {
+                            val = valueTable.copyValue(*val);
+                        }
+
+                        Symbol new_symbol = {el.tp, el.name, val};
+                        val->addReference(new_symbol);
+                        new_elements.push_back(new_symbol);
+                    }
+
+                    auto val = rightVisited;
+                    if (val->type.kind == PrimitiveType) {
+                        val = valueTable.copyValue(*val);
+                    }
+
+                    Symbol new_symbol = {currentScope->findSymbol(val->type.name), "list_element", val};
+                    new_elements.push_back(new_symbol);
+                    new_list = valueTable.addNewValue(*globalTable.addListType(&val->type), new_elements);
+                    new_list->kind = ListVal;
+                    return new_list;
+                }
+            } else if (leftVisited->type == rightVisited->type) {
                 if (leftVisited->type.name == "int") {
                     auto result = leftVisited->as_int() + rightVisited->as_int();
                     return create_literal(std::to_string(result), "int");
@@ -554,10 +797,41 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
                     auto result = leftVisited->as_double() * rightVisited->as_double();
                     return create_literal(std::to_string(result), "double");
                 }
-            // TODO: Handle cases in which left or right is a list
+            } else if (leftVisited->kind == ListVal && rightVisited->type.name == "int") {
+                int right_as_int = rightVisited->as_int();
+                std::vector<Symbol> new_elements;
+
+                for (int i = 0; i < right_as_int; i++) {
+                    for (auto el : leftVisited->as_list_symbol()) {
+                        auto val = el.value;
+
+                        if (val->type.kind == PrimitiveType) {
+                            val = valueTable.copyValue(*val);
+                        }
+
+                        Symbol new_symbol = {el.tp, el.name, val};
+                        val->addReference(new_symbol);
+                        new_elements.push_back(new_symbol);
+                    }
+                }
+
+                auto new_list = valueTable.addNewValue(leftVisited->type, new_elements);
+                new_list->kind = ListVal;
+                return new_list;
+            } else if (leftVisited->type.name == "string" && rightVisited->type.name == "int"){
+                int right_as_int = rightVisited->as_int();
+                std::string left_as_string = leftVisited->as_string();
+                std::string new_string;
+
+                for (int i = 0; i < right_as_int; i++) {
+                    new_string += left_as_string;
+                }
+
+                auto new_val = create_literal(new_string, "string");
+                return new_val;
             } else {
                 // TODO: Handle Error
-                // ValueError! Numeric substraction must be with operands of the same type
+                // ValueError! multiplication operation must be with operands of the same type
                 throw 1;
             }
             break;
@@ -587,7 +861,7 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
                     auto result = powl(leftVisited->as_int(), rightVisited->as_int());
                     return create_literal(std::to_string(result), "int");
                 } else if (leftVisited->type.name == "double") {
-                    auto result = powf(leftVisited->as_double(), rightVisited->as_double());
+                    auto result = powl(leftVisited->as_double(), rightVisited->as_double());
                     return create_literal(std::to_string(result), "double");
                 }
             } else {
@@ -754,6 +1028,8 @@ Value* Interpreter::visit_UnaryOp(Token token, AST &left) {
         default:
             break;
     }
+
+    return null;
 }
 
 Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args) {
