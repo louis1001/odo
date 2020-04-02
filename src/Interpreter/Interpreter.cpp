@@ -597,10 +597,12 @@ Value* Interpreter::visit_Index(AST val, AST expr) {
             auto int_indx = visited_indx->as_int();
 
             if (int_indx >= 0 && int_indx < str.size()) {
-                return create_literal(std::to_string(str[int_indx]), "string");
+                std::string result(1, str[int_indx]);
+                return create_literal(result, "string");
             } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
                 size_t actual_indx = str.size() - int_indx;
-                return create_literal(std::to_string(str[actual_indx]), "string");
+                std::string result(1, str[actual_indx]);
+                return create_literal(result, "string");
             } else {
                 // TODO: Handle Error
                 // Error! Indexing string out of bounds
@@ -755,6 +757,10 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
                     new_list->kind = ListVal;
                     return new_list;
                 }
+            } else if (leftVisited->type.name == "string") {
+                return create_literal(leftVisited->as_string()+value_to_string(*rightVisited), "string");
+            } else if (rightVisited->type.name == "string") {
+                return create_literal(value_to_string(*leftVisited) + rightVisited->as_string(), "string");
             } else if (leftVisited->type == rightVisited->type) {
                 if (leftVisited->type.name == "int") {
                     auto result = leftVisited->as_int() + rightVisited->as_int();
@@ -763,10 +769,6 @@ Value* Interpreter::visit_BinOp(Token token, AST &left, AST &right) {
                     auto result = leftVisited->as_double() + rightVisited->as_double();
                     return create_literal(std::to_string(result), "double");
                 }
-            } else if (leftVisited->type.name == "string") {
-                return create_literal(leftVisited->as_string()+value_to_string(*rightVisited), "string");
-            } else if (rightVisited->type.name == "string") {
-                return create_literal(value_to_string(*leftVisited) + rightVisited->as_string(), "string");
             } else {
                 // TODO: Handle Error
                 // ValueError! Numeric adition must be with operands of the same type
