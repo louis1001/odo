@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
             auto result = inter.eval(code);
 
             // Show the result
-            std::cout << "\n" << inter.value_to_string(*result) << "\n";
+            if (result != inter.get_null())
+                std::cout<< inter.value_to_string(*result) << "\n";
 //        }
         }
         std::cout << "Bye! :)\n";
