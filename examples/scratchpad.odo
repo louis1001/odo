@@ -1,2 +1,14 @@
+double i = read_double("Write a double: ")
 
-println("This is my scratchpad now")
+int j = read_int("Write a int: ")
+
+string name = read("Write your name: ")
+
+clear()
+println(
+    "Hello, ", name, ". You have ", j,
+    " new messages. The temparature is ", i,
+    " degrees."
+)
+
+wait()

@@ -6,6 +6,19 @@
 
 #include <cmath>
 #include <iostream>
+#include <random>
+
+double rand_int(int min, int max) {
+    std::default_random_engine generator(clock());
+    std::uniform_int_distribution<int> distribution(min, max);
+    return distribution(generator);
+}
+
+double rand_double(double min, double max) {
+    std::default_random_engine generator(clock());
+    std::uniform_real_distribution<double> distribution(min, max);
+    return distribution(generator);
+}
 
 Interpreter::Interpreter(Parser p): parser(std::move(p)) {
     auto any_symbol = Symbol{.name="any", .isType=true, .kind=PrimitiveType};
@@ -89,6 +102,149 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         throw 1;
         return null;
     });
+
+    add_native_function("pow", [&](auto vals) {
+        if (vals.size() >= 2) {
+            bool result_as_int = true;
+            double a = 0, b = 0;
+
+            if (vals[0]->type.name == "double") {
+                a = vals[0]->as_double();
+                result_as_int = false;
+            } else if (vals[0]->type.name == "int") {
+                a = vals[0]->as_int();
+            }
+
+            if (vals[1]->type.name == "double") {
+                b = vals[1]->as_double();
+                result_as_int = false;
+            } else if (vals[1]->type.name == "int") {
+                b = vals[1]->as_int();
+            }
+
+            if (result_as_int) {
+                return create_literal(std::to_string((int)trunc(pow(a, b))), "int");
+            } else {
+                return create_literal(std::to_string(pow(a, b)), "double");
+            }
+        }
+        return null;
+    });
+
+    add_native_function("sqrt", [&](auto vals) {
+        if (!vals.empty()) {
+            double a = 0;
+
+            if (vals[0]->type.name == "double") {
+                a = vals[0]->as_double();
+            } else if (vals[0]->type.name == "int") {
+                a = vals[0]->as_int();
+            }
+
+            return create_literal(std::to_string(sqrt(a)), "double");
+        }
+        return null;
+    });
+    add_native_function("sin", [&](auto vals) {
+        if (!vals.empty()) {
+            double a = 0;
+
+            if (vals[0]->type.name == "double") {
+                a = vals[0]->as_double();
+            } else if (vals[0]->type.name == "int") {
+                a = vals[0]->as_int();
+            }
+
+            return create_literal(std::to_string(sin(a)), "double");
+        }
+        return null;
+    });
+    add_native_function("cos", [&](auto vals) {
+        if (!vals.empty()) {
+            double a = 0;
+
+            if (vals[0]->type.name == "double") {
+                a = vals[0]->as_double();
+            } else if (vals[0]->type.name == "int") {
+                a = vals[0]->as_int();
+            }
+
+            return create_literal(std::to_string(cos(a)), "double");
+        }
+        return null;
+    });
+
+    add_native_function("read", [&](std::vector<Value*> vals) {
+        std::string result;
+        for (auto v : vals) {
+            std::cout << value_to_string(*v);
+        }
+        std::cin.get();
+        std::getline(std::cin, result);
+        return create_literal(result, "string");
+    });
+
+    add_native_function("read_int", [&](std::vector<Value*> vals) {
+        int result;
+        for (auto v : vals) {
+            std::cout << value_to_string(*v);
+        }
+        std::cin >> result;
+//        std::getline(std::cin, result)
+        return create_literal(std::to_string(result), "int");
+    });
+
+    add_native_function("read_double", [&](std::vector<Value*> vals) {
+        double result;
+        for (auto v : vals) {
+            std::cout << value_to_string(*v);
+        }
+        std::cin >> result;
+        return create_literal(std::to_string(result), "double");
+    });
+
+    add_native_function("rand", [&](auto vals) {
+        double min = 0.0;
+        double max = 1.0;
+        if (vals.size() == 1) {
+            if (vals[0]->type.name == "double") {
+                max = vals[0]->as_double();
+            } else if (vals[0]->type.name == "int") {
+                max = vals[0]->as_int();
+            }
+        } else if (vals.size() >= 2) {
+            if (vals[0]->type.name == "double") {
+                min = vals[0]->as_double();
+            } else if (vals[0]->type.name == "int") {
+                min = vals[0]->as_int();
+            }
+
+            if (vals[1]->type.name == "double") {
+                max = vals[1]->as_double();
+            } else if (vals[1]->type.name == "int") {
+                max = vals[1]->as_int();
+            }
+        }
+
+        return create_literal(std::to_string(rand_double(min, max)), "double");
+    });
+
+    add_native_function("randInt", [&](auto vals) {
+        int min = 0;
+        int max = INT32_MAX;
+        if (vals.size() == 1) {
+            max = vals[0]->as_int();
+        } else if (vals.size() >= 2) {
+            min = vals[0]->as_int();
+            max = vals[1]->as_int();
+        }
+
+        return create_literal(std::to_string(rand_int(min, max)), "int");
+    });
+
+    add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
+
+    add_native_function("wait", [&](auto){ std::cin.get(); return null; });
 
     // Something about setting up the character that clears the screen?
 }
@@ -220,15 +376,15 @@ Value* Interpreter::visit(AST node) {
 std::string Interpreter::value_to_string(Value v) {
     std::string result;
     if (v.type.kind == PrimitiveType){
-        if (v.type == *globalTable.findSymbol("double")) {
+        if (v.type.name == "double") {
             auto as_double = v.as_double();
             result = std::to_string(as_double);
-        } else if (v.type == *globalTable.findSymbol("int")){
+        } else if (v.type.name == "int"){
             auto as_int = v.as_int();
             result = std::to_string(as_int);
-        } else if (v.type == *globalTable.findSymbol("string")){
+        } else if (v.type.name == "string"){
             result = v.as_string();
-        } else if (v.type == *globalTable.findSymbol("bool")){
+        } else if (v.type.name == "bool"){
             auto as_bool = v.as_bool();
             result = as_bool ? "true" : "false";
         } else if (v.type == null->type){

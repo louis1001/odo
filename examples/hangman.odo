@@ -1,5 +1,8 @@
-# TODO: functions in this file are not ready yet
-# randInt, read...
+# This demo is not working because it tries to
+# write to the indexing of a string.
+
+# When I implement functions, this will work again.
+# or maybe I can make strings mutable...
 
 string words[] = [
     "subsequent",
