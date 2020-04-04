@@ -11,6 +11,7 @@
 
 #include <string>
 #include <variant>
+#include <Parser/AST.h>
 
 #include "symbol.h"
 
@@ -28,6 +29,9 @@ struct Value {
 
     ValueType kind = NormalVal;
     int address = 0;
+
+    SymbolTable* scope;
+    std::vector<AST> params;
 
     std::set<Symbol> references;
     bool important = false;

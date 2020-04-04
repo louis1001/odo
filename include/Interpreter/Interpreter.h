@@ -64,7 +64,13 @@ class Interpreter {
 
     Value* visit_ListExpression(std::vector<AST> elements);
 
+    Value* visit_FuncExpression(std::vector<AST> params, const Token& retType, AST body);
+    Value* visit_FuncDecl(const Token& name, std::vector<AST> params, Token retType, AST body);
     Value* visit_FuncCall(AST expr, Token fname, std::vector<AST> args);
+    Value* visit_FuncBody(std::vector<AST> statements);
+    Value* visit_Return(AST val);
+
+    std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<AST>&);
 
     Symbol *getMemberVarSymbol(const AST& mem);
 

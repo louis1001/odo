@@ -320,19 +320,19 @@ Value* Interpreter::visit(AST node) {
 
         // Functions
         case FuncExpression:
-//            return visit_FuncExpression(node.lst_AST, node.type, node.nodes["body"]);
+            return visit_FuncExpression(node.lst_AST, node.type, node.nodes["body"]);
             break;
         case FuncDecl:
-//            return visit_FuncExpression(node.token, node.lst_AST, node.type, node.nodes["body"]);
+            return visit_FuncDecl(node.token, node.lst_AST, node.type, node.nodes["body"]);
             break;
         case FuncCall:
             return visit_FuncCall(node.nodes["fun"], node.token, node.lst_AST);
             break;
         case FuncBody:
-//            return visit_FuncBody(node.lst_AST);
+            return visit_FuncBody(node.lst_AST);
             break;
         case Return:
-//            return visit_Return(node.lst_AST, node.type, node.nodes["body"]);
+            return visit_Return(node.nodes["val"]);
             break;
 
         // Classes
@@ -1191,6 +1191,63 @@ Value* Interpreter::visit_UnaryOp(Token token, AST &left) {
     return null;
 }
 
+Value* Interpreter::visit_FuncExpression(std::vector<AST> params, const Token& retType, AST body){
+    auto returnType = retType.tp == NOTHING ? nullptr : currentScope->findSymbol(retType.value);
+
+    auto paramTypes = getParamTypes(params);
+
+    auto typeName = Symbol::constructFuncTypeName(returnType, paramTypes);
+
+    auto typeOfFunc = globalTable.findSymbol(typeName);
+
+    if (!typeOfFunc) {
+        typeOfFunc = globalTable.addFuncType(returnType, paramTypes);
+    }
+
+    auto funcValue = valueTable.addNewValue(*typeOfFunc, body);
+    funcValue->scope = currentScope;
+    funcValue->params = params;
+    funcValue->kind = FunctionVal;
+
+    return funcValue;
+}
+
+Value* Interpreter::visit_FuncDecl(const Token& name, std::vector<AST> params, Token retType, AST body){
+
+    if (currentScope->symbolExists(name.value)) {
+        // TODO: Handle Error
+        // Error! Redefinition of symbol name.value
+        throw 1;
+    }
+
+    auto returnType = retType.tp == NOTHING ? nullptr : currentScope->findSymbol(retType.value);
+
+    auto paramTypes = getParamTypes(params);
+
+    auto typeName = Symbol::constructFuncTypeName(returnType, paramTypes);
+
+    auto typeOfFunc = globalTable.findSymbol(typeName);
+
+    if (!typeOfFunc) {
+        typeOfFunc = globalTable.addFuncType(returnType, paramTypes);
+    }
+
+    auto funcValue = valueTable.addNewValue(*typeOfFunc, body);
+    funcValue->scope = currentScope;
+    funcValue->params = params;
+    funcValue->kind = FunctionVal;
+
+    auto funcSymbol = currentScope->addSymbol({
+        typeOfFunc,
+        name.value,
+        funcValue
+    });
+
+    funcValue->addReference(*funcSymbol);
+
+    return null;
+}
+
 Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args) {
     if (callDepth >= MAX_CALL_DEPTH) {
         //TODO: Handle Error
@@ -1202,6 +1259,8 @@ Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args)
 
         if (found_in_natives != native_functions.end()) {
             std::vector<Value*> arguments_visited;
+            arguments_visited.reserve(args.size());
+
             for(auto arg : args){
                 arguments_visited.push_back(visit(arg));
             }
@@ -1210,7 +1269,87 @@ Value *Interpreter::visit_FuncCall(AST expr, Token fname, std::vector<AST> args)
         }
     }
 
+    if (auto fVal = visit(expr);
+        fVal->kind == FunctionVal) {
+
+        auto funcScope = SymbolTable("func-scope", {}, fVal->scope);
+        auto calleeScope = currentScope;
+
+        std::vector<AST> newDecls;
+        std::vector< std::pair<Token, Value*> > initValues;
+
+        for (int i = 0; i < fVal->params.size(); i++) {
+            auto par = fVal->params[i];
+            if (args.size() > i) {
+                switch (par.tp) {
+                    case Declaration:
+                    case ListDeclaration:
+                    {
+                        auto newValue = visit(args[i]);
+                        if (newValue->type.kind == PrimitiveType) {
+                            newValue = valueTable.copyValue(*newValue);
+                        }
+                        initValues.push_back({par.token, newValue});
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+            newDecls.push_back(par);
+        }
+
+        currentScope = &funcScope;
+        callDepth++;
+
+        for (int i = 0; i < newDecls.size(); i++) {
+            visit(newDecls[i]);
+
+            if (i < initValues.size()) {
+                auto newVar = currentScope->findSymbol(initValues[i].first.value);
+                newVar->value = initValues[i].second;
+                initValues[i].second->addReference(*newVar);
+            }
+        }
+
+        auto body_as_ast = std::any_cast<AST>(fVal->val);
+
+        auto result = visit(body_as_ast);
+        currentScope = calleeScope;
+        valueTable.cleanUp(funcScope);
+
+        result->important = false;
+        callDepth--;
+        return result;
+    }
+
     throw 1;
+}
+
+Value *Interpreter::visit_FuncBody(std::vector<AST> statements) {
+    auto bodyScope = SymbolTable("func-body-scope", {}, currentScope);
+
+    currentScope = &bodyScope;
+
+    for (auto st : statements) {
+        visit(st);
+        if (returning) {
+            break;
+        }
+    }
+
+    valueTable.cleanUp(bodyScope);
+
+    auto ret = returning;
+    returning = nullptr;
+    return ret ? ret : null;
+}
+
+Value* Interpreter::visit_Return(AST val) {
+    returning = visit(val);
+    returning->important = true;
+    return null;
 }
 
 Symbol *Interpreter::getMemberVarSymbol(const AST& mem) {
@@ -1261,4 +1400,36 @@ Value* Interpreter::eval(std::string code) {
 //    }
 
     return result;
+}
+
+std::vector<std::pair<Symbol, bool>> Interpreter::getParamTypes(const std::vector<AST>& params) {
+    std::vector<std::pair<Symbol, bool>> ts;
+
+    for (auto par : params) {
+        switch (par.tp) {
+            case Declaration:
+                if (auto ft = currentScope->findSymbol(par.type.value)) {
+                    ts.emplace_back(*ft, par.nodes["initial"].tp == NoOp);
+                } else {
+                    // TODO: Handle Error
+                    // Error! Unknown type par.type.value
+                    throw 1;
+                }
+                break;
+            case ListDeclaration:
+                // FIXME: List types are registered as their basetype and not as listtype
+                if (auto ft = currentScope->findSymbol(par.type.value)) {
+                    ts.emplace_back(*ft, par.nodes["initial"].tp == NoOp);
+                } else {
+                    // TODO: Handle Error
+                    // Error! Unknown type par.type.value
+                }
+                break;
+            default:
+                // Error! Expected variable declaration inside function parenthesis.
+                break;
+        }
+    }
+
+    return ts;
 }

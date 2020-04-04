@@ -102,3 +102,35 @@ bool SymbolTable::symbolExists(const std::string& name) {
     return symbols.find(name) != symbols.end();
 }
 
+Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol, bool>>& params) {
+    auto funcName = Symbol::constructFuncTypeName(type, params);
+
+    auto foundAsFuncType = symbols.find(funcName);
+    if (foundAsFuncType != symbols.end())
+        return &foundAsFuncType->second;
+
+    if (type){
+        auto foundS = symbols.find(type->name);
+
+        if (foundS != symbols.end()) {
+            if (!foundS->second.isType) {
+                // TODO: Handle errors
+                // TypeError! Symbol(identifier) [sym.tp.name] is not a type
+                throw 1;
+            }
+        }
+    }
+
+    // Where should the param types go?
+    // In a member var of symbol, apparently... Ugh.
+    symbols[funcName] = Symbol{
+            type,
+            funcName,
+            .kind=FunctionType,
+            .isType=true,
+            .functionTypes=params
+    };
+
+    return &symbols[funcName];
+}
+
