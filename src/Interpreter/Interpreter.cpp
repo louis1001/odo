@@ -10,7 +10,7 @@
 
 double rand_int(int min, int max) {
     std::default_random_engine generator(clock());
-    std::uniform_int_distribution<int> distribution(min, max);
+    std::uniform_int_distribution<int> distribution(min, max-1);
     return distribution(generator);
 }
 
@@ -179,7 +179,7 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         for (auto v : vals) {
             std::cout << value_to_string(*v);
         }
-        std::cin.get();
+
         std::getline(std::cin, result);
         return create_literal(result, "string");
     });
@@ -190,7 +190,7 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
             std::cout << value_to_string(*v);
         }
         std::cin >> result;
-//        std::getline(std::cin, result)
+        std::cin.ignore();
         return create_literal(std::to_string(result), "int");
     });
 
@@ -200,6 +200,7 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
             std::cout << value_to_string(*v);
         }
         std::cin >> result;
+        std::cin.ignore();
         return create_literal(std::to_string(result), "double");
     });
 
