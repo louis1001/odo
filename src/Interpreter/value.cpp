@@ -36,8 +36,10 @@ Value* ValueTable::addNewValue(Symbol type, std::any val) {
 void ValueTable::removeReference(Symbol ref) {
     for (auto p : values) {
         Value v = p.second;
-        if (existsInSymbols(v.references, ref)) {
-            v.removeReference(ref);
+        auto indx = indexInArray(v.references, ref);
+
+        if (indx != v.references.end()) {
+            v.references.erase(ref);
         }
     }
 }
@@ -69,16 +71,23 @@ void ValueTable::cleanUp() {
 
 void ValueTable::cleanUp(SymbolTable &symTable) {
     for (auto ref : symTable.symbols) {
-        removeReference(ref.second);
-        if (ref.second.kind == ListType) {
-            auto list_val = ref.second.value;
+        if (ref.second.tp->kind == ListType) {
+            auto symbols_list = std::any_cast<std::vector<Symbol>>(ref.second.value->val);
 
-            auto elements = std::any_cast<std::vector<Symbol>>(list_val->val);
-            for (auto sym : elements) {
-                removeReference(sym);
+            for (auto list_ref : symbols_list) {
+                if (list_ref.value) {
+                    list_ref.value ->removeReference(list_ref);
+                }
+                /* FIXME: If a value has a reference, but the symbol doesn't
+                 * value is left hanging
+                 */
+                // removeReference(list_ref);
             }
         }
+        removeReference(ref.second);
     }
+
+    cleanUp();
 }
 
 Value* ValueTable::copyValue(const Value& v) {
@@ -92,7 +101,7 @@ void Value::addReference(const Symbol& ref) {
     references.insert(ref);
 }
 
-void Value::removeReference(const Symbol& ref) {
+void Value::removeReference(Symbol &ref) {
     auto indx = indexInArray(references, ref);
 
     if (indx != references.end()) {

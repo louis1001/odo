@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
 
         argumentFile.close();
 
+
         // Handle potential errors
         // Interpreting the text inside the file.
 //      try {

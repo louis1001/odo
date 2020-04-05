@@ -108,5 +108,7 @@ public:
     SymbolTable* getParent() { return parent; }
 
     Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol, bool>>& vector);
+
+    ~SymbolTable();
 };
 #endif //ODO_PORT_SYMBOL_H

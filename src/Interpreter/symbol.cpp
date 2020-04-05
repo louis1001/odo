@@ -134,3 +134,7 @@ Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbo
     return &symbols[funcName];
 }
 
+SymbolTable::~SymbolTable() {
+    symbols.clear();
+}
+

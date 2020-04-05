@@ -1340,6 +1340,7 @@ Value *Interpreter::visit_FuncBody(std::vector<AST> statements) {
     }
 
     valueTable.cleanUp(bodyScope);
+    currentScope = bodyScope.getParent();
 
     auto ret = returning;
     returning = nullptr;

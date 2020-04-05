@@ -37,7 +37,7 @@ struct Value {
     bool important = false;
 
     void addReference(const Symbol& ref);
-    void removeReference(const Symbol& ref);
+    void removeReference(Symbol &ref);
 
     bool as_bool();
     std::string as_string();
