@@ -1,0 +1,18 @@
+any greetings_func = func (string name, int messages, double temp)->{
+    println(
+        "Hello, ", name, ". You have ", j,
+        " new messages. The temparature is ", i,
+        " degrees."
+    )
+}
+
+double i = read_double("Write a double: ")
+
+int j = read_int("Write a int: ")
+
+string name = read("Write your name: ")
+
+clear()
+greetings_func(name, j, i)
+
+wait()

@@ -15,6 +15,8 @@ class Lexer {
 
     static bool isAlpha(char c);
 
+    char escape_char();
+
     void ignoreWhitespace();
     void ignoreMulticomment();
     void ignoreComment();

@@ -62,6 +62,8 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         for (auto v : values) {
             std::cout << value_to_string(*v);
         }
+        // Might make printing slower... I don't know of a better way of doing this.
+        std::cout.flush();
         return null;
     });
 
@@ -69,7 +71,7 @@ Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         for (auto v : values) {
             std::cout << value_to_string(*v);
         }
-        std::cout << "\n";
+        std::cout << std::endl;
         return null;
     });
 

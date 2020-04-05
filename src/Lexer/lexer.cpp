@@ -123,6 +123,29 @@ Token Lexer::id() {
     }
 }
 
+char Lexer::escape_char() {
+    const static std::map<char, char> escape = {
+            {'\\'   , '\\'},
+            {'n'    , '\n'},
+            {'r'    , '\r'},
+            {'t'    , '\t'},
+            {'b'    , '\b'},
+            {'a'    , '\a'},
+            {'v'    , '\v'},
+            {'\''   , '\''},
+            {'\"'   , '\"'},
+            {'?'    , '\?'},
+    };
+
+    auto found_in_dict = escape.find(current_char);
+    advance();
+    if (found_in_dict != escape.end()) {
+        return found_in_dict->second;
+    } else {
+        return current_char;
+    }
+}
+
 std::string Lexer::string() {
     char delimiter = current_char;
     advance();
@@ -130,8 +153,13 @@ std::string Lexer::string() {
     std::string result;
 
     while (current_char != delimiter){
-        result += current_char;
-        advance();
+        if (current_char == '\\') {
+            advance();
+            result += std::string(1, escape_char());
+        } else {
+            result += current_char;
+            advance();
+        }
     }
     advance();
 
