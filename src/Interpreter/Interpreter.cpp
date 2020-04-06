@@ -50,13 +50,12 @@ namespace Odo::Interpreting {
             "null"
         );
 
-        auto nullSym = Symbol{
+        auto nullSym = globalTable.addSymbol({
             .name = "null",
             .tp = &buildInTypes["NullType"],
             .value = null
-        };
-
-        globalTable.addSymbol(nullSym);
+        });
+        null->addReference(*nullSym);
 
         returning = nullptr;
 
