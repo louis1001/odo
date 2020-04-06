@@ -15,13 +15,16 @@ std::string readWhole(std::istream& in) {
 }
 
 int main(int argc, char* argv[]) {
+    using namespace Odo;
+
     std::string input_file;
 
     if (argc > 1) {
         input_file = argv[1];
     }
 
-    Interpreter inter;
+
+    Interpreting::Interpreter inter;
 
     // If there's a file to be read
     if (!input_file.empty()) {

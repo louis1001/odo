@@ -8,9 +8,10 @@
 #include "Interpreter/symbol.h"
 #include "Lexer/token.hpp"
 
-bool contains_type(std::vector<TokenType> arr, TokenType t);
+namespace Odo {
+    bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t);
 
-template<class T>
-bool contains_type(std::vector<Symbol> arr, Symbol t);
-
+    template<class T>
+    bool contains_type(std::vector<Interpreting::Symbol> arr, Interpreting::Symbol t);
+}
 #endif //ODO_PORT_UTILS_H

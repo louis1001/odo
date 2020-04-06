@@ -13,76 +13,76 @@
 #include <vector>
 
 #define MAX_CALL_DEPTH 1000
-typedef std::function<Value*(std::vector<Value*>)> NativeFunction;
+namespace Odo::Interpreting {
+    typedef std::function<Value*(std::vector<Value*>)> NativeFunction;
+    class Interpreter {
+        Parsing::Parser parser;
+        ValueTable valueTable;
 
-class Interpreter {
-    Parser parser;
-    ValueTable valueTable;
+        std::vector<Value> constructorParams;
 
-    std::vector<Value> constructorParams;
+        SymbolTable globalTable;
+        SymbolTable* currentScope;
+        SymbolTable replScope;
 
-    SymbolTable globalTable;
-    SymbolTable* currentScope;
-    SymbolTable replScope;
+        Value* null;
+        Symbol* any_type;
 
-    Value* null;
-    Symbol* any_type;
+        bool breaking = false;
+        bool continuing = false;
+        Value* returning;
+        int callDepth = 0;
 
-    bool breaking = false;
-    bool continuing = false;
-    Value* returning;
-    int callDepth = 0;
+        std::map<std::string, NativeFunction> native_functions;
 
-    std::map<std::string, NativeFunction> native_functions;
+        Value* create_literal(std::string val, const std::string& kind);
 
-    Value* create_literal(std::string val, const std::string& kind);
+        Value* visit_Double(Lexing::Token t);
+        Value* visit_Int(Lexing::Token t);
+        Value* visit_Bool(Lexing::Token t);
+        Value* visit_Str(Lexing::Token t);
 
-    Value* visit_Double(Token t);
-    Value* visit_Int(Token t);
-    Value* visit_Bool(Token t);
-    Value* visit_Str(Token t);
+        Value* visit_Block(std::vector<Parsing::AST> vector);
 
-    Value* visit_Block(std::vector<AST> vector);
+        Value* visit_BinOp(Lexing::Token token, Parsing::AST &ast, Parsing::AST &ast1);
+        Value* visit_UnaryOp(Lexing::Token token, Parsing::AST &ast);
 
-    Value* visit_BinOp(Token token, AST &ast, AST &ast1);
-    Value* visit_UnaryOp(Token token, AST &ast);
-
-    Value* visit_TernaryOp(AST cond, AST trueb, AST falseb);
+        Value* visit_TernaryOp(Parsing::AST cond, Parsing::AST trueb, Parsing::AST falseb);
 
 
-    Value* visit_If(AST cond, AST trueb, AST falseb);
-    Value* visit_For(AST ini, AST cond, AST incr, AST body);
-    Value* visit_While(const AST& cond, AST body);
-    Value* visit_Loop(AST body);
+        Value* visit_If(Parsing::AST cond, Parsing::AST trueb, Parsing::AST falseb);
+        Value* visit_For(Parsing::AST ini, Parsing::AST cond, Parsing::AST incr, Parsing::AST body);
+        Value* visit_While(const Parsing::AST& cond, Parsing::AST body);
+        Value* visit_Loop(Parsing::AST body);
 
-    Value* visit_VarDeclaration(const Token& var_type, Token name, AST initial);
-    Value* visit_ListDeclaration(const Token& var_type, Token name, AST initial);
-    Value* visit_Assignment(AST expr, AST val);
-    Value* visit_Variable(Token token);
+        Value* visit_VarDeclaration(const Lexing::Token& var_type, Lexing::Token name, Parsing::AST initial);
+        Value* visit_ListDeclaration(const Lexing::Token& var_type, Lexing::Token name, Parsing::AST initial);
+        Value* visit_Assignment(Parsing::AST expr, Parsing::AST val);
+        Value* visit_Variable(Lexing::Token token);
 
-    Value* visit_Index(AST val, AST expr);
+        Value* visit_Index(Parsing::AST val, Parsing::AST expr);
 
-    Value* visit_ListExpression(std::vector<AST> elements);
+        Value* visit_ListExpression(std::vector<Parsing::AST> elements);
 
-    Value* visit_FuncExpression(std::vector<AST> params, const Token& retType, AST body);
-    Value* visit_FuncDecl(const Token& name, std::vector<AST> params, Token retType, AST body);
-    Value* visit_FuncCall(AST expr, Token fname, std::vector<AST> args);
-    Value* visit_FuncBody(std::vector<AST> statements);
-    Value* visit_Return(AST val);
+        Value* visit_FuncExpression(std::vector<Parsing::AST> params, const Lexing::Token& retType, Parsing::AST body);
+        Value* visit_FuncDecl(const Lexing::Token& name, std::vector<Parsing::AST> params, Lexing::Token retType, Parsing::AST body);
+        Value* visit_FuncCall(Parsing::AST expr, Lexing::Token fname, std::vector<Parsing::AST> args);
+        Value* visit_FuncBody(std::vector<Parsing::AST> statements);
+        Value* visit_Return(Parsing::AST val);
 
-    std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<AST>&);
+        std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<Parsing::AST>&);
 
-    Symbol *getMemberVarSymbol(const AST& mem);
+        Symbol *getMemberVarSymbol(const Parsing::AST& mem);
 
-public:
-    void interpret(std::string);
-    Value* eval(std::string);
-    Value* visit(AST node);
-    explicit Interpreter(Parser p=Parser());
-    std::string value_to_string(Value);
-    int add_native_function(const std::string& name, NativeFunction callback);
+    public:
+        void interpret(std::string);
+        Value* eval(std::string);
+        Value* visit(Parsing::AST node);
+        explicit Interpreter(Parsing::Parser p=Parsing::Parser());
+        std::string value_to_string(Value);
+        int add_native_function(const std::string& name, NativeFunction callback);
 
-    Value* get_null() { return null; }
-};
-
+        Value* get_null() { return null; }
+    };
+}
 #endif //ODO_PORT_INTERPRETER_H

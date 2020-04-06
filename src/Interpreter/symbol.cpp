@@ -10,107 +10,76 @@ const static char charset[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
 
-std::string random_string(size_t length) {
-    // Taken from:
-    // https://stackoverflow.com/a/12468109
-    auto randchar = []() -> char
-    {
-        const size_t max_index = (sizeof(charset) - 1);
-        return charset[ rand() % max_index ];
-    };
-    std::string str(length,0);
-    std::generate_n( str.begin(), length, randchar );
-    return str;
-}
-
-SymbolTable::SymbolTable() = default;
-
-SymbolTable::SymbolTable(std::string name_, std::map<std::string, Symbol> types_, SymbolTable *parent_) {
-    scopeName = std::move(name_);
-    symbols = std::move(types_);
-    parent = parent_;
-
-    if (parent_ != nullptr) {
-        level = parent_->level + 1;
-    } else {
-        level = 0;
+namespace Odo::Interpreting {
+    std::string random_string(size_t length) {
+        // Taken from:
+        // https://stackoverflow.com/a/12468109
+        auto randchar = []() -> char
+        {
+            const size_t max_index = (sizeof(charset) - 1);
+            return charset[ rand() % max_index ];
+        };
+        std::string str(length,0);
+        std::generate_n( str.begin(), length, randchar );
+        return str;
     }
-}
 
-Symbol *SymbolTable::findSymbol(const std::string& name) {
-    auto foundS = symbols.find(name);
+    SymbolTable::SymbolTable() = default;
 
-    if (foundS == symbols.end()) {
-        if (parent != nullptr){
-            return parent->findSymbol(name);
+    SymbolTable::SymbolTable(std::string name_, std::map<std::string, Symbol> types_, SymbolTable *parent_) {
+        scopeName = std::move(name_);
+        symbols = std::move(types_);
+        parent = parent_;
+
+        if (parent_ != nullptr) {
+            level = parent_->level + 1;
         } else {
-            return nullptr;
+            level = 0;
         }
-    } else {
-        return &foundS->second;
-    }
-}
-
-Symbol* SymbolTable::addSymbol(Symbol sym) {
-    auto foundS = symbols.find(sym.name);
-
-    if (foundS != symbols.end()) {
-        // TODO: Handle errors
-        // NameError! Redefinition of symbol
-        throw 1;
     }
 
-    if (sym.tp != nullptr) {
-        if (!sym.tp->isType) {
+    Symbol *SymbolTable::findSymbol(const std::string& name) {
+        auto foundS = symbols.find(name);
+
+        if (foundS == symbols.end()) {
+            if (parent != nullptr){
+                return parent->findSymbol(name);
+            } else {
+                return nullptr;
+            }
+        } else {
+            return &foundS->second;
+        }
+    }
+
+    Symbol* SymbolTable::addSymbol(Symbol sym) {
+        auto foundS = symbols.find(sym.name);
+
+        if (foundS != symbols.end()) {
             // TODO: Handle errors
-            // TypeError! Symbol(identifier) [sym.tp.name] is not a type
+            // NameError! Redefinition of symbol
             throw 1;
         }
-    }
 
-    symbols[sym.name] = sym;
-
-    return &symbols[sym.name];
-}
-
-Symbol* SymbolTable::addListType(Symbol* tp) {
-    auto foundAsListType = symbols.find(tp->name+"[]");
-    if (foundAsListType != symbols.end())
-        return &foundAsListType->second;
-
-    auto foundS = symbols.find(tp->name);
-
-    if (foundS != symbols.end()) {
-        if (!foundS->second.isType) {
-            // TODO: Handle errors
-            // TypeError! Symbol(identifier) [sym.tp.name] is not a type
-            throw 1;
+        if (sym.tp != nullptr) {
+            if (!sym.tp->isType) {
+                // TODO: Handle errors
+                // TypeError! Symbol(identifier) [sym.tp.name] is not a type
+                throw 1;
+            }
         }
+
+        symbols[sym.name] = sym;
+
+        return &symbols[sym.name];
     }
 
-    symbols[tp->name+"[]"] = Symbol{
-        tp,
-        tp->name+"[]",
-        .kind=ListType,
-        .isType=true
-    };
+    Symbol* SymbolTable::addListType(Symbol* tp) {
+        auto foundAsListType = symbols.find(tp->name+"[]");
+        if (foundAsListType != symbols.end())
+            return &foundAsListType->second;
 
-    return &symbols[tp->name + "[]"];
-}
-
-bool SymbolTable::symbolExists(const std::string& name) {
-    return symbols.find(name) != symbols.end();
-}
-
-Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol, bool>>& params) {
-    auto funcName = Symbol::constructFuncTypeName(type, params);
-
-    auto foundAsFuncType = symbols.find(funcName);
-    if (foundAsFuncType != symbols.end())
-        return &foundAsFuncType->second;
-
-    if (type){
-        auto foundS = symbols.find(type->name);
+        auto foundS = symbols.find(tp->name);
 
         if (foundS != symbols.end()) {
             if (!foundS->second.isType) {
@@ -119,22 +88,55 @@ Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbo
                 throw 1;
             }
         }
+
+        symbols[tp->name+"[]"] = Symbol{
+            tp,
+            tp->name+"[]",
+            .kind=ListType,
+            .isType=true
+        };
+
+        return &symbols[tp->name + "[]"];
     }
 
-    // Where should the param types go?
-    // In a member var of symbol, apparently... Ugh.
-    symbols[funcName] = Symbol{
-            type,
-            funcName,
-            .kind=FunctionType,
-            .isType=true,
-            .functionTypes=params
-    };
+    bool SymbolTable::symbolExists(const std::string& name) {
+        return symbols.find(name) != symbols.end();
+    }
 
-    return &symbols[funcName];
+    Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol, bool>>& params) {
+        auto funcName = Symbol::constructFuncTypeName(type, params);
+
+        auto foundAsFuncType = symbols.find(funcName);
+        if (foundAsFuncType != symbols.end())
+            return &foundAsFuncType->second;
+
+        if (type){
+            auto foundS = symbols.find(type->name);
+
+            if (foundS != symbols.end()) {
+                if (!foundS->second.isType) {
+                    // TODO: Handle errors
+                    // TypeError! Symbol(identifier) [sym.tp.name] is not a type
+                    throw 1;
+                }
+            }
+        }
+
+        // Where should the param types go?
+        // In a member var of symbol, apparently... Ugh.
+        symbols[funcName] = Symbol{
+                type,
+                funcName,
+                .kind=FunctionType,
+                .isType=true,
+                .functionTypes=params
+        };
+
+        return &symbols[funcName];
+    }
+
+    SymbolTable::~SymbolTable() {
+        symbols.clear();
+    }
+
 }
-
-SymbolTable::~SymbolTable() {
-    symbols.clear();
-}
-

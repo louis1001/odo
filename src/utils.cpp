@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
-bool contains_type(std::vector<TokenType> arr, TokenType t) {
-    return std::find(arr.begin(), arr.end(), t) != arr.end();
+namespace Odo {
+    bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t) {
+        return std::find(arr.begin(), arr.end(), t) != arr.end();
+    }
 }

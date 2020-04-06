@@ -4,94 +4,97 @@
 
 #ifndef ODO_PORT_TOKEN_H
 #define ODO_PORT_TOKEN_H
-enum TokenType {
-    NULLT,           // empty value
-    EOFT,            // empty token
-    
-    // Built in literals
-    REAL,           // Floating Point number literal(e.g: 1.0, 2.0, 3.1415)
-    INT,            // Integer number literal  (e.g: 1, 2, 100)
-    BOOL,           // Boolean literal (e.g: true, false)
-    STR,            // String of text literal (e.g: "Hello, world")
+namespace Odo::Lexing {
 
-    ID,             // Identifier (e.g: i, var1)
+    enum TokenType {
+        NULLT,           // empty value
+        EOFT,            // empty token
 
-    NL,             // Newline character (\n)
-    COMMA,          // ,
-    SEMI,           // ;
-    COLON,          // :
+        // Built in literals
+        REAL,           // Floating Point number literal(e.g: 1.0, 2.0, 3.1415)
+        INT,            // Integer number literal  (e.g: 1, 2, 100)
+        BOOL,           // Boolean literal (e.g: true, false)
+        STR,            // String of text literal (e.g: "Hello, world")
 
-    DOT,
-    DCOLON,
-    QUEST,          // ?
+        ID,             // Identifier (e.g: i, var1)
 
-    ARROW,          // ->
+        NL,             // Newline character (\n)
+        COMMA,          // ,
+        SEMI,           // ;
+        COLON,          // :
 
-    // Operators
-    PLUS,           // +
-    PLUSE,          // +=
-    PLUSP,          // ++
-    MINUS,          // -
-    MINUSE,         // -=
-    MINUSP,         // --
+        DOT,
+        DCOLON,
+        QUEST,          // ?
 
-    MUL,            // *
-    MULE,           // *=
-    DIV,            // /
-    DIVE,           // /=
-    MOD,            // %
-    MODE,           // %=
+        ARROW,          // ->
 
-    AND,            // &&
-    OR,             // ||
+        // Operators
+        PLUS,           // +
+        PLUSE,          // +=
+        PLUSP,          // ++
+        MINUS,          // -
+        MINUSE,         // -=
+        MINUSP,         // --
 
-    POW,            // ^
-    POWE,           // ^=
+        MUL,            // *
+        MULE,           // *=
+        DIV,            // /
+        DIVE,           // /=
+        MOD,            // %
+        MODE,           // %=
 
-    ASS,            // =
+        AND,            // &&
+        OR,             // ||
 
-    EQU,            // ==
-    NOT,            // !
-    NEQ,            // !=
-    LT,             // <
-    GT,             // >
-    LET,            // <=
-    GET,            // >=
+        POW,            // ^
+        POWE,           // ^=
 
-    // Delimiters
-    LPAR,           // (
-    RPAR,           // )
-    LCUR,           // {
-    RCUR,           // }
-    LBRA,           // [
-    RBRA,           // ]
+        ASS,            // =
 
-    // Keywords
-    // Represent their literal value
-    IF,
-    ELSE,
-    FUNC,
-    RET,
-    FOR,
-    WHILE,
-    LOOP,
-    BREAK,
-    CONTINUE,
+        EQU,            // ==
+        NOT,            // !
+        NEQ,            // !=
+        LT,             // <
+        GT,             // >
+        LET,            // <=
+        GET,            // >=
 
-    DEBUG,
+        // Delimiters
+        LPAR,           // (
+        RPAR,           // )
+        LCUR,           // {
+        RCUR,           // }
+        LBRA,           // [
+        RBRA,           // ]
 
-    CLASS,
-    INIT,
-    NEW,
-    STATIC,
+        // Keywords
+        // Represent their literal value
+        IF,
+        ELSE,
+        FUNC,
+        RET,
+        FOR,
+        WHILE,
+        LOOP,
+        BREAK,
+        CONTINUE,
 
-    NOTHING
-};
+        DEBUG,
 
-struct Token {
-    TokenType tp = NOTHING;
-    std::string value;
+        CLASS,
+        INIT,
+        NEW,
+        STATIC,
 
-    Token(TokenType tp_, std::string val_);
-};
+        NOTHING
+    };
+
+    struct Token {
+        TokenType tp = NOTHING;
+        std::string value;
+
+        Token(TokenType tp_, std::string val_);
+    };
+}
 #endif

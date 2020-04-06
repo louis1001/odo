@@ -14,61 +14,61 @@
 #include <Parser/AST.h>
 
 #include "symbol.h"
+namespace Odo::Interpreting {
+    enum ValueType {
+        NormalVal,
+        ListVal,
+        FunctionVal,
+        ClassVal,
+        InstanceVal
+    };
 
-enum ValueType {
-    NormalVal,
-    ListVal,
-    FunctionVal,
-    ClassVal,
-    InstanceVal
-};
+    struct Value {
+        Symbol type;
+        std::any val;
 
-struct Value {
-    Symbol type;
-    std::any val;
+        ValueType kind = NormalVal;
+        int address = 0;
 
-    ValueType kind = NormalVal;
-    int address = 0;
+        SymbolTable* scope;
+        std::vector<Parsing::AST> params;
 
-    SymbolTable* scope;
-    std::vector<AST> params;
+        std::set<Symbol> references;
+        bool important = false;
 
-    std::set<Symbol> references;
-    bool important = false;
+        void addReference(const Symbol& ref);
+        void removeReference(Symbol &ref);
 
-    void addReference(const Symbol& ref);
-    void removeReference(Symbol &ref);
+        bool as_bool();
+        std::string as_string();
+        int as_int();
+        double as_double();
+        std::vector<Value*> as_list_value();
+        std::vector<Symbol> as_list_symbol();
+    };
 
-    bool as_bool();
-    std::string as_string();
-    int as_int();
-    double as_double();
-    std::vector<Value*> as_list_value();
-    std::vector<Symbol> as_list_symbol();
-};
+    class ValueTable {
+        std::map<int, Value> values;
 
-class ValueTable {
-    std::map<int, Value> values;
+        int last_index() {
+            return values.empty() ?
+            0 :
+            (--values.end())->first;
+        }
 
-    int last_index() {
-        return values.empty() ?
-        0 :
-        (--values.end())->first;
-    }
+    public:
+        ValueTable();
 
-public:
-    ValueTable();
+        Value* addNewValue(Symbol type, std::any val);
 
-    Value* addNewValue(Symbol type, std::any val);
+        void removeReference(Symbol ref);
 
-    void removeReference(Symbol ref);
+        Value* findFromPointer(int ptr);
 
-    Value* findFromPointer(int ptr);
+        void cleanUp();
+        void cleanUp(SymbolTable &symTable);
 
-    void cleanUp();
-    void cleanUp(SymbolTable &symTable);
-
-    Value* copyValue(const Value&);
-};
-
+        Value* copyValue(const Value&);
+    };
+}
 #endif //ODO_PORT_VALUE_H
