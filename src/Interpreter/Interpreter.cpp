@@ -1250,7 +1250,8 @@ namespace Odo::Interpreting {
         auto funcSymbol = currentScope->addSymbol({
             typeOfFunc,
             name.value,
-            funcValue
+            funcValue,
+            .kind=FunctionType
         });
 
         funcValue->addReference(*funcSymbol);
