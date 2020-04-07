@@ -872,7 +872,7 @@ namespace Odo::Interpreting {
                         std::vector<Symbol> new_elements;
 
                         for (auto el : leftVisited->as_list_symbol()) {
-                            auto val = el.value;;
+                            auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
                                 val = valueTable.copyValue(*val);
@@ -883,7 +883,7 @@ namespace Odo::Interpreting {
                             new_elements.push_back(new_symbol);
                         }
                         for (auto el : rightVisited->as_list_symbol()) {
-                            auto val = el.value;;
+                            auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
                                 val = valueTable.copyValue(*val);
@@ -918,6 +918,7 @@ namespace Odo::Interpreting {
                         }
 
                         Symbol new_symbol = {currentScope->findSymbol(val->type.name), "list_element", val};
+                        val->addReference(new_symbol);
                         new_elements.push_back(new_symbol);
                         new_list = valueTable.addNewValue(*globalTable.addListType(&val->type), new_elements);
                         new_list->kind = ListVal;
