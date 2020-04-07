@@ -1,11 +1,15 @@
 #include <iostream>
 #include "Lexer/lexer.hpp"
 #include "Parser/parser.h"
+#include "Exceptions/exception.h"
 
 #include <fstream>
 #include <sstream>
 
 #include "Interpreter/Interpreter.h"
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"      /* Red */
 
 std::string readWhole(std::istream& in) {
     // Taken from https://stackoverflow.com/a/116220
@@ -37,12 +41,15 @@ int main(int argc, char* argv[]) {
 
         argumentFile.close();
 
-
         // Handle potential errors
         // Interpreting the text inside the file.
-//      try {
-        inter.interpret(code);
-//      }
+
+        try {
+            inter.interpret(code);
+        } catch(Odo::Exceptions::Exception& e) {
+            std::cout << std::endl;
+            std::cerr << e.what() << "\n" << std::flush;
+        }
     // Else
     } else {
         bool continuing = true;
@@ -55,19 +62,23 @@ int main(int argc, char* argv[]) {
         while (continuing)
         {
             // Show an interactive prompt
-            std::cout << "> ";
+            std::cout << "> " << std::flush;
             std::string code;
             std::getline(std::cin, code);
 
             // Handle potential errors
-//        try
-            // Evaluate the input
-            auto result = inter.eval(code);
+            try {
+                // Evaluate the input
+                auto result = inter.eval(code);
 
-            // Show the result
-            if (result != inter.get_null())
-                std::cout<< inter.value_to_string(*result) << "\n";
-//        }
+                // Show the result
+                if (result != inter.get_null())
+                    std::cout<< inter.value_to_string(*result) << "\n";
+            } catch (Odo::Exceptions::Exception& e) {
+                std::cout << std::endl;
+                std::string msg = e.what();
+                std::cout << RED << msg << RESET << std::endl;
+            }
         }
         std::cout << "Bye! :)\n";
     }

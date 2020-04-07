@@ -8,17 +8,19 @@
 
 #include "Parser/parser.h"
 #include "utils.h"
+#include "Exceptions/exception.h"
 
 namespace Odo::Parsing{
     using namespace Lexing;
-    Parser::Parser(Lexer lexer) : lexer(std::move(lexer)) {}
 
     void Parser::eat(TokenType tp) {
         if (current_token.tp == tp) {
             current_token = lexer.getNextToken();
         } else {
-            // TODO: Handle exception
-            throw 1;
+            std::string err_msg = "Unexpected token '";
+            err_msg += current_token.value;
+            err_msg += "'";
+            throw Exceptions::SyntaxException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
         }
     }
 
@@ -58,11 +60,7 @@ namespace Odo::Parsing{
 
     AST Parser::program() {
         auto result = block();
-
-        if (current_token.tp != EOFT) {
-            // TODO: Handle exceptions
-            throw 1;
-        }
+        eat(EOFT);
 
         return result;
     }

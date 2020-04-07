@@ -63,7 +63,6 @@ namespace Odo::Parsing {
         AST factor();
     public:
 
-        explicit Parser(Lexing::Lexer lexer);
         Parser();
         AST program();
         std::vector<AST> program_content();

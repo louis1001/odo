@@ -1,8 +1,11 @@
 #include "Lexer/lexer.hpp"
 
+#include "Exceptions/exception.h"
+
 #include <utility>
 
 #define NULLCHR '\0'
+
 namespace Odo::Lexing {
     Lexer::Lexer(std::string txt): text(std::move(txt)) {
         current_pos = -1;
@@ -72,6 +75,10 @@ namespace Odo::Lexing {
             }
 
             advance();
+            if (current_char == NULLCHR){
+                std::string err_msg = "Missing end of comment: */";
+                throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
+            }
         }
     }
 
@@ -159,6 +166,10 @@ namespace Odo::Lexing {
         std::string result;
 
         while (current_char != delimiter){
+            if (current_char == NULLCHR){
+                std::string err_msg = "Missing end of string: " + std::string(1, delimiter);
+                throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
+            }
             if (current_char == '\\') {
                 advance();
                 result += std::string(1, escape_char());
@@ -188,6 +199,7 @@ namespace Odo::Lexing {
             if (current_char == '*') {
                 advance();
                 ignoreMulticomment();
+                ignoreWhitespace();
             } else {
                 current_pos -= 2;
                 advance();
@@ -350,7 +362,9 @@ namespace Odo::Lexing {
             }
         }
 
-        throw 1;
+        std::string err_msg = "Unknown character '" + std::string(1, current_char) + "'";
+        throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
+
     }
 
     bool Lexer::isAlpha(char c) {

@@ -3,6 +3,7 @@
 //
 
 #include "Interpreter/symbol.h"
+#include "Exceptions/exception.h"
 #include <utility>
 
 const static char charset[] =
@@ -56,16 +57,12 @@ namespace Odo::Interpreting {
         auto foundS = symbols.find(sym.name);
 
         if (foundS != symbols.end()) {
-            // TODO: Handle errors
-            // NameError! Redefinition of symbol
-            throw 1;
+            throw Exceptions::NameException("Redefinition of symbol " + sym.name);
         }
 
         if (sym.tp != nullptr) {
             if (!sym.tp->isType) {
-                // TODO: Handle errors
-                // TypeError! Symbol(identifier) [sym.tp.name] is not a type
-                throw 1;
+                throw Exceptions::TypeException("Symbol '" + sym.name + "' is not a type.");
             }
         }
 
@@ -83,9 +80,7 @@ namespace Odo::Interpreting {
 
         if (foundS != symbols.end()) {
             if (!foundS->second.isType) {
-                // TODO: Handle errors
-                // TypeError! Symbol(identifier) [sym.tp.name] is not a type
-                throw 1;
+                throw Exceptions::TypeException("Symbol '" + foundS->second.name + "' is not a type.");
             }
         }
 
@@ -115,9 +110,7 @@ namespace Odo::Interpreting {
 
             if (foundS != symbols.end()) {
                 if (!foundS->second.isType) {
-                    // TODO: Handle errors
-                    // TypeError! Symbol(identifier) [sym.tp.name] is not a type
-                    throw 1;
+                    throw Exceptions::TypeException("Symbol '" + foundS->second.name + "' is not a type.");
                 }
             }
         }

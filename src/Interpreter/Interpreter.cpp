@@ -3,6 +3,7 @@
 //
 
 #include "Interpreter/Interpreter.h"
+#include "Exceptions/exception.h"
 
 #include <cmath>
 #include <iostream>
@@ -61,7 +62,8 @@ namespace Odo::Interpreting {
 
         add_native_function("print", [&](auto values) {
             for (auto v : values) {
-                std::cout << value_to_string(*v);
+                if (v)
+                    std::cout << value_to_string(*v);
             }
             // Might make printing slower... I don't know of a better way of doing this.
             std::cout.flush();
@@ -70,7 +72,8 @@ namespace Odo::Interpreting {
 
         add_native_function("println", [&](auto values) {
             for (auto v : values) {
-                std::cout << value_to_string(*v);
+                if (v)
+                    std::cout << value_to_string(*v);
             }
             std::cout << std::endl;
             return null;
@@ -255,11 +258,11 @@ namespace Odo::Interpreting {
         add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
 
         add_native_function("wait", [&](auto){ std::cin.get(); return null; });
-
-        // Something about setting up the character that clears the screen?
     }
 
     Value* Interpreter::visit(AST node) {
+        current_line = node.line_number;
+        current_col = node.column_number;
         switch (node.tp) {
             // Normal Types
             case Double:
@@ -400,8 +403,11 @@ namespace Odo::Interpreting {
             } else if (v.type == null->type){
                 result = "null";
             } else {
-                // Error!
-                throw 1;
+                throw Exceptions::TypeException(
+                        "Invalid primitive type " + v.type.name,
+                        current_line,
+                        current_col
+                );
             }
         } else if (v.type.kind == ListType) {
             result += "[";
@@ -441,8 +447,11 @@ namespace Odo::Interpreting {
             newValue = val;
         } else if (kind == "bool") {
             if (val != "true" && val != "false"){
-                // Error!
-                throw 1;
+                throw Exceptions::ValueException(
+                    "Invalid value for bool expression.",
+                    current_line,
+                    current_col
+                );
             }
             newValue = val == "true";
         } else {
@@ -495,10 +504,15 @@ namespace Odo::Interpreting {
 
     Value* Interpreter::visit_TernaryOp(AST cond, AST trueb, AST falseb) {
         auto val_cond = visit(cond);
+        if (val_cond->type.name != "bool") {
+            throw Exceptions::TypeException(
+                    "Condition of ternary expression must be boolean.",
+                    cond.line_number,
+                    cond.column_number
+            );
+        }
         bool real_condition = std::any_cast<bool>(val_cond->val);
 
-        // TODO: Handle Errors
-        // TODO: How to check if value is actually bool?
         if (real_condition) {
             return visit(trueb);
         } else {
@@ -509,10 +523,15 @@ namespace Odo::Interpreting {
 
     Value* Interpreter::visit_If(AST cond, AST trueb, AST falseb) {
         auto val_cond = visit(cond);
+        if (val_cond->type.name != "bool") {
+            throw Exceptions::TypeException(
+                    "Condition of if statement must be boolean.",
+                    cond.line_number,
+                    cond.column_number
+            );
+        }
         bool real_condition = std::any_cast<bool>(val_cond->val);
 
-        // TODO: Handle Errors
-        // TODO: How to check if value is actually bool?
         if (real_condition) {
             return visit(trueb);
         } else {
@@ -526,9 +545,18 @@ namespace Odo::Interpreting {
         currentScope = &forScope;
 
         visit(std::move(ini));
-        // TODO: Handle error
-        // Error if cond is not bool
-        while(visit(cond)->as_bool()){
+
+        auto val_cond = visit(cond);
+        if (val_cond->type.name != "bool") {
+            throw Exceptions::TypeException(
+                    "Condition expression of for statement must be boolean.",
+                    cond.line_number,
+                    cond.column_number
+            );
+        }
+
+        auto actual_cond = val_cond->as_bool();
+        while(actual_cond){
             if (continuing) {
                 continuing = false;
                 continue;
@@ -546,6 +574,8 @@ namespace Odo::Interpreting {
             }
 
             visit(incr);
+
+            actual_cond = visit(cond)->as_bool();
         }
 
         currentScope = forScope.getParent();
@@ -558,9 +588,17 @@ namespace Odo::Interpreting {
         auto whileScope = SymbolTable("while:loop", {}, currentScope);
         currentScope = &whileScope;
 
-        // TODO: Handle error
-        // Error if cond is not bool
-        while(visit(cond)->as_bool()){
+        auto val_cond = visit(cond);
+        if (val_cond->type.name != "bool") {
+            throw Exceptions::TypeException(
+                    "Condition expression of for statement must be boolean.",
+                    cond.line_number,
+                    cond.column_number
+            );
+        }
+
+        auto actual_cond = val_cond->as_bool();
+        while(actual_cond){
             visit(body);
             if (breaking) {
                 breaking = false;
@@ -573,6 +611,8 @@ namespace Odo::Interpreting {
             if (returning) {
                 break;
             }
+
+            actual_cond = visit(cond)->as_bool();
         }
 
         currentScope = whileScope.getParent();
@@ -582,8 +622,6 @@ namespace Odo::Interpreting {
     }
 
     Value *Interpreter::visit_Loop(AST body) {
-        // TODO: Handle error
-        // Error if cond is not bool
         while(true){
             visit(body);
             if (breaking) {
@@ -604,14 +642,20 @@ namespace Odo::Interpreting {
 
     Value* Interpreter::visit_VarDeclaration(const Lexing::Token& var_type, Lexing::Token name, AST initial) {
         if (currentScope->symbolExists(name.value)) {
-            // TODO: Handle Errors
-            // NameError! Duplicate Variable name.value
+            throw Exceptions::NameException(
+                    "Variable called '" + name.value + "' already exists",
+                    current_line,
+                    current_col
+            );
         } else {
             auto type_ = currentScope->findSymbol(var_type.value);
 
             if (type_ == nullptr) {
-                // TODO: Handle Errors
-                // NameError! Unknown identifier var_type.value
+                throw Exceptions::NameException(
+                        "Unknown type '" + var_type.value + "'.",
+                        current_line,
+                        current_col
+                );
             }
 
             Symbol newVar;
@@ -651,16 +695,20 @@ namespace Odo::Interpreting {
 
     Value *Interpreter::visit_ListDeclaration(const Lexing::Token &var_type, Lexing::Token name, AST initial) {
         if (currentScope->symbolExists(name.value)) {
-            // TODO: Handle Errors
-            // NameError! Duplicate Variable name.value
-            throw 1;
+            throw Exceptions::NameException(
+                    "Variable called '" + name.value + "' already exists",
+                    current_line,
+                    current_col
+            );
         }
 
         auto base_type = currentScope->findSymbol(var_type.value);
         if (!(base_type && base_type->isType)) {
-            // TODO: Handle Errors
-            // NameError! Invalid type: base_type.value
-            throw 1;
+            throw Exceptions::TypeException(
+                    "Invalid type '" + var_type.value + "'.",
+                    current_line,
+                    current_col
+            );
         }
 
         Symbol* newVar;
@@ -728,8 +776,11 @@ namespace Odo::Interpreting {
                 newValue->addReference(*varSym);
             }
         } else {
-            // TODO: Handle Error
-            // Error! Assignment to unknown variable.
+            throw Exceptions::NameException(
+                    "Assignment to unknwon variable.",
+                    current_line,
+                    current_col
+            );
         }
         return null;
     }
@@ -746,9 +797,11 @@ namespace Odo::Interpreting {
                 return null;
             }
         } else {
-            // TODO: Handle Errors
-            // Error! Variable Named token.value was not found.
-            throw 1;
+            throw Exceptions::NameException(
+                    "Variable named '" + token.value + "' not defined.",
+                    current_line,
+                    current_col
+            );
         }
     }
 
@@ -770,14 +823,18 @@ namespace Odo::Interpreting {
                     std::string result(1, str[actual_indx]);
                     return create_literal(result, "string");
                 } else {
-                    // TODO: Handle Error
-                    // Error! Indexing string out of bounds
-                    throw 1;
+                    throw Exceptions::ValueException(
+                            "Indexing a string out of bounds.",
+                            current_line,
+                            current_col
+                    );
                 }
             } else {
-                // TODO: Handle Error
-                // Error! Strings can only be indexed with integer values
-                throw 1;
+                throw Exceptions::TypeException(
+                        "Strings can only be indexed with integer values.",
+                        current_line,
+                        current_col
+                );
             }
         } else if (visited_val->kind == ListVal){
             auto list_value = visited_val->as_list_value();
@@ -791,22 +848,26 @@ namespace Odo::Interpreting {
                     size_t actual_indx = list_value.size() - int_indx;
                     return list_value[actual_indx];
                 } else {
-                    // TODO: Handle Error
-                    // Error! Indexing string out of bounds
-                    throw 1;
+                    throw Exceptions::ValueException(
+                            "Indexing a list out of bounds.",
+                            current_line,
+                            current_col
+                    );
                 }
             } else {
-                // TODO: Handle Error
-                // Error! Lists can only be indexed with integer values
-                throw 1;
+                throw Exceptions::TypeException(
+                        "Lists can only be indexed with integer values.",
+                        current_line,
+                        current_col
+                );
             }
         } else {
-            // TODO: Handle error
-            //Error! Index operator is only valid for string and lists values.
-            throw 1;
+            throw Exceptions::ValueException(
+                    "Index operator is only valid for strings and lists values.",
+                    current_line,
+                    current_col
+            );
         }
-
-        return null;
     }
 
     Value *Interpreter::visit_ListExpression(std::vector<AST> elements) {
@@ -937,9 +998,11 @@ namespace Odo::Interpreting {
                         return create_literal(std::to_string(result), "double");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Numeric adition must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Addition operation can only be used with values of the same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::MINUS:
@@ -952,9 +1015,11 @@ namespace Odo::Interpreting {
                         return create_literal(std::to_string(result), "double");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Numeric substraction must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Numeric substraction can only be used with values of the same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::MUL:
@@ -999,9 +1064,11 @@ namespace Odo::Interpreting {
                     auto new_val = create_literal(new_string, "string");
                     return new_val;
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! multiplication operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Multiplication operation can only be used with values of the same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::DIV:
@@ -1009,9 +1076,11 @@ namespace Odo::Interpreting {
                     auto result = leftVisited->as_double() / rightVisited->as_double();
                     return create_literal(std::to_string(result), "double");
                 }else {
-                    // TODO: Handle Error
-                    // ValueError! Division operation must be with operands of type double
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Division operation can only be used with values of type double.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::MOD:
@@ -1019,9 +1088,11 @@ namespace Odo::Interpreting {
                     auto result = leftVisited->as_int() % rightVisited->as_int();
                     return create_literal(std::to_string(result), "int");
                 }else {
-                    // TODO: Handle Error
-                    // ValueError! Modulo operation must be with operands of type int
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Modulo operation can only be used with values of type int.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::POW:
@@ -1034,9 +1105,11 @@ namespace Odo::Interpreting {
                         return create_literal(std::to_string(result), "double");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Power operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Power operation can only be used with values of the same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::EQU:
@@ -1058,9 +1131,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::NEQ:
@@ -1082,9 +1157,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::LT:
@@ -1097,9 +1174,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::GT:
@@ -1112,9 +1191,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::LET:
@@ -1127,9 +1208,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::GET:
@@ -1142,9 +1225,11 @@ namespace Odo::Interpreting {
                         return create_literal(result ? "true" : "false", "bool");
                     }
                 } else {
-                    // TODO: Handle Error
-                    // ValueError! Comparison operation must be with operands of the same type
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Comparison operation can only be used with values of same type.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::AND:
@@ -1152,9 +1237,11 @@ namespace Odo::Interpreting {
                     auto result = leftVisited->as_bool() && rightVisited->as_bool();
                     return create_literal(result ? "true" : "false", "bool");
                 }else {
-                    // TODO: Handle Error
-                    // ValueError! Division operation must be with operands of type double
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Logical operator can only be used with values of type bool.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             case Lexing::OR:
@@ -1162,9 +1249,11 @@ namespace Odo::Interpreting {
                     auto result = leftVisited->as_bool() || rightVisited->as_bool();
                     return create_literal(result ? "true" : "false", "bool");
                 }else {
-                    // TODO: Handle Error
-                    // ValueError! Division operation must be with operands of type double
-                    throw 1;
+                    throw Exceptions::TypeException(
+                            "Logical operator can only be used with values of type bool.",
+                            current_line,
+                            current_col
+                    );
                 }
                 break;
             default:
@@ -1193,7 +1282,12 @@ namespace Odo::Interpreting {
                     result->val = actual_value * -1;
                     return result;
                 }
-                break;
+
+                throw Exceptions::TypeException(
+                        "Unary operator can be used with int or double values.",
+                        current_line,
+                        current_col
+                );
             default:
                 break;
         }
@@ -1225,9 +1319,11 @@ namespace Odo::Interpreting {
     Value* Interpreter::visit_FuncDecl(const Lexing::Token& name, std::vector<AST> params, Lexing::Token retType, AST body){
 
         if (currentScope->symbolExists(name.value)) {
-            // TODO: Handle Error
-            // Error! Redefinition of symbol name.value
-            throw 1;
+            throw Exceptions::NameException(
+                    "Variable called '" + name.value + "' already exists",
+                    current_line,
+                    current_col
+            );
         }
 
         auto returnType = retType.tp == Lexing::NOTHING ? nullptr : currentScope->findSymbol(retType.value);
@@ -1261,8 +1357,7 @@ namespace Odo::Interpreting {
 
     Value *Interpreter::visit_FuncCall(AST expr, Lexing::Token fname, std::vector<AST> args) {
         if (callDepth >= MAX_CALL_DEPTH) {
-            //TODO: Handle Error
-            // Error! Max call depth exceeded
+            throw Exceptions::RuntimeException("Callback depth exceeded.", current_line, current_col);
         }
 
         if (fname.tp != Lexing::NOTHING){
@@ -1335,7 +1430,7 @@ namespace Odo::Interpreting {
             return result;
         }
 
-        throw 1;
+        throw Exceptions::ValueException("Value is not a function.", current_line, current_col);
     }
 
     Value *Interpreter::visit_FuncBody(std::vector<AST> statements) {
@@ -1425,7 +1520,11 @@ namespace Odo::Interpreting {
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
-                        throw 1;
+                        throw Exceptions::RuntimeException(
+                                "Unknown type " + par.type.value + ".",
+                                par.line_number,
+                                par.column_number
+                        );
                     }
                     break;
                 case ListDeclaration:
@@ -1433,12 +1532,20 @@ namespace Odo::Interpreting {
                     if (auto ft = currentScope->findSymbol(par.type.value)) {
                         ts.emplace_back(*ft, par.nodes["initial"].tp == NoOp);
                     } else {
-                        // TODO: Handle Error
-                        // Error! Unknown type par.type.value
+                        throw Exceptions::RuntimeException(
+                                "Unknown type " + par.type.value + ".",
+                                par.line_number,
+                                par.column_number
+                        );
                     }
                     break;
                 default:
                     // Error! Expected variable declaration inside function parenthesis.
+                    throw Exceptions::SyntaxException(
+                            "Expected parameter declaration in function parenthesis",
+                            par.line_number,
+                            par.column_number
+                    );
                     break;
             }
         }

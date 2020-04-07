@@ -33,6 +33,9 @@ namespace Odo::Interpreting {
         Value* returning;
         int callDepth = 0;
 
+        unsigned int current_line;
+        unsigned int current_col;
+
         std::map<std::string, NativeFunction> native_functions;
 
         Value* create_literal(std::string val, const std::string& kind);
