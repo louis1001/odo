@@ -15,6 +15,8 @@ namespace Odo::Parsing {
         Lexing::Lexer lexer;
         Lexing::Token current_token = Lexing::Token(Lexing::EOFT, "");
 
+        AST add_dbg_info(AST);
+
         void eat(Lexing::TokenType tp);
 
         AST block();

@@ -68,15 +68,15 @@ namespace Odo::Parsing{
     }
 
     AST Parser::block() {
-        return { Block, .lst_AST=statement_list() };
+        return add_dbg_info({ Block, .lst_AST=statement_list() });
     }
 
     AST Parser::func_body(){
-        return { FuncBody, .lst_AST=statement_list() };
+        return add_dbg_info({ FuncBody, .lst_AST=statement_list() });
     }
 
     AST Parser::class_body(){
-        return { ClassBody, .lst_AST=statement_list() };
+        return add_dbg_info({ ClassBody, .lst_AST=statement_list() });
     }
 
     std::vector<AST> Parser::statement_list() {
@@ -124,13 +124,11 @@ namespace Odo::Parsing{
             case RET:
             {
                 eat(RET);
+                ex = add_dbg_info({
+                        Return
+                });
                 auto val = ternary_op();
-                ex = {
-                    Return,
-                    .nodes={
-                        {"val", val}
-                    }
-                };
+                ex.nodes["val"] = val;
                 break;
             }
             case FOR:
@@ -155,21 +153,17 @@ namespace Odo::Parsing{
                 break;
             case STATIC:
                 eat(STATIC);
-                ex = {StaticStatement, .nodes={
-                        {
-                            "statement",
-                            statement(false)
-                        }
-                    }
-                };
+                ex = add_dbg_info({StaticStatement});
+                ex.nodes["statement"] = statement(false);
                 break;
             case EOFT:
             case RCUR:
             case RPAR:
-                return AST { NoOp };
+                return add_dbg_info({ NoOp });
             case DEBUG:
+                ex = add_dbg_info({Debug});
                 eat(DEBUG);
-                return AST{Debug};
+                return ex;
             default:
                 ex = ternary_op();
                 break;
@@ -183,6 +177,7 @@ namespace Odo::Parsing{
     }
 
     AST Parser::classstatement() {
+        AST result = add_dbg_info({Class});
         auto name = current_token;
 
         eat(ID);
@@ -199,17 +194,15 @@ namespace Odo::Parsing{
         auto body = class_body();
         eat(RCUR);
 
-        return {
-            Class,
-            .token=name,
-            .type=inherits,
-            .nodes={
-                {"body", body}
-            }
-        };
+        result.token = name;
+        result.type = inherits;
+        result.nodes["body"] = body;
+
+        return result;
     }
 
     AST Parser::newInitializer() {
+        AST result = add_dbg_info({ClassInitializer});
         auto name = current_token;
         eat(ID);
 
@@ -228,14 +221,14 @@ namespace Odo::Parsing{
             eat(RPAR);
         }
 
-        return {
-                ClassInitializer,
-                .token=name,
-                .lst_AST=argList
-        };
+        result.token = name;
+        result.lst_AST = argList;
+
+        return result;
     }
 
     AST Parser::constructor() {
+        AST result = add_dbg_info({ConstructorDecl});
         eat(LPAR);
         auto params = parameters();
         eat(RPAR);
@@ -244,16 +237,13 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        return {
-            ConstructorDecl,
-            .lst_AST=params,
-            .nodes={
-                {"body", bl}
-            }
-        };
+        result.lst_AST = params;
+        result.nodes["body"] = bl;
+        return result;
     }
 
     AST Parser::loopstatement() {
+        AST result = add_dbg_info({ Loop });
         AST body;
 
         if (current_token.tp == LCUR) {
@@ -263,14 +253,13 @@ namespace Odo::Parsing{
         } else {
             body = statement();
         }
+        result.nodes["body"] = body;
 
-        return {
-            Loop,
-            .nodes={{"body", body}}
-        };
+        return result;
     }
 
     AST Parser::whilestatement() {
+        AST result = add_dbg_info({While});
         auto comp = ternary_op();
 
         AST body;
@@ -281,17 +270,16 @@ namespace Odo::Parsing{
         } else {
             body = statement();
         }
-
-        return {
-                While,
-                .nodes={
-                    {"body", body},
-                    {"cond", comp}
-                }
+        result.nodes = {
+                {"body", body},
+                {"cond", comp}
         };
+
+        return result;
     }
 
     AST Parser::forstatement() {
+        AST result = add_dbg_info({For});
         eat(LPAR);
         auto initializer = statement();
 
@@ -311,18 +299,18 @@ namespace Odo::Parsing{
             body = statement();
         }
 
-        return {
-            For,
-            .nodes={
+        result.nodes = {
                 {"ini", initializer},
                 {"cond", compar},
                 {"incr", inc},
                 {"body", body},
-            }
         };
+
+        return result;
     }
 
     AST Parser::ifstatement() {
+        AST result = add_dbg_info({If});
         auto exp = ternary_op();
 
         if (current_token.tp == LCUR) {
@@ -345,39 +333,36 @@ namespace Odo::Parsing{
                     elseBlock = ifstatement();
                 }
 
-                return {
-                    If,
-                    .nodes={
+                result.nodes = {
                         {"expr", exp},
                         {"trueb", trueBlock},
                         {"falseb", elseBlock}
-                    }
                 };
+
+                return result;
             }
 
-            return {
-                If,
-                .nodes={
+            result.nodes = {
                     {"expr", exp},
                     {"trueb", trueBlock},
-                    {"falseb", {NoOp}}
-                }
+                    {"falseb", {}}
             };
-        } else {
-            auto trueSta = statement();
 
-            return {
-                If,
-                .nodes={
+            return result;
+        } else {
+
+            result.nodes = {
                     {"expr", exp},
-                    {"trueb", trueSta},
-                    {"falseb", {NoOp}}
-                }
+                    {"trueb", statement()},
+                    {"falseb", {}}
             };
+
+            return result;
         }
     }
 
     AST Parser::function() {
+        AST result = add_dbg_info({FuncDecl});
         auto name = current_token;
         eat(ID);
 
@@ -397,13 +382,12 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        return {
-            FuncDecl,
-            .token=name,
-            .lst_AST=params,
-            .type=retType,
-            .nodes={{"body", bl}}
-        };
+        result.token = name;
+        result.lst_AST = params;
+        result.type = retType;
+        result.nodes = {{"body", bl}};
+
+        return result;
     }
 
     std::vector<AST> Parser::parameters() {
@@ -426,6 +410,7 @@ namespace Odo::Parsing{
     }
 
     AST Parser::declaration(const Token& token) {
+        AST result = add_dbg_info({});
         auto varName = current_token;
         eat(ID);
 
@@ -447,12 +432,12 @@ namespace Odo::Parsing{
                 assignment = ternary_op();
             }
 
-            return {
-                ListDeclaration,
-                .type=token,
-                .token=varName,
-                .nodes={{"initial", assignment}}
-            };
+            result.tp = ListDeclaration;
+            result.type=token;
+            result.token=varName;
+            result.nodes = {{"initial", assignment}};
+
+            return result;
         }
 
         if (current_token.tp == ASS) {
@@ -460,12 +445,12 @@ namespace Odo::Parsing{
             assignment = ternary_op();
         }
 
-        return {
-                Declaration,
-                .type=token,
-                .token=varName,
-                .nodes={{"initial", assignment}}
-        };
+        result.tp = Declaration;
+        result.type=token;
+        result.token=varName;
+        result.nodes = {{"initial", assignment}};
+
+        return result;
     }
 
     AST Parser::ternary_op() {
@@ -474,20 +459,19 @@ namespace Odo::Parsing{
         auto comp = or_comparison();
 
         while (current_token.tp == QUEST) {
+            AST result =add_dbg_info({TernaryOp});
             eat(QUEST);
             auto trueSection = or_comparison();
 
             eat(COLON);
             auto falseSection = or_comparison();
 
-            comp = {
-                TernaryOp,
-                .nodes= {
-                    { "cond", comp },
-                    { "trueb", trueSection },
-                    { "falseb", falseSection }
-                }
+            result.nodes = {
+                { "cond", comp },
+                { "trueb", trueSection },
+                { "falseb", falseSection }
             };
+            comp = result;
         }
 
         return comp;
@@ -497,17 +481,14 @@ namespace Odo::Parsing{
         auto node = and_comparison();
 
         while (current_token.tp == OR) {
-            auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=current_token});
 
             eat(OR);
-            node = {
-                BinOp,
-                .token=c_token,
-                .nodes={
-                    {"left", node},
-                    {"right", and_comparison()}
-                }
+            result.nodes = {
+                {"left", node},
+                {"right", and_comparison()}
             };
+            node = result;
         }
 
         return node;
@@ -517,16 +498,14 @@ namespace Odo::Parsing{
         auto node = comparison();
 
         while (current_token.tp == AND) {
-            auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=current_token});
             eat(AND);
-            node = {
-                BinOp,
-                .token=c_token,
-                .nodes={
-                    {"left", node},
-                    {"right", comparison()}
-                }
+
+            result.nodes = {
+                {"left", node},
+                {"right", comparison()}
             };
+            node = result;
         }
         return node;
     }
@@ -537,15 +516,13 @@ namespace Odo::Parsing{
 
         while (contains_type(compType, current_token.tp)) {
             auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=c_token});
             eat(current_token.tp);
-            exp = {
-                BinOp,
-                .token=c_token,
-                .nodes={
-                    {"left", exp},
-                    {"right", expression()}
-                }
+            result.nodes = {
+                {"left", exp},
+                {"right", expression()}
             };
+            exp = result;
         }
 
         return exp;
@@ -558,16 +535,15 @@ namespace Odo::Parsing{
 
         while (contains_type(exprType, current_token.tp)) {
             auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=c_token});
 
             eat(current_token.tp);
-            node = {
-                BinOp,
-                .token=c_token,
-                .nodes={
-                    {"left", node},
-                    {"right", term()}
-                }
+
+            result.nodes = {
+                {"left", node},
+                {"right", term()}
             };
+            node = result;
         }
 
         return node;
@@ -580,16 +556,15 @@ namespace Odo::Parsing{
 
         while (contains_type(termType, current_token.tp)) {
             auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=c_token});
 
             eat(current_token.tp);
-            node = {
-                BinOp,
-                .token=c_token,
-                .nodes={
+
+            result.nodes = {
                     {"left", node},
                     {"right", prod()}
-                }
             };
+            node = result;
         }
 
         return node;
@@ -600,16 +575,14 @@ namespace Odo::Parsing{
 
         while (current_token.tp == POW) {
             auto c_token = current_token;
+            AST result = add_dbg_info({BinOp, .token=c_token});
 
             eat(POW);
-            node = {
-                BinOp,
-                .token=c_token,
-                .nodes={
-                    {"left", node},
-                    {"right", postfix()}
-                }
+            result.nodes = {
+                {"left", node},
+                {"right", postfix()}
             };
+            node = result;
         }
 
         return node;
@@ -628,6 +601,7 @@ namespace Odo::Parsing{
         };
 
         while (contains_type(postFixOp, current_token.tp)) {
+            AST result = add_dbg_info({});
             switch (current_token.tp) {
                 case PLUSP:
                 case MINUSP:
@@ -649,15 +623,18 @@ namespace Odo::Parsing{
                                  Int,
                                  .token=one
                             }},
-                        }};
-
-                    node = {
-                        Assignment,
-                        .nodes={
-                            {"token", node},
-                            {"right", operation}
-                        }
+                        },
+                        .line_number=result.line_number,
+                        .column_number=result.column_number
                     };
+
+                    result.tp = Assignment,
+                    result.nodes={
+                        {"token", node},
+                        {"right", operation}
+                    };
+
+                    node = result;
                     break;
                 }
                 case PLUSE:
@@ -687,47 +664,45 @@ namespace Odo::Parsing{
                         .nodes={
                             {"left", node},
                             {"right", expression()}
-                        }
+                        },
+                        .line_number = result.line_number,
+                        .column_number = result.column_number
                     };
 
-                    node = {
-                        Assignment,
-                        .nodes={
-                            {"token", node},
-                            {"right", operation}
-                        }
+                    result.tp = Assignment;
+                    result.nodes = {
+                        {"token", node},
+                        {"right", operation}
                     };
 
+                    node = result;
                     break;
                 }
                 case DOT:
                 {
+                    result.tp = MemberVar;
                     eat(DOT);
-                    auto member = current_token;
-                    eat(ID);
-                    node = {
-                            MemberVar,
-                            .token=member,
-                            .nodes={
-                                    {"inst", node},
-                            }
+                    result.token = current_token;
+                    result.nodes = {
+                        {"inst", node},
                     };
+                    eat(ID);
+                    node = result;
                     break;
                 }
                 case DCOLON:
                 {
+                    result.tp = StaticVar;
                     eat(DCOLON);
-                    auto member = current_token;
+                    result.token = current_token;
                     eat(ID);
-                    node = {
-                        StaticVar,
-                        .token=member,
-                        .nodes={{"inst", node}}
-                    };
+                    result.nodes = {{"inst", node}};
+                    node = result;
                     break;
                 }
                 case LPAR:
                 {
+                    result.tp = FuncCall;
                     eat(LPAR);
 
                     std::vector<AST> argList;
@@ -741,6 +716,7 @@ namespace Odo::Parsing{
                         }
                         ignore_nl();
                     }
+                    result.lst_AST = argList;
 
                     eat(RPAR);
                     Token name(NOTHING, "");
@@ -748,34 +724,30 @@ namespace Odo::Parsing{
                         name = node.token;
                     }
 
-                    node = {
-                        FuncCall,
-                        .nodes = {{"fun", node}},
-                        .token=name,
-                        .lst_AST=argList
-                    };
+                    result.token = name;
+                    result.nodes = {{"fun", node}};
+
+                    node = result;
                     break;
                 }
                 case LBRA:
                     eat(LBRA);
-                    node = {
-                        Index,
-                        .nodes = {
-                            {"val", node},
-                            {"expr", ternary_op()},
-                        }
+                    result.tp = Index;
+                    result.nodes = {
+                        {"val", node},
+                        {"expr", ternary_op()},
                     };
+                    node = result;
                     eat(RBRA);
                     break;
                 case ASS:
-                    eat(ASS);
-                    node = {
-                        Assignment,
-                        .nodes = {
-                            {"token", node},
-                            {"right", ternary_op()}
-                        }
+                    result.tp = Assignment;
+                    result.nodes = {
+                        {"token", node},
                     };
+                    eat(ASS);
+                    result.nodes["right"] = ternary_op();
+                    node = result;
                     break;
                 default:
                     break;
@@ -786,6 +758,7 @@ namespace Odo::Parsing{
     }
 
     AST Parser::funcexpression() {
+        AST result = add_dbg_info({FuncExpression});
         eat(LPAR);
         auto params = parameters();
 
@@ -802,14 +775,11 @@ namespace Odo::Parsing{
             body = ternary_op();
         }
 
-        return {
-            FuncExpression,
-            .lst_AST=params,
-            .type=Token(NOTHING, ""),
-            .nodes={
-                {"body", body}
-            }
-        };
+        result.lst_AST = params;
+        result.type = Token(NOTHING, "");
+        result.nodes = {{"body", body}};
+
+        return result;
     }
 
     AST Parser::factor() {
@@ -817,57 +787,57 @@ namespace Odo::Parsing{
         switch (current_token.tp) {
             case REAL:
             {
-                auto c = current_token;
-                eat(REAL);
-                return {
+                auto double_literal = add_dbg_info({
                     Double,
-                    .token=c
-                };
+                    .token=current_token
+               });
+                eat(REAL);
+                return double_literal;
             }
             case INT:
             {
-                auto c = current_token;
+                auto int_literal = add_dbg_info({
+                    Int,
+                    .token=current_token
+                });
                 eat(INT);
-                return {
-                        Int,
-                        .token=c
-                };
+                return int_literal;
             }
             case STR:
             {
-                auto c = current_token;
+                auto str_literal = add_dbg_info({
+                    Str,
+                    .token=current_token
+                });
                 eat(STR);
-                return {
-                        Str,
-                        .token=c
-                };
+                return str_literal;
             }
             case BOOL:
             {
-                auto c = current_token;
-                eat(BOOL);
-                return {
+                auto bool_literal = add_dbg_info({
                     Bool,
-                    .token=c
-                };
+                    .token=current_token
+                });
+                eat(BOOL);
+                return bool_literal;
             }
             case NOT:
             {
                 eat(NOT);
-                auto c = ternary_op();
-                AST notComp = {
+                auto result = add_dbg_info({
                     BinOp,
                     .token=Token(EQU, "=="),
                     .nodes={
-                        {"left", c},
-                        {"right", AST {
+                            {"right", AST {
                                 Bool,
                                 .token=Token(BOOL, "false")
-                        }}
+                            }}
                     }
-                };
+                });
+                auto c = ternary_op();
+                result.nodes["left"] = c;
 
-                return notComp;
+                return result;
             }
             case LPAR:
             {
@@ -879,13 +849,13 @@ namespace Odo::Parsing{
             case PLUS:
             case MINUS:
             {
-                auto op = current_token;
-                eat(current_token.tp);
-                return {
+                auto result = add_dbg_info({
                     UnaryOp,
-                    .token=op,
-                    .nodes={{ "right", factor() }}
-                };
+                    .token=current_token,
+                });
+                eat(current_token.tp);
+                result.nodes["right"] = factor();
+                return result;
             }
             case NEW:
                 eat(NEW);
@@ -893,19 +863,18 @@ namespace Odo::Parsing{
             case ID:
             {
                 auto idToken = current_token;
+                auto result = add_dbg_info({Variable, .token=idToken});
                 eat(ID);
 
                 if (current_token.tp == ID) {
                     return declaration(idToken);
                 }
 
-                return {
-                        Variable,
-                        .token=idToken
-                };
+                return result;
             }
             case LBRA:
             {
+                auto list_expr = add_dbg_info({ListExpression});
                 eat(LBRA);
                 std::vector<AST> contents;
                 if (current_token.tp != RBRA) {
@@ -918,15 +887,16 @@ namespace Odo::Parsing{
                         }
                     }
                 }
+                list_expr.lst_AST = contents;
                 eat(RBRA);
-                return {
-                        ListExpression,
-                        .lst_AST=contents
-                };
+                return list_expr;
             }
             case NULLT:
+            {
+                auto null_ret = add_dbg_info({Null});
                 eat(NULLT);
-                return { Null };
+                return null_ret;
+            }
             case FUNC:
                 eat(FUNC);
                 return funcexpression();
@@ -934,12 +904,18 @@ namespace Odo::Parsing{
                 break;
         }
 
-        return AST { NoOp };
+        return add_dbg_info({ NoOp });
     }
 
     Parser::Parser(): lexer(Lexer()) {}
 
     std::vector<AST> Parser::program_content() {
         return statement_list();
+    }
+
+    AST Parser::add_dbg_info(AST ins) {
+        ins.line_number = lexer.getCurrentLine();
+        ins.column_number = lexer.getCurrentCol();
+        return std::move(ins);
     }
 }

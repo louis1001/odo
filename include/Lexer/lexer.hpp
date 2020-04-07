@@ -32,5 +32,8 @@ namespace Odo::Lexing {
         void advance();
         Token getNextToken();
         void reset();
+
+        unsigned int getCurrentLine() { return current_line; }
+        unsigned int getCurrentCol() { return current_pos - line_start; }
     };
 }

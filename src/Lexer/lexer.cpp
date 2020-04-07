@@ -7,6 +7,8 @@ namespace Odo::Lexing {
     Lexer::Lexer(std::string txt): text(std::move(txt)) {
         current_pos = -1;
         current_char = NULLCHR;
+        current_line = 1;
+        line_start = (int)current_pos;
         advance();
     }
 
@@ -34,6 +36,10 @@ namespace Odo::Lexing {
         current_pos++;
 
         if (current_pos < text.length()) {
+            if (current_char == '\n') {
+                current_line++;
+                line_start = (int)current_pos;
+            }
             current_char = text.at(current_pos);
         } else {
             current_char = NULLCHR;
@@ -335,8 +341,6 @@ namespace Odo::Lexing {
                     }
                 case '\n':
                     advance();
-                    current_line += 1;
-                    line_start = (int)current_pos;
 
                     return Token(NL, "\n");
                 default:
@@ -353,6 +357,8 @@ namespace Odo::Lexing {
 
     void Lexer::reset() {
         current_pos = -1;
+        current_line = 1;
+        line_start = (int)current_pos;
         advance();
     }
 }

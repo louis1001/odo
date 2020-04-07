@@ -67,6 +67,9 @@ namespace Odo::Parsing {
         std::map<std::string, AST> nodes;
 
         std::vector<AST> lst_AST;
+
+        unsigned int line_number{};
+        unsigned int column_number{};
     };
 }
 #endif //ODO_PORT_AST_H
