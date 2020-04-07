@@ -60,6 +60,7 @@ namespace Odo::Interpreting {
         ValueTable();
 
         Value* addNewValue(Symbol type, std::any val);
+        Value* addNewValue(Value);
 
         void removeReference(Symbol ref);
 

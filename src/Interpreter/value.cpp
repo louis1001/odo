@@ -34,6 +34,21 @@ namespace Odo::Interpreting {
         return &values[newAddress];
     }
 
+    Value* ValueTable::addNewValue(Value val) {
+        int newAddress = last_index() + 1;
+
+        Value newValue = {
+                std::move(val.type),
+                std::move(val.val),
+                val.kind,
+                newAddress
+        };
+
+        values[newAddress] = newValue;
+
+        return &values[newAddress];
+    }
+
     void ValueTable::removeReference(Symbol ref) {
         for (auto p : values) {
             Value v = p.second;
@@ -59,7 +74,7 @@ namespace Odo::Interpreting {
         auto pm_it = values.begin();
         while(pm_it != values.end())
         {
-            if (pm_it->second.references.empty())
+            if (pm_it->second.references.empty() && !pm_it->second.important)
             {
                 pm_it = values.erase(pm_it);
             }
@@ -73,16 +88,18 @@ namespace Odo::Interpreting {
     void ValueTable::cleanUp(SymbolTable &symTable) {
         for (auto ref : symTable.symbols) {
             if (ref.second.tp->kind == ListType) {
-                auto symbols_list = std::any_cast<std::vector<Symbol>>(ref.second.value->val);
+                if (ref.second.value) {
+                    auto symbols_list = std::any_cast<std::vector<Symbol>>(ref.second.value->val);
 
-                for (auto list_ref : symbols_list) {
-                    if (list_ref.value) {
-                        list_ref.value ->removeReference(list_ref);
-                    }
-                    /* FIXME: If a value has a reference, but the symbol doesn't
-                     * value is left hanging
-                     */
-                    // removeReference(list_ref);
+//                    for (auto list_ref : symbols_list) {
+//                        if (list_ref.value) {
+//                            list_ref.value ->removeReference(list_ref);
+//                        }
+//                        /* FIXME: If a value has a reference, but the symbol doesn't
+//                         * value is left hanging
+//                         */
+//                        removeReference(list_ref);
+//                    }
                 }
             }
             removeReference(ref.second);
@@ -92,10 +109,7 @@ namespace Odo::Interpreting {
     }
 
     Value* ValueTable::copyValue(const Value& v) {
-        return addNewValue(
-            v.type,
-            v.val
-        );
+        return addNewValue(v);
     }
 
     void Value::addReference(const Symbol& ref) {
