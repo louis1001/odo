@@ -333,12 +333,14 @@ namespace Odo::Lexing {
                         advance();
                         return Token(AND, "&&");
                     }
+                    break;
                 case '|':
                     advance();
                     if (current_char == '|'){
                         advance();
                         return Token(OR, "||");
                     }
+                    break;
                 case '\n':
                     advance();
 
