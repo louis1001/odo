@@ -10,6 +10,9 @@
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"        /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
 
 std::string readWhole(std::istream& in) {
     // Taken from https://stackoverflow.com/a/116220
@@ -72,8 +75,10 @@ int main(int argc, char* argv[]) {
                 auto result = inter.eval(code);
 
                 // Show the result
-                if (result != inter.get_null())
-                    std::cout<< inter.value_to_string(*result) << "\n";
+                if (result != inter.get_null()){
+                    auto as_str = inter.value_to_string(*result);
+                    std::cout << GREEN << as_str << RESET << "\n";
+                }
             } catch (Odo::Exceptions::Exception& e) {
                 std::cout << std::endl;
                 std::string msg = e.what();
