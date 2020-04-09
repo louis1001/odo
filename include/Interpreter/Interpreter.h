@@ -75,7 +75,7 @@ namespace Odo::Interpreting {
 
         std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<Parsing::AST>&);
 
-        Symbol *getMemberVarSymbol(const Parsing::AST& mem);
+        Symbol *getMemberVarSymbol(Parsing::AST mem);
 
     public:
         void interpret(std::string);

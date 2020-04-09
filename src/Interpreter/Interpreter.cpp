@@ -751,7 +751,6 @@ namespace Odo::Interpreting {
         return valueReturn;
     }
 
-    // TODO: add getMemberVar function.
     Value* Interpreter::visit_Assignment(AST expr, AST val) {
         auto varSym = getMemberVarSymbol(expr);
         auto newValue = visit(val);
@@ -764,17 +763,13 @@ namespace Odo::Interpreting {
                 if (newValue->type.kind == PrimitiveType) {
                     newValue = valueTable.addNewValue(newValue->type, newValue->val);
                 }
-
-                varSym->value = newValue;
-                newValue->addReference(*varSym);
             } else {
                 if (newValue->type.kind == PrimitiveType) {
                     newValue = valueTable.addNewValue(newValue->type, newValue->val);
                 }
-
-                varSym->value = newValue;
-                newValue->addReference(*varSym);
             }
+            varSym->value = newValue;
+            newValue->addReference(*varSym);
         } else {
             throw Exceptions::NameException(
                     "Assignment to unknwon variable.",
@@ -1459,7 +1454,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Symbol *Interpreter::getMemberVarSymbol(const AST& mem) {
+    Symbol* Interpreter::getMemberVarSymbol(AST mem) {
         Symbol* varSym = nullptr;
 
         switch (mem.tp) {

@@ -151,7 +151,7 @@ namespace Odo::Interpreting {
         return results;
     }
 
-    std::vector<Symbol> Value::as_list_symbol() {
-        return std::any_cast< std::vector<Symbol> >(val);
+    std::vector<Symbol>& Value::as_list_symbol() {
+        return std::any_cast< std::vector<Symbol>& >(val);
     }
 }
