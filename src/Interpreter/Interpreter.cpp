@@ -1145,10 +1145,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() != rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "int");
+                        return create_literal(result ? "true" : "false", "bool");
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() != rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "double");
+                        return create_literal(result ? "true" : "false", "bool");
                     } else if (leftVisited->type.name == "bool") {
                         auto result = leftVisited->as_bool() != rightVisited->as_bool();
                         return create_literal(result ? "true" : "false", "bool");
