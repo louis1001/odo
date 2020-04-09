@@ -1468,8 +1468,30 @@ namespace Odo::Interpreting {
                 // TODO
                 break;
             case Index:
-                // TODO
-                break;
+            {
+                auto visited_source = visit(mem.nodes["val"]);
+
+                if (visited_source->kind == ListVal) {
+                    auto visited_indx = visit(mem.nodes["expr"]);
+                    if (visited_indx->type.name == "int") {
+                        auto& as_list = visited_source->as_list_symbol();
+                        auto as_int = visited_indx->as_int();
+                        return &as_list[as_int];
+                    } else {
+                        throw Exceptions::TypeException(
+                            "Lists can only be indexed with integer values.",
+                            current_line,
+                            current_col
+                        );
+                    }
+                } else {
+                    throw Exceptions::ValueException(
+                            "Assignment to invalid indexing. You can only assign to list indices.",
+                            current_line,
+                            current_col
+                    );
+                }
+            }
             default:
                 break;
         }
