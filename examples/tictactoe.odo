@@ -1,0 +1,47 @@
+string characters[] = ["X", ".", "O"]
+
+func print_table(int t[]) {
+    for (int i = 0; i < 9; i++){
+        print(t[i], " ")
+        if ((i+1) % 3 == 0) {
+            println()
+        }
+    }
+}
+
+int board[] = [1]*3*3
+int shape[] = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+bool has_finished = false
+
+bool turn = false
+
+while !has_finished {
+    clear()
+    println("Current Table:")
+    print_table(shape)
+    println()
+    print_table(board)
+    int move = read_int("Your move: ")
+    if (move >= 9) || (move < 0) {
+        println("Please, input a number between 0 and 8")
+        read()
+        continue
+    }
+
+    if ((board[move]) != 1) {
+        println("Occupied Space!")
+        read()
+        continue
+    } else {
+        board[move] = turn ? 0 : 2
+    }
+
+    turn = !turn
+    
+    # if  {
+    #     println("Please, input a number between 1 and 9")
+    #     read()
+    #     continue
+    # }
+}
