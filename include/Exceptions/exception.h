@@ -22,7 +22,7 @@ namespace Odo::Exceptions {
             column_number = col_n;
         }
 
-        virtual const char* what() noexcept {
+        const char* what() noexcept {
             std::string ss;
             ss += exception_name() + " (line " + std::to_string(line_number) + ", column " +
                     std::to_string(column_number) + ")\n\t" + message;
@@ -33,35 +33,30 @@ namespace Odo::Exceptions {
     class SyntaxException: public Exception {
         std::string exception_name() override { return "SyntaxError"; }
     public:
-        using Exception::what;
         using Exception::Exception;
     };
 
     class TypeException: public Exception {
         std::string exception_name() override { return "TypeError"; }
     public:
-        using Exception::what;
         using Exception::Exception;
     };
 
     class ValueException: public Exception {
         std::string exception_name() override { return "ValueError"; }
     public:
-        using Exception::what;
         using Exception::Exception;
     };
 
     class NameException: public Exception {
         std::string exception_name() override { return "NameError"; }
     public:
-        using Exception::what;
         using Exception::Exception;
     };
 
     class RuntimeException: public Exception {
         std::string exception_name() override { return "RuntimeError"; }
     public:
-        using Exception::what;
         using Exception::Exception;
     };
 }
