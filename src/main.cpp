@@ -67,7 +67,9 @@ int main(int argc, char* argv[]) {
             // Show an interactive prompt
             std::cout << "> " << std::flush;
             std::string code;
+            std::cout << YELLOW;
             std::getline(std::cin, code);
+            std::cout << RESET;
 
             // Handle potential errors
             try {
