@@ -95,6 +95,7 @@ namespace Odo::Interpreting {
         bool symbolExists(const std::string&);
 
         SymbolTable* getParent() { return parent; }
+        void setParent(SymbolTable* newP) { parent = newP; }
 
         Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol, bool>>& vector);
 

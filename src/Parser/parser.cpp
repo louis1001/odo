@@ -182,11 +182,12 @@ namespace Odo::Parsing{
 
         Token inherits(NOTHING, "");
 
-        if (current_token.tp == COLON) {
-            eat(COLON);
-            inherits = current_token;
-            eat(ID);
-        }
+//        TODO: Fix Inheritance
+//        if (current_token.tp == COLON) {
+//            eat(COLON);
+//            inherits = current_token;
+//            eat(ID);
+//        }
 
         eat(LCUR);
         auto body = class_body();

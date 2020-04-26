@@ -349,22 +349,23 @@ namespace Odo::Interpreting {
 
             // Classes
             case Class:
-    //            return visit_Class(node.token, node.type, node.nodes["body"]);
+                return visit_Class(node.token, node.type, node.nodes["body"]);
                 break;
             case ClassBody:
-    //            return visit_ClassBody(node.lst_AST);
+                return visit_ClassBody(node.lst_AST);
                 break;
+//          Broken or incomplete.
             case ConstructorDecl:
-    //            return visit_ConstructorDecl(node.nodes["params"], node.lst_AST);
+//                return visit_ConstructorDecl(node.lst_AST, node.nodes["body"]);
                 break;
             case ConstructorCall:
-    //            return visit_ConstructorCall(node.token);
+//                return visit_ConstructorCall(node.token);
                 break;
             case InstanceBody:
-    //            return visit_InstanceBody(node.lst_AST);
+//                return visit_InstanceBody(node.lst_AST);
                 break;
             case ClassInitializer:
-    //            return visit_ClassInitializer(node.token, node.lst_AST);
+//                return visit_ClassInitializer(node.token, node.lst_AST);
                 break;
             case StaticStatement:
     //            return visit_StaticStatement(node.nodes["statement"]);
@@ -1124,6 +1125,8 @@ namespace Odo::Interpreting {
                     } else if (leftVisited->type.name == "string") {
                         auto result = leftVisited->as_string() == rightVisited->as_string();
                         return create_literal(result ? "true" : "false", "bool");
+                    } else {
+                        return create_literal("false", "bool");
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1150,6 +1153,8 @@ namespace Odo::Interpreting {
                     } else if (leftVisited->type.name == "string") {
                         auto result = leftVisited->as_string() != rightVisited->as_string();
                         return create_literal(result ? "true" : "false", "bool");
+                    } else {
+                        return create_literal("true", "bool");
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1254,7 +1259,8 @@ namespace Odo::Interpreting {
             default:
                 break;
         }
-        return nullptr;
+
+        return null;
     }
 
     Value* Interpreter::visit_UnaryOp(Lexing::Token token, AST &left) {
@@ -1451,6 +1457,239 @@ namespace Odo::Interpreting {
     Value* Interpreter::visit_Return(AST val) {
         returning = visit(val);
         returning->important = true;
+        return null;
+    }
+
+    Value* Interpreter::visit_Class(Lexing::Token name, Lexing::Token ty, AST body) {
+        Symbol* typeSym = nullptr;
+
+        if (ty.tp != Lexing::NOTHING) {
+            auto sym = currentScope->findSymbol(ty.value);
+            if (!sym || !sym->isType) {
+                throw Exceptions::TypeException(
+                        "Class must inherit from a type. " + name.value + " is invalid.",
+                        current_line,
+                        current_col
+                );
+            }
+
+            typeSym = sym;
+        }
+
+        Symbol newClassSym = {
+            .tp=typeSym,
+            .name=name.value,
+            .isType = true,
+            .kind = ClassType,
+        };
+
+        SymbolTable classScope{"class-" + name.value + "-scope", {}, currentScope};
+        auto newClassMolde = valueTable.addNewValue({
+            .type=newClassSym,
+            .val=body,
+            .scope=currentScope,
+            .ownScope=classScope
+        });
+
+        auto prevScope = currentScope;
+        currentScope = &classScope;
+
+        visit(body);
+        currentScope = prevScope;
+
+        auto inTable = currentScope->addSymbol(newClassSym);
+        inTable->value = newClassMolde;
+        newClassMolde->addReference(*inTable);
+
+        return null;
+    }
+
+    Value* Interpreter::visit_ClassBody(std::vector<Parsing::AST> statements) {
+        for (auto& st : statements) {
+            if (st.tp == StaticStatement)
+                visit(st.nodes["statement"]);
+        }
+
+        return null;
+    }
+
+    Value* Interpreter::visit_ConstructorDecl(std::vector<Parsing::AST> params, Parsing::AST body) {
+        Symbol* retType = nullptr;
+
+        auto paramTypes = getParamTypes(params);
+
+        auto typeName = Symbol::constructFuncTypeName(retType, paramTypes);
+
+        auto typeOfFunc = globalTable.findSymbol(typeName);
+
+        if (!typeOfFunc) {
+            typeOfFunc = globalTable.addFuncType(retType, paramTypes);
+        }
+
+        auto funcValue = valueTable.addNewValue(*typeOfFunc, body);
+        funcValue->kind = FunctionVal;
+        funcValue->scope = currentScope;
+        funcValue->params = params;
+
+        auto newFunctionSymbol = currentScope->addSymbol({typeOfFunc, "constructor", funcValue});
+        funcValue->addReference(*newFunctionSymbol);
+
+        return null;
+    }
+
+    Value* Interpreter::visit_ConstructorCall(Lexing::Token t) {
+        auto constr = currentScope->findSymbol(t.value);
+
+        auto fVal = constr ? constr->value : nullptr;
+        if (fVal && fVal->kind == FunctionVal) {
+            SymbolTable funcScope = {"constructor-scope", {}, fVal->scope};
+            auto calleeScope = currentScope;
+
+            std::vector<AST> newDecls;
+            std::vector< std::pair<Lexing::Token, Value*> > initValues;
+
+            for (int i = 0; i < fVal->params.size(); i++) {
+                auto par = fVal->params[i];
+                if (constructorParams.size() > i) {
+                    switch (par.tp) {
+                        case Declaration:
+                        case ListDeclaration:
+                        {
+                            auto newValue = constructorParams[i];
+                            if (newValue->type.kind == PrimitiveType) {
+                                newValue = valueTable.copyValue(*newValue);
+                            }
+                            initValues.push_back({par.token, newValue});
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+
+                newDecls.push_back(par);
+            }
+
+            currentScope = &funcScope;
+            callDepth++;
+
+            for (int i = 0; i < newDecls.size(); i++) {
+                visit(newDecls[i]);
+
+                if (i < initValues.size()) {
+                    auto newVar = currentScope->findSymbol(initValues[i].first.value);
+                    newVar->value = initValues[i].second;
+                    initValues[i].second->addReference(*newVar);
+                }
+            }
+            auto body_as_ast = std::any_cast<AST>(fVal->val);
+
+            auto result = visit(body_as_ast);
+            valueTable.cleanUp(funcScope);
+            result->important = false;
+            currentScope = calleeScope;
+            callDepth--;
+        } else {
+            // Error.
+            throw Exceptions::ValueException(
+                    "Invalid constructor",
+                current_line,
+                current_col
+            );
+        }
+        constructorParams.clear();
+        constructorParams.shrink_to_fit();
+
+        return null;
+    }
+
+    Value* Interpreter::visit_ClassInitializer(Lexing::Token name, std::vector<Parsing::AST> params) {
+        if (auto classInit = currentScope->findSymbol(name.value)) {
+            auto classVal = classInit->value;
+
+            SymbolTable instanceScope{"instance-" + name.value + "-scope", {}, classVal->scope};
+
+            auto newInstance = valueTable.addNewValue(*classInit, classVal);
+            newInstance->ownScope = instanceScope;
+
+            newInstance->important = true;
+
+            std::vector<Value *> newParams;
+            for (auto v : params) newParams.push_back(visit(v));
+            constructorParams = newParams;
+
+            auto tempScope = currentScope;
+            currentScope = &instanceScope;
+
+            auto currentClass = classVal;
+            std::vector<AST> inheritedBody = {{
+                InstanceBody,
+                .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
+            }};
+
+            while (currentClass->type.tp != nullptr) {
+                auto upperType = currentClass->type.tp;
+                auto upperValue = upperType->value;
+
+                currentClass = upperValue;
+                inheritedBody.push_back({
+                    InstanceBody,
+                    .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
+                });
+            }
+
+            auto thisSym = currentScope->addSymbol({
+                classInit,
+                "this",
+                newInstance
+            });
+
+            auto outerS = currentScope;
+            SymbolTable lastScope {"inherited-scope-0", {}, currentScope->getParent()};
+
+            currentScope = &lastScope;
+            for (auto it = inheritedBody.end()-1; it >= inheritedBody.begin(); it--) {
+                visit(*it);
+                // TODO: Fix inheritance.
+                // currentScope is assigned here
+                SymbolTable ns = {"inherited-scope", {}, currentScope};
+                currentScope->addSymbol(*thisSym);
+
+                // And when I change it here, the parent of ns changes too.
+                currentScope = &ns;
+            }
+
+            instanceScope.setParent(currentScope);
+            currentScope = outerS;
+
+            auto initID = Lexing::Token {Lexing::ID, "constructor"};
+            AST initFuncCall = {
+                ConstructorCall,
+                initID
+            };
+
+            visit(initFuncCall);
+
+            currentScope = tempScope;
+
+            newInstance->important = false;
+
+            return newInstance;
+        } else {
+            throw Exceptions::NameException(
+                name.value + " is not a valid constructor.",
+                current_line,
+                current_col
+            );
+        }
+    }
+
+    Value* Interpreter::visit_InstanceBody(std::vector<Parsing::AST> statements){
+        for (auto& st : statements) {
+            if (st.tp != StaticStatement)
+                visit(st);
+        }
+
         return null;
     }
 

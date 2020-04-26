@@ -19,7 +19,7 @@ namespace Odo::Interpreting {
         Parsing::Parser parser;
         ValueTable valueTable;
 
-        std::vector<Value> constructorParams;
+        std::vector<Value *> constructorParams;
 
         SymbolTable globalTable;
         SymbolTable* currentScope;
@@ -72,6 +72,13 @@ namespace Odo::Interpreting {
         Value* visit_FuncCall(Parsing::AST expr, Lexing::Token fname, std::vector<Parsing::AST> args);
         Value* visit_FuncBody(std::vector<Parsing::AST> statements);
         Value* visit_Return(Parsing::AST val);
+
+        Value* visit_Class(Lexing::Token name, Lexing::Token ty, Parsing::AST body);
+        Value* visit_ClassBody(std::vector<Parsing::AST> statements);
+        Value* visit_ConstructorDecl(std::vector<Parsing::AST> params, Parsing::AST body);
+        Value* visit_ConstructorCall(Lexing::Token t);
+        Value* visit_ClassInitializer(Lexing::Token name, std::vector<Parsing::AST> params);
+        Value* visit_InstanceBody(std::vector<Parsing::AST> statements);
 
         std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<Parsing::AST>&);
 

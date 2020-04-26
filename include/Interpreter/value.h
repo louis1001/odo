@@ -31,6 +31,7 @@ namespace Odo::Interpreting {
         int address = 0;
 
         SymbolTable* scope;
+        SymbolTable ownScope;
         std::vector<Parsing::AST> params;
 
         std::set<Symbol> references;
