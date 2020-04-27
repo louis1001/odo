@@ -1324,8 +1324,6 @@ namespace Odo::Interpreting {
 
         currentScope = temp;
 
-        moduleValue->ownScope.findSymbol("int");
-
         auto module_sym = currentScope->addSymbol({nullptr, name.value, moduleValue});
         moduleValue->addReference(*module_sym);
 

@@ -1,10 +1,8 @@
 #include <iostream>
 #include "Lexer/lexer.hpp"
-#include "Parser/parser.h"
 #include "Exceptions/exception.h"
 
 #include <fstream>
-#include <sstream>
 
 #include "Interpreter/Interpreter.h"
 
