@@ -27,6 +27,7 @@ namespace Odo::Lexing {
             {"loop", Token(LOOP, "loop")},
             {"break", Token(BREAK, "break")},
             {"continue", Token(CONTINUE, "continue")},
+            {"module", Token(MODULE, "module")},
             {"class", Token(CLASS, "class")},
             {"new", Token(NEW, "new")},
             {"static", Token(STATIC, "static")},

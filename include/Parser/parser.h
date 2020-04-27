@@ -32,6 +32,8 @@ namespace Odo::Parsing {
 
         AST statement(bool with_term = true);
 
+        AST module_statement();
+
         AST classstatement();
         AST newInitializer();
         AST constructor();

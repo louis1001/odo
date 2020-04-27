@@ -82,6 +82,8 @@ namespace Odo::Lexing {
 
         DEBUG,
 
+        MODULE,
+
         CLASS,
         INIT,
         NEW,

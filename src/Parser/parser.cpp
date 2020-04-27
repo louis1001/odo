@@ -103,6 +103,10 @@ namespace Odo::Parsing{
                 ex = block();
                 eat(RCUR);
                 break;
+            case MODULE:
+                eat(MODULE);
+                ex = module_statement();
+                break;
             case IF:
                 eat(IF);
                 ex = ifstatement();
@@ -172,6 +176,22 @@ namespace Odo::Parsing{
         }
 
         return ex;
+    }
+
+    AST Parser::module_statement() {
+        AST result = add_dbg_info({Module});
+        auto name = current_token;
+
+        eat(ID);
+
+        eat(LCUR);
+        auto body = statement_list();
+        eat(RCUR);
+
+        result.lst_AST = body;
+        result.token = name;
+
+        return result;
     }
 
     AST Parser::classstatement() {

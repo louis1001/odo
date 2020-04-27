@@ -1,0 +1,22 @@
+module math{
+    double e = 2.71828
+    func sq(int x) {
+        return x*x
+    }
+
+    func exp(double x) {
+        return e^x
+    }
+
+    module nested {
+        string works = "YES!!"
+    }
+}
+
+double a = 3.5
+
+double result = math::exp(a)
+println("E to the ", a, " is ", result)
+
+println("\nAccessing a value in a nested module:")
+println(math::nested::works)

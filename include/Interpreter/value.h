@@ -19,6 +19,7 @@ namespace Odo::Interpreting {
         NormalVal,
         ListVal,
         FunctionVal,
+        ModuleVal,
         ClassVal,
         InstanceVal
     };

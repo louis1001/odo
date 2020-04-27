@@ -374,7 +374,11 @@ namespace Odo::Interpreting {
     //            return visit_MemberVar(node.nodes["inst"], node.token);
                 break;
             case StaticVar:
-    //            return visit_StaticVar(node.nodes["inst"], node.token);
+                return visit_StaticVar(node.nodes["inst"], node.token);
+                break;
+
+            case Module:
+                return this->visit_Module(node.token, node.lst_AST);
                 break;
 
             case Debug:
@@ -389,7 +393,9 @@ namespace Odo::Interpreting {
 
     std::string Interpreter::value_to_string(Value *v) {
         std::string result;
-        if (v->type.kind == PrimitiveType){
+        if (v->kind == ModuleVal) {
+            result = "<module> at: " + std::to_string(v->address);
+        } else if (v->type.kind == PrimitiveType){
             if (v->type.name == "double") {
                 auto as_double = v->as_double();
                 result = std::to_string(as_double);
@@ -1296,6 +1302,36 @@ namespace Odo::Interpreting {
         return null;
     }
 
+    Value* Interpreter::visit_Module(Lexing::Token name, std::vector<Parsing::AST> statements) {
+        SymbolTable module_scope = {
+            "module-scope",
+            {},
+            currentScope
+        };
+
+        auto moduleValue = valueTable.addNewValue({
+            .type=null->type,
+            .val=0,
+            .kind=ModuleVal,
+            .ownScope=module_scope
+        });
+
+        auto temp = currentScope;
+        currentScope = &moduleValue->ownScope;
+        for (auto st : statements) {
+            visit(st);
+        }
+
+        currentScope = temp;
+
+        moduleValue->ownScope.findSymbol("int");
+
+        auto module_sym = currentScope->addSymbol({nullptr, name.value, moduleValue});
+        moduleValue->addReference(*module_sym);
+
+        return moduleValue;
+    }
+
     Value* Interpreter::visit_FuncExpression(std::vector<AST> params, const Lexing::Token& retType, AST body){
         auto returnType = retType.tp == Lexing::NOTHING ? nullptr : currentScope->findSymbol(retType.value);
 
@@ -1339,10 +1375,13 @@ namespace Odo::Interpreting {
             typeOfFunc = globalTable.addFuncType(returnType, paramTypes);
         }
 
-        auto funcValue = valueTable.addNewValue(*typeOfFunc, body);
-        funcValue->scope = currentScope;
-        funcValue->params = params;
-        funcValue->kind = FunctionVal;
+        auto funcValue = valueTable.addNewValue({
+            .type=*typeOfFunc,
+            .val=body,
+            .kind=FunctionVal,
+            .scope=currentScope,
+            .params=params
+        });
 
         auto funcSymbol = currentScope->addSymbol({
             typeOfFunc,
@@ -1693,6 +1732,38 @@ namespace Odo::Interpreting {
         return null;
     }
 
+    Value* Interpreter::visit_StaticVar(Parsing::AST inst, Lexing::Token name) {
+        auto instance = visit(inst);
+
+        if (instance->kind == InstanceVal) {
+            // Unsupported
+        } else if (instance->kind == ClassVal) {
+            // Unsupported
+        } else if (instance->kind == ModuleVal) {
+            auto sm = instance->ownScope.findSymbol(name.value, false);
+            if (sm) {
+                if (sm->value)
+                    return sm->value;
+                return null;
+            } else {
+                throw Exceptions::NameException(
+                    "No variable named '" + name.value + "' in module '" + inst.token.value + "'.",
+                    current_line,
+                    current_col
+                );
+            }
+
+        } else {
+            throw Exceptions::ValueException(
+                    "Cannot read static variable from this value.",
+                    current_line,
+                    current_col
+            );
+        }
+
+        return null;
+    }
+
     Symbol* Interpreter::getMemberVarSymbol(AST mem) {
         Symbol* varSym = nullptr;
 
@@ -1704,8 +1775,31 @@ namespace Odo::Interpreting {
                 // TODO
                 break;
             case StaticVar:
-                // TODO
+            {
+                auto leftHand = mem.nodes["inst"].token;
+                auto leftHandSym = currentScope->findSymbol(leftHand.value);
+
+                if (leftHandSym && leftHandSym->value) {
+                    auto theValue = leftHandSym->value;
+                    if (theValue->kind == ModuleVal) {
+                        return theValue->ownScope.findSymbol(mem.token.value);
+                    } else {
+                        throw Exceptions::NameException(
+                                "Invalid Static Variable Operator (::).",
+                                current_line,
+                                current_col
+                        );
+                    }
+                } else {
+                    throw Exceptions::NameException(
+                            "Unknown value in Static Variable Operator (::).",
+                            current_line,
+                            current_col
+                    );
+                }
+
                 break;
+            }
             case Index:
             {
                 auto visited_source = visit(mem.nodes["val"]);

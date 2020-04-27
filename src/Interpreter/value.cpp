@@ -90,7 +90,7 @@ namespace Odo::Interpreting {
 
     void ValueTable::cleanUp(SymbolTable &symTable) {
         for (auto ref : symTable.symbols) {
-            if (ref.second.tp->kind == ListType) {
+            if (ref.second.tp && ref.second.tp->kind == ListType) {
                 if (ref.second.value) {
                     auto symbols_list = std::any_cast<std::vector<Symbol>>(ref.second.value->val);
 
