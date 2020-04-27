@@ -39,11 +39,11 @@ namespace Odo::Interpreting {
         }
     }
 
-    Symbol *SymbolTable::findSymbol(const std::string& name) {
+    Symbol *SymbolTable::findSymbol(const std::string& name, bool and_in_parents) {
         auto foundS = symbols.find(name);
 
         if (foundS == symbols.end()) {
-            if (parent != nullptr){
+            if (and_in_parents && parent != nullptr){
                 return parent->findSymbol(name);
             } else {
                 return nullptr;

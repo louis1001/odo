@@ -1698,7 +1698,7 @@ namespace Odo::Interpreting {
 
         switch (mem.tp) {
             case Variable:
-                varSym = currentScope->findSymbol(mem.token.value);
+                varSym = currentScope->findSymbol(mem.token.value, false);
                 break;
             case MemberVar:
                 // TODO
