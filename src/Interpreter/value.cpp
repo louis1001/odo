@@ -41,7 +41,10 @@ namespace Odo::Interpreting {
                 std::move(val.type),
                 std::move(val.val),
                 val.kind,
-                newAddress
+                newAddress,
+                val.scope,
+                val.ownScope,
+                val.params
         };
 
         values[newAddress] = newValue;
