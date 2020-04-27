@@ -89,7 +89,7 @@ namespace Odo::Interpreting {
         Value* eval(std::string);
         Value* visit(Parsing::AST node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
-        std::string value_to_string(Value);
+        std::string value_to_string(Value *v);
         int add_native_function(const std::string& name, NativeFunction callback);
 
         Value* get_null() { return null; }

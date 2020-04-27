@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
                 // Show the result
                 if (result != inter.get_null()){
-                    auto as_str = inter.value_to_string(*result);
+                    auto as_str = inter.value_to_string(result);
                     std::cout << GREEN << as_str << RESET << "\n";
                 }
             } catch (Odo::Exceptions::Exception& e) {
