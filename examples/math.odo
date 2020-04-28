@@ -1,0 +1,22 @@
+double e = 2.718281828459045
+
+func exp(double x) {
+    return e * x
+}
+
+func abs(double x) {
+    if x > 0.0 {
+        return x
+    }
+
+    return -x
+}
+
+func pow(double x, int p) {
+    double result = 1.0
+    for (int i = 0; i < p; i++) {
+        result = result * x
+    }
+
+    return result
+}

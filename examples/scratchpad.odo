@@ -1,0 +1,4 @@
+import "../examples/math"
+
+double a = 30.123
+println(a, " squared is ", math::pow(a, 2))
