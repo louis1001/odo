@@ -1315,6 +1315,7 @@ namespace Odo::Interpreting {
             .kind=ModuleVal,
             .ownScope=module_scope
         });
+        moduleValue->important = true;
 
         auto temp = currentScope;
         currentScope = &moduleValue->ownScope;
@@ -1323,6 +1324,7 @@ namespace Odo::Interpreting {
         }
 
         currentScope = temp;
+        moduleValue->important = false;
 
         auto module_sym = currentScope->addSymbol({nullptr, name.value, moduleValue});
         moduleValue->addReference(*module_sym);
@@ -1472,6 +1474,7 @@ namespace Odo::Interpreting {
     }
 
     Value *Interpreter::visit_FuncBody(std::vector<AST> statements) {
+        auto temp = currentScope;
         auto bodyScope = SymbolTable("func-body-scope", {}, currentScope);
 
         currentScope = &bodyScope;
@@ -1483,8 +1486,8 @@ namespace Odo::Interpreting {
             }
         }
 
+        currentScope = temp;
         valueTable.cleanUp(bodyScope);
-        currentScope = bodyScope.getParent();
 
         auto ret = returning;
         returning = nullptr;
