@@ -83,6 +83,8 @@ namespace Odo::Lexing {
         DEBUG,
 
         MODULE,
+        IMPORT,
+        AS,
 
         CLASS,
         INIT,

@@ -18,11 +18,14 @@ add_executable(odo
         src/Parser/AST.cpp
         include/Parser/AST.h
         src/Interpreter/Interpreter.cpp
-        include/Interpreter/Interpreter.h src/Interpreter/value.cpp
+        include/Interpreter/Interpreter.h
+        src/Interpreter/value.cpp
         include/Interpreter/value.h
         src/Interpreter/symbol.cpp
         include/Interpreter/symbol.h
         include/utils.h
         src/utils.cpp
         src/Exceptions/exception.cpp
-        include/Exceptions/exception.h)
+        include/Exceptions/exception.h
+        include/IO/io.h
+        src/IO/io.cpp)

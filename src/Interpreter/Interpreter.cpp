@@ -4,6 +4,8 @@
 
 #include "Interpreter/Interpreter.h"
 #include "Exceptions/exception.h"
+#include "IO/io.h"
+#include "utils.h"
 
 #include <cmath>
 #include <iostream>
@@ -379,6 +381,9 @@ namespace Odo::Interpreting {
 
             case Module:
                 return this->visit_Module(node.token, node.lst_AST);
+                break;
+            case Import:
+                return this->visit_Import(node.token, node.type);
                 break;
 
             case Debug:
@@ -1332,6 +1337,11 @@ namespace Odo::Interpreting {
         return moduleValue;
     }
 
+    Value * Interpreter::visit_Import(Lexing::Token path, Lexing::Token name) {
+        auto mod = interpret_as_module(path.value, name);
+        return null;
+    }
+
     Value* Interpreter::visit_FuncExpression(std::vector<AST> params, const Lexing::Token& retType, AST body){
         auto returnType = retType.tp == Lexing::NOTHING ? nullptr : currentScope->findSymbol(retType.value);
 
@@ -1858,6 +1868,40 @@ namespace Odo::Interpreting {
     //    }
 
         return result;
+    }
+
+    Value * Interpreter::interpret_as_module(const std::string &path, Lexing::Token name) {
+        bool has_extension = ends_with(path, ".odo");
+
+        std::string full_path = path;
+        if (!has_extension)
+            full_path += ".odo";
+        auto filename = get_file_name(full_path);
+        if (name.tp != Lexing::NOTHING)
+            filename = name.value;
+
+        if (currentScope->findSymbol(filename)) {
+            throw Exceptions::NameException(
+                "Symbol called " + filename + " already exists in this scope",
+                current_line,
+                current_col
+            );
+        }
+
+        auto code = io::read_file(full_path);
+        Parsing::Parser pr;
+        pr.set_text(code);
+
+        auto body = pr.program_content();
+        AST file_module = {
+            .tp=Module,
+            .token=Lexing::Token(Lexing::STR, filename),
+            .lst_AST=body,
+            .line_number=0,
+            .column_number=0
+        };
+
+        return visit(file_module);
     }
 
     std::vector<std::pair<Symbol, bool>> Interpreter::getParamTypes(const std::vector<AST>& params) {

@@ -10,8 +10,8 @@
 
 namespace Odo {
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t);
-
-    template<class T>
-    bool contains_type(std::vector<Interpreting::Symbol> arr, Interpreting::Symbol t);
+    bool ends_with(std::string const &, std::string const &);
+    bool has_extension(const std::string&);
+    std::string get_file_name(const std::string&);
 }
 #endif //ODO_PORT_UTILS_H

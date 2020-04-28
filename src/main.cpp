@@ -1,8 +1,6 @@
 #include <iostream>
-#include "Lexer/lexer.hpp"
+#include <IO/io.h>
 #include "Exceptions/exception.h"
-
-#include <fstream>
 
 #include "Interpreter/Interpreter.h"
 
@@ -10,14 +8,7 @@
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
 #define YELLOW  "\033[33m"        /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-
-std::string readWhole(std::istream& in) {
-    // Taken from https://stackoverflow.com/a/116220
-    std::stringstream sstr;
-    sstr << in.rdbuf();
-    return sstr.str();
-}
+//#define BLUE    "\033[34m"      /* Blue */
 
 int main(int argc, char* argv[]) {
     using namespace Odo;
@@ -28,19 +19,12 @@ int main(int argc, char* argv[]) {
         input_file = argv[1];
     }
 
-
     Interpreting::Interpreter inter;
 
     // If there's a file to be read
     if (!input_file.empty()) {
         // Opening file and reading contents:
-        std::ifstream argumentFile(input_file);
-        if (argumentFile.fail()) {
-            std::cerr << "Unable to open file '" << input_file << "'.";
-        }
-        std::string code = readWhole(argumentFile);
-
-        argumentFile.close();
+        std::string code = Odo::io::read_file(input_file);
 
         // Handle potential errors
         // Interpreting the text inside the file.

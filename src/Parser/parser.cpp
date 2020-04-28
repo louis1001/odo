@@ -107,6 +107,21 @@ namespace Odo::Parsing{
                 eat(MODULE);
                 ex = module_statement();
                 break;
+            case IMPORT:
+                eat(IMPORT);
+                ex = add_dbg_info({Import, current_token});
+                if (current_token.tp == STR){
+                    eat(STR);
+                } else {
+                    eat(ID);
+                }
+
+                if (current_token.tp == AS) {
+                    eat(AS);
+                    ex.type = current_token;
+                    eat(ID);
+                }
+                break;
             case IF:
                 eat(IF);
                 ex = ifstatement();

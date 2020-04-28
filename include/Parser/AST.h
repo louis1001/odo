@@ -46,6 +46,7 @@ namespace Odo::Parsing {
         Debug,
 
         Module,
+        Import,
 
         Class,
         ClassBody,

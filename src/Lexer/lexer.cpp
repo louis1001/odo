@@ -28,6 +28,8 @@ namespace Odo::Lexing {
             {"break", Token(BREAK, "break")},
             {"continue", Token(CONTINUE, "continue")},
             {"module", Token(MODULE, "module")},
+            {"import", Token(IMPORT, "import")},
+            {"as", Token(AS, "as")},
             {"class", Token(CLASS, "class")},
             {"new", Token(NEW, "new")},
             {"static", Token(STATIC, "static")},
