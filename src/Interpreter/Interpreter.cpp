@@ -1785,7 +1785,7 @@ namespace Odo::Interpreting {
 
         switch (mem.tp) {
             case Variable:
-                varSym = currentScope->findSymbol(mem.token.value, false);
+                varSym = currentScope->findSymbol(mem.token.value);
                 break;
             case MemberVar:
                 // TODO
@@ -1798,7 +1798,8 @@ namespace Odo::Interpreting {
                 if (leftHandSym && leftHandSym->value) {
                     auto theValue = leftHandSym->value;
                     if (theValue->kind == ModuleVal) {
-                        return theValue->ownScope.findSymbol(mem.token.value);
+                        varSym = theValue->ownScope.findSymbol(mem.token.value, false);
+                        break;
                     } else {
                         throw Exceptions::NameException(
                                 "Invalid Static Variable Operator (::).",
