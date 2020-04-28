@@ -1417,11 +1417,16 @@ namespace Odo::Interpreting {
                 std::vector<Value*> arguments_visited;
                 arguments_visited.reserve(args.size());
 
-                for(auto arg : args){
-                    arguments_visited.push_back(visit(arg));
+                for(const auto& arg : args){
+                    auto v = visit(arg);
+                    v->important = true;
+                    arguments_visited.push_back(v);
                 }
 
-                return found_in_natives->second(arguments_visited);
+                auto result = found_in_natives->second(arguments_visited);
+                for (auto v : arguments_visited) v->important = false;
+
+                return result;
             }
         }
 
