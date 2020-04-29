@@ -39,7 +39,7 @@ namespace Odo::Interpreting {
 
         Value newValue = {
                 std::move(val.type),
-                std::move(val.val),
+                val.val,
                 val.kind,
                 newAddress,
                 val.scope,
@@ -79,6 +79,17 @@ namespace Odo::Interpreting {
         {
             if (pm_it->second.references.empty() && !pm_it->second.important)
             {
+                if (pm_it->second.kind == ListVal) {
+                    auto symbols_list = pm_it->second.as_list_symbol();
+
+                    for (auto list_ref : symbols_list) {
+                        if (list_ref.value) {
+                            list_ref.value ->removeReference(list_ref);
+                        }
+
+                        removeReference(list_ref);
+                    }
+                }
                 pm_it = values.erase(pm_it);
             }
             else
@@ -90,21 +101,6 @@ namespace Odo::Interpreting {
 
     void ValueTable::cleanUp(SymbolTable &symTable) {
         for (auto ref : symTable.symbols) {
-            if (ref.second.tp && ref.second.tp->kind == ListType) {
-                if (ref.second.value) {
-                    auto symbols_list = std::any_cast<std::vector<Symbol>>(ref.second.value->val);
-
-//                    for (auto list_ref : symbols_list) {
-//                        if (list_ref.value) {
-//                            list_ref.value ->removeReference(list_ref);
-//                        }
-//                        /* FIXME: If a value has a reference, but the symbol doesn't
-//                         * value is left hanging
-//                         */
-//                        removeReference(list_ref);
-//                    }
-                }
-            }
             removeReference(ref.second);
         }
 

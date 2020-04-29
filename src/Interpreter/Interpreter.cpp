@@ -387,7 +387,6 @@ namespace Odo::Interpreting {
                 break;
 
             case Debug:
-    //            cout << "Debugging\n";
                 return null;
 
             case Null:
@@ -509,7 +508,7 @@ namespace Odo::Interpreting {
         }
 
         currentScope = blockScope.getParent();
-         valueTable.cleanUp(blockScope);
+        valueTable.cleanUp(blockScope);
 
         return result;
     }
@@ -988,8 +987,12 @@ namespace Odo::Interpreting {
                         Symbol new_symbol = {currentScope->findSymbol(val->type.name), "list_element", val};
                         val->addReference(new_symbol);
                         new_elements.push_back(new_symbol);
-                        new_list = valueTable.addNewValue(*globalTable.addListType(&val->type), new_elements);
-                        new_list->kind = ListVal;
+                        new_list = valueTable.addNewValue(
+                        {
+                            .type=*globalTable.addListType(&val->type),
+                            .val=new_elements,
+                            .kind=ListVal
+                        });
                         return new_list;
                     }
                 } else if (leftVisited->type.name == "string") {
@@ -1444,13 +1447,19 @@ namespace Odo::Interpreting {
                 if (args.size() > i) {
                     switch (par.tp) {
                         case Declaration:
+                        {
+                            auto newValue = visit(args[i]);
+                            auto vKind = newValue->type.kind;
+                            if (vKind == PrimitiveType) {
+                                newValue = valueTable.copyValue(*newValue);
+                            }
+                            initValues.emplace_back(par.token, newValue);
+                            break;
+                        }
                         case ListDeclaration:
                         {
                             auto newValue = visit(args[i]);
-                            if (newValue->type.kind == PrimitiveType) {
-                                newValue = valueTable.copyValue(*newValue);
-                            }
-                            initValues.push_back({par.token, newValue});
+                            initValues.emplace_back(par.token, newValue);
                             break;
                         }
                         default:
