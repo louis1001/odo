@@ -1894,7 +1894,13 @@ namespace Odo::Interpreting {
             );
         }
 
-        auto code = io::read_file(full_path);
+        std::string code;
+        try {
+            code = io::read_file(full_path);
+        } catch (Exceptions::IOException&) {
+            std::string msg = "Cannot import module '" + full_path + "'.";
+            throw Exceptions::FileException(msg, current_line, current_col);
+        }
         Parsing::Parser pr;
         pr.set_text(code);
 

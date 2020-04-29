@@ -24,16 +24,24 @@ int main(int argc, char* argv[]) {
     // If there's a file to be read
     if (!input_file.empty()) {
         // Opening file and reading contents:
-        std::string code = Odo::io::read_file(input_file);
+        std::string code;
+        try{
+            code = Odo::io::read_file(input_file);
+        } catch (Odo::Exceptions::IOException& e) {
+            std::cout << std::endl;
+            std::cerr << e.what() << "\n" << std::flush;
+            exit(1);
+        }
 
         // Handle potential errors
         // Interpreting the text inside the file.
 
         try {
             inter.interpret(code);
-        } catch(Odo::Exceptions::Exception& e) {
+        } catch(Odo::Exceptions::OdoException& e) {
             std::cout << std::endl;
-            std::cerr << e.what() << "\n" << std::flush;
+            std::cerr << RED << e.what() << RESET << std::flush;
+            exit(1);
         }
     // Else
     } else {
@@ -44,6 +52,7 @@ int main(int argc, char* argv[]) {
             return inter.get_null();
         });
 
+        // NOLINTNEXTLINE
         while (continuing)
         {
             // Show an interactive prompt
@@ -63,7 +72,7 @@ int main(int argc, char* argv[]) {
                     auto as_str = inter.value_to_string(result);
                     std::cout << GREEN << as_str << RESET << "\n";
                 }
-            } catch (Odo::Exceptions::Exception& e) {
+            } catch (Odo::Exceptions::OdoException& e) {
                 std::cout << std::endl;
                 std::string msg = e.what();
                 std::cout << RED << msg << RESET << std::endl;
