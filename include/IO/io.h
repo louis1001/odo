@@ -7,5 +7,6 @@
 #include <string>
 namespace Odo::io {
     std::string read_file(const std::string& path);
+    std::string get_file_name(const std::string& path);
 }
 #endif //ODO_IO_H

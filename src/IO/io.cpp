@@ -24,4 +24,15 @@ namespace Odo::io {
         return contents;
     }
 
+    std::string get_file_name(const std::string& path) {
+        std::filesystem::path p(path);
+        std::string result;
+        std::string ext = p.extension();
+        auto fn = p.filename().string();
+        for (auto i = 0; i < fn.length()-ext.length(); i++) {
+            result += fn[i];
+        }
+
+        return result;
+    }
 }
