@@ -1,4 +1,5 @@
 import "../examples/math"
 
 double a = 30.123
-println(a, " squared is ", math::pow(a, 2))
+int p = 8
+println(a, "^", p, " is ", math::pow(a, p))
