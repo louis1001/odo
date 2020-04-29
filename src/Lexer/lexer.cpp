@@ -110,6 +110,7 @@ namespace Odo::Lexing {
                  !foundPoint)
                 );
 
+        // NOLINTNEXTLINE
         if (foundPoint) {
             return Token(REAL, result);
         } else {

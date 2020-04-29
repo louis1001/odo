@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace Odo::Interpreting {
-    bool existsInSymbols (std::set<Symbol> arr, Symbol target) {
+    [[maybe_unused]] bool existsInSymbols (std::set<Symbol> arr, Symbol target) {
         auto found = std::find(arr.begin(), arr.end(), target);
         return found != arr.end();
     }
@@ -63,15 +63,15 @@ namespace Odo::Interpreting {
         }
     }
 
-    Value* ValueTable::findFromPointer(int ptr) {
-        auto result = values.find(ptr);
-
-        if (result == values.end()) {
-            return nullptr;
-        } else {
-            return &result->second;
-        }
-    }
+//    Value* ValueTable::findFromPointer(int ptr) {
+//        auto result = values.find(ptr);
+//
+//        if (result == values.end()) {
+//            return nullptr;
+//        } else {
+//            return &result->second;
+//        }
+//    }
 
     void ValueTable::cleanUp() {
         auto pm_it = values.begin();

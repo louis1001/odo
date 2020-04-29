@@ -20,8 +20,8 @@ namespace Odo::Interpreting {
         ListVal,
         FunctionVal,
         ModuleVal,
-        ClassVal,
-        InstanceVal
+//        ClassVal,
+//        InstanceVal
     };
 
     struct Value {
@@ -66,7 +66,7 @@ namespace Odo::Interpreting {
 
         void removeReference(Symbol ref);
 
-        Value* findFromPointer(int ptr);
+//        Value* findFromPointer(int ptr);
 
         void cleanUp();
         void cleanUp(SymbolTable &symTable);

@@ -3,7 +3,6 @@
 //
 
 #include "utils.h"
-#include <filesystem>
 
 namespace Odo {
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t) {
@@ -16,22 +15,5 @@ namespace Odo {
         } else {
             return false;
         }
-    }
-
-    bool has_extension(const std::string& path) {
-        std::filesystem::path p(path);
-        return p.has_extension();
-    }
-
-    std::string get_file_name(const std::string& path) {
-        std::filesystem::path p(path);
-        std::string result;
-        std::string ext = p.extension();
-        auto fn = p.filename().string();
-        for (auto i = 0; i < fn.length()-ext.length(); i++) {
-            result += fn[i];
-        }
-
-        return result;
     }
 }

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <utility>
 namespace Odo::Interpreting {
     using namespace Parsing;
 
@@ -34,12 +35,12 @@ namespace Odo::Interpreting {
 
         any_type = &any_symbol;
 
-        buildInTypes["int"] = Symbol{.name = "int", .tp = any_type, .isType=true, .kind=PrimitiveType};
-        buildInTypes["double"] = Symbol{.name = "double", .tp = any_type, .isType=true, .kind=PrimitiveType};
-        buildInTypes["string"] = Symbol{.name = "string", .tp = any_type, .isType=true, .kind=PrimitiveType};
-        buildInTypes["bool"] = Symbol{.name = "bool", .tp = any_type, .isType=true, .kind=PrimitiveType};
-        buildInTypes["pointer"] = Symbol{.name = "pointer", .tp = any_type, .isType=true, .kind=PrimitiveType};
-        buildInTypes["NullType"] = Symbol{.name = "NullType", .tp = any_type, .isType=true, .kind=PrimitiveType};
+        buildInTypes["int"] = Symbol{.tp=any_type, .name="int", .isType=true, .kind=PrimitiveType};
+        buildInTypes["double"] = Symbol{.tp=any_type, .name="double", .isType=true, .kind=PrimitiveType};
+        buildInTypes["string"] = Symbol{.tp=any_type, .name="string", .isType=true, .kind=PrimitiveType};
+        buildInTypes["bool"] = Symbol{.tp=any_type, .name="bool", .isType=true, .kind=PrimitiveType};
+        buildInTypes["pointer"] = Symbol{.tp=any_type, .name="pointer", .isType=true, .kind=PrimitiveType};
+        buildInTypes["NullType"] = Symbol{.tp=any_type, .name="NullType", .isType=true, .kind=PrimitiveType};
 
         globalTable = SymbolTable("global", buildInTypes);
         currentScope = &globalTable;
@@ -54,8 +55,8 @@ namespace Odo::Interpreting {
         );
 
         auto nullSym = globalTable.addSymbol({
-            .name = "null",
             .tp = &buildInTypes["NullType"],
+            .name = "null",
             .value = null
         });
         null->addReference(*nullSym);
@@ -96,13 +97,15 @@ namespace Odo::Interpreting {
                 }
                 return create_literal(std::to_string(result), "int");
             }
-            std::cout << "factorial function should be called with 1 int argument.";
-            throw 1;
+            throw Exceptions::RuntimeException(
+                "factorial function requires a single int argument.",
+                current_line,
+                current_col
+            );
             return null;
         });
 
         add_native_function("length", [&](std::vector<Value*> v){
-            // TODO: Error Handling
             if (!v.empty()) {
                 auto arg = v[0];
                 if (arg->type.name == "string") {
@@ -113,7 +116,11 @@ namespace Odo::Interpreting {
                     return create_literal(std::to_string(len), "int");
                 }
             }
-            throw 1;
+            throw Exceptions::RuntimeException(
+                "length function requires a single argument of type string or list.",
+                current_line,
+                current_col
+            );
             return null;
         });
 
@@ -188,7 +195,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("read", [&](std::vector<Value*> vals) {
+        add_native_function("read", [&](const std::vector<Value*>& vals) {
             std::string result;
             for (auto v : vals) {
                 std::cout << value_to_string(v);
@@ -198,7 +205,7 @@ namespace Odo::Interpreting {
             return create_literal(result, "string");
         });
 
-        add_native_function("read_int", [&](std::vector<Value*> vals) {
+        add_native_function("read_int", [&](const std::vector<Value*>& vals) {
             int result;
             for (auto v : vals) {
                 std::cout << value_to_string(v);
@@ -208,7 +215,7 @@ namespace Odo::Interpreting {
             return create_literal(std::to_string(result), "int");
         });
 
-        add_native_function("read_double", [&](std::vector<Value*> vals) {
+        add_native_function("read_double", [&](const std::vector<Value*>& vals) {
             double result;
             for (auto v : vals) {
                 std::cout << value_to_string(v);
@@ -359,19 +366,14 @@ namespace Odo::Interpreting {
 //          Broken or incomplete.
             case ConstructorDecl:
 //                return visit_ConstructorDecl(node.lst_AST, node.nodes["body"]);
-                break;
             case ConstructorCall:
 //                return visit_ConstructorCall(node.token);
-                break;
             case InstanceBody:
 //                return visit_InstanceBody(node.lst_AST);
-                break;
             case ClassInitializer:
 //                return visit_ClassInitializer(node.token, node.lst_AST);
-                break;
             case StaticStatement:
     //            return visit_StaticStatement(node.nodes["statement"]);
-                break;
             case MemberVar:
     //            return visit_MemberVar(node.nodes["inst"], node.token);
                 break;
@@ -387,8 +389,6 @@ namespace Odo::Interpreting {
                 break;
 
             case Debug:
-                return null;
-
             case Null:
                 return null;
         }
@@ -452,7 +452,7 @@ namespace Odo::Interpreting {
         if (kind == "double") {
             newValue = strtod(val.c_str(), nullptr);
         } else if (kind == "int") {
-            int a = strtol(val.c_str(), nullptr, 10);
+            int a = (int) strtol(val.c_str(), nullptr, 10);
             newValue = a;
         } else if (kind == "string") {
             newValue = val;
@@ -479,28 +479,28 @@ namespace Odo::Interpreting {
         return the_value;
     }
 
-    Value* Interpreter::visit_Double(Lexing::Token t) {
+    Value* Interpreter::visit_Double(const Lexing::Token& t) {
         return create_literal(t.value, "double");
     }
 
-    Value* Interpreter::visit_Int(Lexing::Token t) {
+    Value* Interpreter::visit_Int(const Lexing::Token& t) {
         return create_literal(t.value, "int");
     }
 
-    Value* Interpreter::visit_Bool(Lexing::Token t) {
+    Value* Interpreter::visit_Bool(const Lexing::Token& t) {
         return create_literal(t.value, "bool");
     }
 
-    Value* Interpreter::visit_Str(Lexing::Token t) {
+    Value* Interpreter::visit_Str(const Lexing::Token& t) {
         return create_literal(t.value, "string");
     }
 
-    Value* Interpreter::visit_Block(std::vector<AST> statements) {
+    Value* Interpreter::visit_Block(const std::vector<AST>& statements) {
         auto blockScope = SymbolTable("block_scope", {}, currentScope);
         currentScope = &blockScope;
 
         auto result = null;
-        for (auto st : statements) {
+        for (const auto& st : statements) {
             result = visit(st);
             if (breaking || continuing || returning) {
                 break;
@@ -513,7 +513,7 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    Value* Interpreter::visit_TernaryOp(AST cond, AST trueb, AST falseb) {
+    Value* Interpreter::visit_TernaryOp(const AST& cond, AST trueb, AST falseb) {
         auto val_cond = visit(cond);
         if (val_cond->type.name != "bool") {
             throw Exceptions::TypeException(
@@ -525,14 +525,14 @@ namespace Odo::Interpreting {
         bool real_condition = std::any_cast<bool>(val_cond->val);
 
         if (real_condition) {
-            return visit(trueb);
+            return visit(std::move(trueb));
         } else {
-            return visit(falseb);
+            return visit(std::move(falseb));
         }
         return nullptr;
     }
 
-    Value* Interpreter::visit_If(AST cond, AST trueb, AST falseb) {
+    Value* Interpreter::visit_If(const AST& cond, AST trueb, AST falseb) {
         auto val_cond = visit(cond);
         if (val_cond->type.name != "bool") {
             throw Exceptions::TypeException(
@@ -544,14 +544,14 @@ namespace Odo::Interpreting {
         bool real_condition = std::any_cast<bool>(val_cond->val);
 
         if (real_condition) {
-            return visit(trueb);
+            return visit(std::move(trueb));
         } else {
-            return visit(falseb);
+            return visit(std::move(falseb));
         }
         return nullptr;
     }
 
-    Value* Interpreter::visit_For(AST ini, AST cond, AST incr, AST body) {
+    Value* Interpreter::visit_For(AST ini, const AST& cond, const AST& incr, const AST& body) {
         auto forScope = SymbolTable("for:loop", {}, currentScope);
         currentScope = &forScope;
 
@@ -595,7 +595,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value *Interpreter::visit_While(const AST& cond, AST body) {
+    Value *Interpreter::visit_While(const AST& cond, const AST& body) {
         auto whileScope = SymbolTable("while:loop", {}, currentScope);
         currentScope = &whileScope;
 
@@ -632,7 +632,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value *Interpreter::visit_Loop(AST body) {
+    Value *Interpreter::visit_Loop(const AST& body) {
         while(true){
             visit(body);
             if (breaking) {
@@ -651,7 +651,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_VarDeclaration(const Lexing::Token& var_type, Lexing::Token name, AST initial) {
+    Value* Interpreter::visit_VarDeclaration(const Lexing::Token& var_type, const Lexing::Token& name, const AST& initial) {
         if (currentScope->symbolExists(name.value)) {
             throw Exceptions::NameException(
                     "Variable called '" + name.value + "' already exists",
@@ -704,7 +704,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value *Interpreter::visit_ListDeclaration(const Lexing::Token &var_type, Lexing::Token name, AST initial) {
+    Value *Interpreter::visit_ListDeclaration(const Lexing::Token &var_type, const Lexing::Token& name, const AST& initial) {
         if (currentScope->symbolExists(name.value)) {
             throw Exceptions::NameException(
                     "Variable called '" + name.value + "' already exists",
@@ -732,7 +732,8 @@ namespace Odo::Interpreting {
             list_type = found_in_table;
         } else {
             list_type = globalTable.addSymbol({
-                base_type, base_type->name + "[]",
+                .tp=base_type,
+                .name=base_type->name + "[]",
                 .isType=true,
                 .kind=ListType
             });
@@ -763,8 +764,8 @@ namespace Odo::Interpreting {
     }
 
     Value* Interpreter::visit_Assignment(AST expr, AST val) {
-        auto varSym = getMemberVarSymbol(expr);
-        auto newValue = visit(val);
+        auto varSym = getMemberVarSymbol(std::move(expr));
+        auto newValue = visit(std::move(val));
 
         if (varSym) {
             if (varSym->value) {
@@ -791,7 +792,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_Variable(Lexing::Token token) {
+    Value* Interpreter::visit_Variable(const Lexing::Token& token) {
         auto found = currentScope->findSymbol(token.value);
 
         if (found != nullptr) {
@@ -811,8 +812,8 @@ namespace Odo::Interpreting {
         }
     }
 
-    Value* Interpreter::visit_Index(AST val, AST expr) {
-        auto visited_val = visit(val);
+    Value* Interpreter::visit_Index(AST val, const AST& expr) {
+        auto visited_val = visit(std::move(val));
 
         if (visited_val->type.name == "string") {
             auto str = visited_val->as_string();
@@ -876,11 +877,11 @@ namespace Odo::Interpreting {
         }
     }
 
-    Value *Interpreter::visit_ListExpression(std::vector<AST> elements) {
+    Value *Interpreter::visit_ListExpression(const std::vector<AST>& elements) {
         Symbol* list_t = nullptr;
         std::vector<Symbol> list_syms;
 
-        for (auto el : elements) {
+        for (const auto& el : elements) {
             auto visited_element = visit(el);
             auto type_of_el = currentScope->findSymbol(visited_element->type.name);
 
@@ -926,7 +927,7 @@ namespace Odo::Interpreting {
         return in_val_table;
     }
 
-    Value* Interpreter::visit_BinOp(Lexing::Token token, AST &left, AST &right) {
+    Value* Interpreter::visit_BinOp(const Lexing::Token& token, AST &left, AST &right) {
         auto leftVisited = visit(left);
         auto rightVisited = visit(right);
 
@@ -938,7 +939,7 @@ namespace Odo::Interpreting {
                     if (rightVisited->kind == ListVal) {
                         std::vector<Symbol> new_elements;
 
-                        for (auto el : leftVisited->as_list_symbol()) {
+                        for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
@@ -949,7 +950,7 @@ namespace Odo::Interpreting {
                             val->addReference(new_symbol);
                             new_elements.push_back(new_symbol);
                         }
-                        for (auto el : rightVisited->as_list_symbol()) {
+                        for (const auto& el : rightVisited->as_list_symbol()) {
                             auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
@@ -967,7 +968,7 @@ namespace Odo::Interpreting {
                     } else {
                         std::vector<Symbol> new_elements;
 
-                        for (auto el : leftVisited->as_list_symbol()) {
+                        for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
@@ -1046,7 +1047,7 @@ namespace Odo::Interpreting {
                     std::vector<Symbol> new_elements;
 
                     for (int i = 0; i < right_as_int; i++) {
-                        for (auto el : leftVisited->as_list_symbol()) {
+                        for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
                             if (val->type.kind == PrimitiveType) {
@@ -1277,7 +1278,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_UnaryOp(Lexing::Token token, AST &left) {
+    Value* Interpreter::visit_UnaryOp(const Lexing::Token& token, AST &left) {
         auto result = visit(left);
 
         switch (token.tp) {
@@ -1310,7 +1311,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_Module(Lexing::Token name, std::vector<Parsing::AST> statements) {
+    Value* Interpreter::visit_Module(const Lexing::Token& name, const std::vector<Parsing::AST>& statements) {
         SymbolTable module_scope = {
             "module-scope",
             {},
@@ -1327,7 +1328,7 @@ namespace Odo::Interpreting {
 
         auto temp = currentScope;
         currentScope = &moduleValue->ownScope;
-        for (auto st : statements) {
+        for (const auto& st : statements) {
             visit(st);
         }
 
@@ -1340,12 +1341,12 @@ namespace Odo::Interpreting {
         return moduleValue;
     }
 
-    Value * Interpreter::visit_Import(Lexing::Token path, Lexing::Token name) {
+    Value * Interpreter::visit_Import(const Lexing::Token& path, const Lexing::Token& name) {
         auto mod = interpret_as_module(path.value, name);
         return null;
     }
 
-    Value* Interpreter::visit_FuncExpression(std::vector<AST> params, const Lexing::Token& retType, AST body){
+    Value* Interpreter::visit_FuncExpression(const std::vector<AST>& params, const Lexing::Token& retType, AST body){
         auto returnType = retType.tp == Lexing::NOTHING ? nullptr : currentScope->findSymbol(retType.value);
 
         auto paramTypes = getParamTypes(params);
@@ -1366,7 +1367,7 @@ namespace Odo::Interpreting {
         return funcValue;
     }
 
-    Value* Interpreter::visit_FuncDecl(const Lexing::Token& name, std::vector<AST> params, Lexing::Token retType, AST body){
+    Value* Interpreter::visit_FuncDecl(const Lexing::Token& name, const std::vector<AST>& params, const Lexing::Token& retType, AST body){
 
         if (currentScope->symbolExists(name.value)) {
             throw Exceptions::NameException(
@@ -1397,10 +1398,10 @@ namespace Odo::Interpreting {
         });
 
         auto funcSymbol = currentScope->addSymbol({
-            typeOfFunc,
-            name.value,
-            funcValue,
-            .kind=FunctionType
+            .tp=typeOfFunc,
+            .name=name.value,
+            .value=funcValue,
+            .kind=FunctionSymbol
         });
 
         funcValue->addReference(*funcSymbol);
@@ -1408,7 +1409,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value *Interpreter::visit_FuncCall(AST expr, Lexing::Token fname, std::vector<AST> args) {
+    Value *Interpreter::visit_FuncCall(AST expr, const Lexing::Token& fname, std::vector<AST> args) {
         if (callDepth >= MAX_CALL_DEPTH) {
             throw Exceptions::RuntimeException("Callback depth exceeded.", current_line, current_col);
         }
@@ -1433,7 +1434,7 @@ namespace Odo::Interpreting {
             }
         }
 
-        if (auto fVal = visit(expr);
+        if (auto fVal = visit(std::move(expr));
             fVal->kind == FunctionVal) {
 
             auto funcScope = SymbolTable("func-scope", {}, fVal->scope);
@@ -1497,13 +1498,13 @@ namespace Odo::Interpreting {
         throw Exceptions::ValueException("Value is not a function.", current_line, current_col);
     }
 
-    Value *Interpreter::visit_FuncBody(std::vector<AST> statements) {
+    Value *Interpreter::visit_FuncBody(const std::vector<AST>& statements) {
         auto temp = currentScope;
         auto bodyScope = SymbolTable("func-body-scope", {}, currentScope);
 
         currentScope = &bodyScope;
 
-        for (auto st : statements) {
+        for (const auto& st : statements) {
             visit(st);
             if (returning) {
                 break;
@@ -1519,12 +1520,12 @@ namespace Odo::Interpreting {
     }
 
     Value* Interpreter::visit_Return(AST val) {
-        returning = visit(val);
+        returning = visit(std::move(val));
         returning->important = true;
         return null;
     }
 
-    Value* Interpreter::visit_Class(Lexing::Token name, Lexing::Token ty, AST body) {
+    Value* Interpreter::visit_Class(const Lexing::Token& name, const Lexing::Token& ty, AST body) {
         Symbol* typeSym = nullptr;
 
         if (ty.tp != Lexing::NOTHING) {
@@ -1577,7 +1578,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_ConstructorDecl(std::vector<Parsing::AST> params, Parsing::AST body) {
+    [[maybe_unused]] Value* Interpreter::visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body) {
         Symbol* retType = nullptr;
 
         auto paramTypes = getParamTypes(params);
@@ -1601,7 +1602,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_ConstructorCall(Lexing::Token t) {
+    [[maybe_unused]] Value* Interpreter::visit_ConstructorCall(const Lexing::Token& t) {
         auto constr = currentScope->findSymbol(t.value);
 
         auto fVal = constr ? constr->value : nullptr;
@@ -1623,7 +1624,7 @@ namespace Odo::Interpreting {
                             if (newValue->type.kind == PrimitiveType) {
                                 newValue = valueTable.copyValue(*newValue);
                             }
-                            initValues.push_back({par.token, newValue});
+                            initValues.emplace_back(par.token, newValue);
                             break;
                         }
                         default:
@@ -1667,7 +1668,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_ClassInitializer(Lexing::Token name, std::vector<Parsing::AST> params) {
+    [[maybe_unused]] Value* Interpreter::visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params) {
         if (auto classInit = currentScope->findSymbol(name.value)) {
             auto classVal = classInit->value;
 
@@ -1679,7 +1680,8 @@ namespace Odo::Interpreting {
             newInstance->important = true;
 
             std::vector<Value *> newParams;
-            for (auto v : params) newParams.push_back(visit(v));
+            newParams.reserve(params.size());
+            for (const auto& v : params) newParams.push_back(visit(v));
             constructorParams = newParams;
 
             auto tempScope = currentScope;
@@ -1687,7 +1689,7 @@ namespace Odo::Interpreting {
 
             auto currentClass = classVal;
             std::vector<AST> inheritedBody = {{
-                InstanceBody,
+                .tp=InstanceBody,
                 .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
             }};
 
@@ -1697,7 +1699,7 @@ namespace Odo::Interpreting {
 
                 currentClass = upperValue;
                 inheritedBody.push_back({
-                    InstanceBody,
+                    .tp=InstanceBody,
                     .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
                 });
             }
@@ -1748,7 +1750,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    Value* Interpreter::visit_InstanceBody(std::vector<Parsing::AST> statements){
+    [[maybe_unused]] Value* Interpreter::visit_InstanceBody(const std::vector<Parsing::AST>& statements){
         for (auto& st : statements) {
             if (st.tp != StaticStatement)
                 visit(st);
@@ -1757,14 +1759,15 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_StaticVar(Parsing::AST inst, Lexing::Token name) {
+    Value* Interpreter::visit_StaticVar(const Parsing::AST& inst, const Lexing::Token& name) {
         auto instance = visit(inst);
 
-        if (instance->kind == InstanceVal) {
-            // Unsupported
-        } else if (instance->kind == ClassVal) {
-            // Unsupported
-        } else if (instance->kind == ModuleVal) {
+//        if (instance->kind == InstanceVal) {
+//            // Unsupported
+//        } else if (instance->kind == ClassVal) {
+//            // Unsupported
+//        } else
+        if (instance->kind == ModuleVal) {
             auto sm = instance->ownScope.findSymbol(name.value, false);
             if (sm) {
                 if (sm->value)
@@ -1859,7 +1862,7 @@ namespace Odo::Interpreting {
     }
 
     void Interpreter::interpret(std::string code) {
-        parser.set_text(code);
+        parser.set_text(std::move(code));
 
         auto root = parser.program();
 
@@ -1867,7 +1870,7 @@ namespace Odo::Interpreting {
     }
 
     Value* Interpreter::eval(std::string code) {
-        parser.set_text(code);
+        parser.set_text(std::move(code));
 
         auto statements = parser.program_content();
 
@@ -1875,7 +1878,7 @@ namespace Odo::Interpreting {
         currentScope = &replScope;
 
         Value* result = null;
-        for (auto node : statements) {
+        for (const auto& node : statements) {
             result = visit(node);
         }
 
@@ -1885,7 +1888,7 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    Value * Interpreter::interpret_as_module(const std::string &path, Lexing::Token name) {
+    Value * Interpreter::interpret_as_module(const std::string &path, const Lexing::Token& name) {
         bool has_extension = ends_with(path, ".odo");
 
         std::string full_path = path;

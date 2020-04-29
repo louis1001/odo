@@ -85,10 +85,10 @@ namespace Odo::Interpreting {
         }
 
         symbols[tp->name+"[]"] = Symbol{
-            tp,
-            tp->name+"[]",
+            .tp=tp,
+            .name=tp->name+"[]",
+            .isType=true,
             .kind=ListType,
-            .isType=true
         };
 
         return &symbols[tp->name + "[]"];
@@ -118,11 +118,11 @@ namespace Odo::Interpreting {
         // Where should the param types go?
         // In a member var of symbol, apparently... Ugh.
         symbols[funcName] = Symbol{
-                type,
-                funcName,
-                .kind=FunctionType,
-                .isType=true,
-                .functionTypes=params
+            .tp=type,
+            .name=funcName,
+            .isType=true,
+            .kind=FunctionType,
+            .functionTypes=params
         };
 
         return &symbols[funcName];

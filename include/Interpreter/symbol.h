@@ -80,7 +80,7 @@ namespace Odo::Interpreting {
     class SymbolTable {
         SymbolTable *parent{};
 
-        std::string scopeName = "";
+        [[maybe_unused]] std::string scopeName = "";
         int level=0;
 
     public:
