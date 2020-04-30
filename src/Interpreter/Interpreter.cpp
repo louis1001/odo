@@ -929,7 +929,9 @@ namespace Odo::Interpreting {
 
     Value* Interpreter::visit_BinOp(const Lexing::Token& token, AST &left, AST &right) {
         auto leftVisited = visit(left);
+        leftVisited->important = true;
         auto rightVisited = visit(right);
+        leftVisited->important = false;
 
         switch (token.tp) {
             case Lexing::PLUS:
