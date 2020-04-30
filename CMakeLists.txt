@@ -29,8 +29,3 @@ add_executable(odo
         include/Exceptions/exception.h
         include/IO/io.h
         src/IO/io.cpp)
-
-target_compile_options(odo
-    PRIVATE -Wno-unused-command-line-argument
-    PRIVATE -lc++experimental
-)
