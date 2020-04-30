@@ -67,12 +67,7 @@ println(result)
 
 ## Some current problems
 
-I'm having trouble with the "Garbage Collector"™
-A list contains symbols, and those point to values. When I wanna destroy a list, the values should go too.
-That's the problem. Apparently, I'm destroying too much, or too little.
-Because of this, the example `hangman.odo` is not working.
-
-Also, the metaprogramming in this project is awful.
+The metaprogramming in this project is awful.
 There's a comment in `Symbol.h` that explains it a little.
 
 I'm gonna refactor the whole project, specially the `Interpreter` section, and use polymorphism instead
