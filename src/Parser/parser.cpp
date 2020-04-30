@@ -895,7 +895,7 @@ namespace Odo::Parsing{
                     .token=current_token,
                 });
                 eat(current_token.tp);
-                result.nodes["right"] = factor();
+                result.nodes["right"] = postfix();
                 return result;
             }
             case NEW:

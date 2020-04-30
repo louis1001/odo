@@ -1,0 +1,56 @@
+module math {
+    double e = 2.718281828
+    func abs(double x): double {
+        if (x >= 0.0){
+            return x
+        }
+        return -x
+    }
+
+    func exp(double x) {
+        return e ^ x
+    }
+
+    func error(double XrAct, double XrAnt): double {
+        return abs((XrAct-XrAnt)/XrAct)
+    }
+}
+
+int MAX_ITERS = 200
+
+func approx_raiz(any fn, double x0, double x1, double min_err=0.001): double {
+    double px = x0
+    double x = x1
+
+    for (int i = 0; i < MAX_ITERS; i++) {
+        println("-"*20)
+        println("Iteracion ", i)
+
+        double y = fn(x)
+        double dy = (fn(px)-fn(x))/(px-x)
+        px = x
+
+        x = x - (y/dy)
+
+        println("X: ", x)
+        double curr_err = math::error(x, px)
+        println("Error: ", curr_err)
+
+        if curr_err < min_err {
+            return x
+        }
+
+        println("\n\n")
+    }
+
+    print("Error! Numero maximo de iteraciones excedido.")
+    return x
+}
+
+any fun = func (double x) -> {
+    return math::exp(-pow(x, 2))-x
+}
+
+double x = approx_raiz(fun, -0.5, 3.0, 0.01)
+
+println("The result is = ", x)
