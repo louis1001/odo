@@ -1,5 +1,31 @@
-import "../examples/math"
+int a = 100
+println("a =", a)
 
-double a = 30.123
-int p = 8
-println(a, "^", p, " is ", math::pow(a, p))
+int b = a
+
+b = 2
+
+println("a:", a, "b:", b)
+
+double firstDoubleVar = 10.3
+
+println(
+    "The double variable is",
+    firstDoubleVar
+)
+
+if (true) {
+    println("Hello, world!")
+}
+
+int someFunc =
+    func (int x) ->
+        x + 20
+
+println(someFunc)
+
+println(
+    someFunc(
+        20
+    )
+)

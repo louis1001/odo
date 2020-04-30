@@ -806,7 +806,14 @@ namespace Odo::Parsing{
             body = func_body();
             eat(RCUR);
         } else {
-            body = ternary_op();
+            AST fbod = add_dbg_info({FuncBody});
+            AST ex = add_dbg_info({
+              Return
+            });
+            auto val = ternary_op();
+            ex.nodes["val"] = val;
+            fbod.lst_AST = {ex};
+            body = fbod;
         }
 
         result.lst_AST = params;
