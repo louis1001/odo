@@ -365,17 +365,17 @@ namespace Odo::Interpreting {
                 break;
 //          Broken or incomplete.
             case ConstructorDecl:
-//                return visit_ConstructorDecl(node.lst_AST, node.nodes["body"]);
+                return visit_ConstructorDecl(node.lst_AST, node.nodes["body"]);
             case ConstructorCall:
-//                return visit_ConstructorCall(node.token);
+                return visit_ConstructorCall(node.token);
             case InstanceBody:
-//                return visit_InstanceBody(node.lst_AST);
+                return visit_InstanceBody(node.lst_AST);
             case ClassInitializer:
-//                return visit_ClassInitializer(node.token, node.lst_AST);
+                return visit_ClassInitializer(node.token, node.lst_AST);
             case StaticStatement:
     //            return visit_StaticStatement(node.nodes["statement"]);
             case MemberVar:
-    //            return visit_MemberVar(node.nodes["inst"], node.token);
+                return visit_MemberVar(node.nodes["inst"], node.token);
                 break;
             case StaticVar:
                 return visit_StaticVar(node.nodes["inst"], node.token);
@@ -1554,12 +1554,13 @@ namespace Odo::Interpreting {
         auto newClassMolde = valueTable.addNewValue({
             .type=newClassSym,
             .val=body,
+            .kind=ClassVal,
             .scope=currentScope,
             .ownScope=classScope
         });
 
         auto prevScope = currentScope;
-        currentScope = &classScope;
+        currentScope = &newClassMolde->ownScope;
 
         visit(body);
         currentScope = prevScope;
@@ -1580,7 +1581,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    [[maybe_unused]] Value* Interpreter::visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body) {
+    Value* Interpreter::visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body) {
         Symbol* retType = nullptr;
 
         auto paramTypes = getParamTypes(params);
@@ -1604,11 +1605,19 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    [[maybe_unused]] Value* Interpreter::visit_ConstructorCall(const Lexing::Token& t) {
+    Value* Interpreter::visit_ConstructorCall(const Lexing::Token& t) {
         auto constr = currentScope->findSymbol(t.value);
 
         auto fVal = constr ? constr->value : nullptr;
-        if (fVal && fVal->kind == FunctionVal) {
+
+        // If there's no constructor, just ignore it.
+        if (!fVal) {
+            constructorParams.clear();
+            constructorParams.shrink_to_fit();
+            return null;
+        }
+
+        if (fVal->kind == FunctionVal) {
             SymbolTable funcScope = {"constructor-scope", {}, fVal->scope};
             auto calleeScope = currentScope;
 
@@ -1651,9 +1660,8 @@ namespace Odo::Interpreting {
             }
             auto body_as_ast = std::any_cast<AST>(fVal->val);
 
-            auto result = visit(body_as_ast);
+            visit(body_as_ast);
             valueTable.cleanUp(funcScope);
-            result->important = false;
             currentScope = calleeScope;
             callDepth--;
         } else {
@@ -1670,15 +1678,18 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    [[maybe_unused]] Value* Interpreter::visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params) {
+    Value* Interpreter::visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params) {
         if (auto classInit = currentScope->findSymbol(name.value)) {
             auto classVal = classInit->value;
 
             SymbolTable instanceScope{"instance-" + name.value + "-scope", {}, classVal->scope};
 
-            auto newInstance = valueTable.addNewValue(*classInit, classVal);
-            newInstance->ownScope = instanceScope;
-
+            auto newInstance = valueTable.addNewValue({
+                .type=*classInit,
+                .val=classVal,
+                .kind=InstanceVal,
+                .ownScope=instanceScope
+            });
             newInstance->important = true;
 
             std::vector<Value *> newParams;
@@ -1687,48 +1698,60 @@ namespace Odo::Interpreting {
             constructorParams = newParams;
 
             auto tempScope = currentScope;
-            currentScope = &instanceScope;
-
-            auto currentClass = classVal;
-            std::vector<AST> inheritedBody = {{
-                .tp=InstanceBody,
-                .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
-            }};
-
-            while (currentClass->type.tp != nullptr) {
-                auto upperType = currentClass->type.tp;
-                auto upperValue = upperType->value;
-
-                currentClass = upperValue;
-                inheritedBody.push_back({
-                    .tp=InstanceBody,
-                    .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
-                });
-            }
+            currentScope = &newInstance->ownScope;
 
             auto thisSym = currentScope->addSymbol({
-                classInit,
-                "this",
-                newInstance
+               classInit,
+               "this",
+               newInstance
             });
 
-            auto outerS = currentScope;
-            SymbolTable lastScope {"inherited-scope-0", {}, currentScope->getParent()};
+            auto currentClass = classVal;
+            AST myInstanceBody = {
+                .tp=InstanceBody,
+                .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
+            };
 
-            currentScope = &lastScope;
-            for (auto it = inheritedBody.end()-1; it >= inheritedBody.begin(); it--) {
-                visit(*it);
-                // TODO: Fix inheritance.
-                // currentScope is assigned here
-                SymbolTable ns = {"inherited-scope", {}, currentScope};
-                currentScope->addSymbol(*thisSym);
+            auto mainScope = new SymbolTable{
+                "inherited-scope-0",
+                {{"this", *thisSym}},
+                classVal->scope
+            };
+            std::vector<AST> inheritedBody = {std::move(myInstanceBody)};
+            std::vector<SymbolTable*> inheritedScopes = {mainScope};
 
-                // And when I change it here, the parent of ns changes too.
-                currentScope = &ns;
+            int level = 1;
+            while (currentClass->type.tp != nullptr) {
+                auto upperValue = currentClass->type.tp->value;
+
+                currentClass = upperValue;
+                AST inherBody = {
+                    .tp=InstanceBody,
+                    .lst_AST=std::any_cast<AST>(currentClass->val).lst_AST
+                };
+
+                // This process would break here because setting the parent takes the address of a local object.
+                // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
+                auto inherScope =new SymbolTable{
+                    "inherited-scope-" + std::to_string(level++),
+                    {{"this", *thisSym}},
+                    inheritedScopes[0]
+                };
+
+                inheritedBody.push_back(inherBody);
+                inheritedScopes.insert(inheritedScopes.begin(), inherScope);
             }
 
-            instanceScope.setParent(currentScope);
-            currentScope = outerS;
+            newInstance->ownScope.setParent(inheritedScopes[0]);
+
+            for (auto i = (long)inheritedBody.size()-1; i >= 0; i--) {
+                auto prev = currentScope;
+
+                currentScope = inheritedScopes[i];
+                visit(inheritedBody[i]);
+
+                currentScope = prev;
+            }
 
             auto initID = Lexing::Token {Lexing::ID, "constructor"};
             AST initFuncCall = {
@@ -1737,6 +1760,7 @@ namespace Odo::Interpreting {
             };
 
             visit(initFuncCall);
+//            std::any_cast<Value*>(newInstance->val);
 
             currentScope = tempScope;
 
@@ -1752,7 +1776,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    [[maybe_unused]] Value* Interpreter::visit_InstanceBody(const std::vector<Parsing::AST>& statements){
+    Value* Interpreter::visit_InstanceBody(const std::vector<Parsing::AST>& statements){
         for (auto& st : statements) {
             if (st.tp != StaticStatement)
                 visit(st);
@@ -1761,15 +1785,63 @@ namespace Odo::Interpreting {
         return null;
     }
 
+    Value* Interpreter::visit_MemberVar(const Parsing::AST& inst, const Lexing::Token& name) {
+        auto instance = visit(inst);
+
+        if (!instance || instance->kind != InstanceVal) {
+            throw Exceptions::ValueException(
+                "Invalid instance for Member Variable operator.",
+                current_line,
+                current_col
+            );
+        }
+
+        auto foundSymbol = instance->ownScope.findSymbol(name.value);
+        if (foundSymbol) {
+            if (foundSymbol->value) return foundSymbol->value;
+        } else {
+            throw Exceptions::NameException(
+                "No member variable named '" + name.value + "' in '" + inst.token.value + "'.",
+                current_line,
+                current_col
+            );
+        }
+
+        return null;
+    }
+
     Value* Interpreter::visit_StaticVar(const Parsing::AST& inst, const Lexing::Token& name) {
         auto instance = visit(inst);
 
-//        if (instance->kind == InstanceVal) {
-//            // Unsupported
-//        } else if (instance->kind == ClassVal) {
-//            // Unsupported
-//        } else
-        if (instance->kind == ModuleVal) {
+        if (instance->kind == InstanceVal) {
+            auto classVal = std::any_cast<Value*>(instance->val);
+
+            auto foundSymbol = classVal->ownScope.findSymbol(name.value);
+            if (foundSymbol) {
+                if (foundSymbol->value) return foundSymbol->value;
+
+                return null;
+            } else {
+                throw Exceptions::NameException(
+                    "No static variable named '" + name.value + "' in '" + inst.token.value + "'.",
+                    current_line,
+                    current_col
+                );
+            }
+        } else if (instance->kind == ClassVal) {
+            auto foundSymbol = instance->ownScope.findSymbol(name.value);
+            if (foundSymbol) {
+                if (foundSymbol->value) return foundSymbol->value;
+
+                return null;
+            } else {
+                throw Exceptions::NameException(
+                    "No static variable named '" + name.value + "' in class '" + inst.token.value + "'.",
+                    current_line,
+                    current_col
+                );
+            }
+        } else if (instance->kind == ModuleVal) {
             auto sm = instance->ownScope.findSymbol(name.value, false);
             if (sm) {
                 if (sm->value)
@@ -1802,18 +1874,37 @@ namespace Odo::Interpreting {
                 varSym = currentScope->findSymbol(mem.token.value);
                 break;
             case MemberVar:
-                // TODO
+            {
+                auto leftHandSym = getMemberVarSymbol(mem.nodes["inst"]);
+
+                if (leftHandSym && leftHandSym->value) {
+                    auto theValue = leftHandSym->value;
+                    if (theValue->kind != InstanceVal) {
+                        throw Exceptions::ValueException(
+                            "'" + leftHandSym->name + "' is not a valid instance.",
+                            current_line,
+                            current_col
+                        );
+                    }
+
+                    varSym = theValue->ownScope.findSymbol(mem.token.value);
+                }
                 break;
+            }
             case StaticVar:
             {
-                auto leftHand = mem.nodes["inst"].token;
-                auto leftHandSym = currentScope->findSymbol(leftHand.value);
+                auto leftHandSym = getMemberVarSymbol(mem.nodes["inst"]);
 
                 if (leftHandSym && leftHandSym->value) {
                     auto theValue = leftHandSym->value;
                     if (theValue->kind == ModuleVal) {
                         varSym = theValue->ownScope.findSymbol(mem.token.value, false);
-                        break;
+                    } else if (theValue->kind == ClassVal) {
+                        varSym = theValue->ownScope.findSymbol(mem.token.value);
+                    } else if (theValue->kind == InstanceVal) {
+                        auto classVal = std::any_cast<Value*>(theValue->val);
+
+                        varSym = classVal->ownScope.findSymbol(mem.token.value);
                     } else {
                         throw Exceptions::NameException(
                                 "Invalid Static Variable Operator (::).",

@@ -79,14 +79,15 @@ namespace Odo::Interpreting {
         Value* visit_Class(const Lexing::Token& name, const Lexing::Token& ty, Parsing::AST body);
         Value* visit_ClassBody(std::vector<Parsing::AST> statements);
 
-        [[maybe_unused]] Value* visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body);
+        Value* visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body);
 
-        [[maybe_unused]] Value* visit_ConstructorCall(const Lexing::Token& t);
+        Value* visit_ConstructorCall(const Lexing::Token& t);
 
-        [[maybe_unused]] Value* visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params);
+        Value* visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params);
 
-        [[maybe_unused]] Value* visit_InstanceBody(const std::vector<Parsing::AST>& statements);
+        Value* visit_InstanceBody(const std::vector<Parsing::AST>& statements);
 
+        Value* visit_MemberVar(const Parsing::AST&, const Lexing::Token&);
         Value* visit_StaticVar(const Parsing::AST&, const Lexing::Token&);
 
         Value *interpret_as_module(const std::string &path, const Lexing::Token& name);
