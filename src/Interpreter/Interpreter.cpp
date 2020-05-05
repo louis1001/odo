@@ -507,8 +507,10 @@ namespace Odo::Interpreting {
             }
         }
 
+        result->important = true;
         currentScope = blockScope.getParent();
         valueTable.cleanUp(blockScope);
+        result->important = false;
 
         return result;
     }
