@@ -16,4 +16,12 @@ namespace Odo {
             return false;
         }
     }
+
+    bool starts_with(std::string const &fullString, std::string const &beginning) {
+        if (fullString.length() >= beginning.length()) {
+            return (0 == fullString.compare (0, beginning.length(), beginning));
+        } else {
+            return false;
+        }
+    }
 }

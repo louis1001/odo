@@ -3,6 +3,7 @@
 //
 
 #include "Interpreter/value.h"
+#include "utils.h"
 #include <utility>
 #include <vector>
 
@@ -88,6 +89,14 @@ namespace Odo::Interpreting {
                         }
 
                         removeReference(list_ref);
+                    }
+                } else if (pm_it->second.kind == InstanceVal) {
+                    auto scp = &pm_it->second.ownScope;
+                    auto parent = scp->getParent();
+                    while (parent && starts_with(parent->getName(), "inherited-scope")) {
+                        scp = parent->getParent();
+                        delete parent;
+                        parent = scp;
                     }
                 }
                 pm_it = values.erase(pm_it);

@@ -11,5 +11,6 @@
 namespace Odo {
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t);
     bool ends_with(std::string const &, std::string const &);
+    bool starts_with(std::string const &, std::string const &);
 }
 #endif //ODO_PORT_UTILS_H

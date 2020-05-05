@@ -94,6 +94,8 @@ namespace Odo::Interpreting {
         Symbol* addListType(Symbol*);
         bool symbolExists(const std::string&);
 
+        std::string getName() { return scopeName; }
+
         SymbolTable* getParent() { return parent; }
         void setParent(SymbolTable* newP) { parent = newP; }
 
