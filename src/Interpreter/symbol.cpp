@@ -5,6 +5,7 @@
 #include "Interpreter/symbol.h"
 #include "Exceptions/exception.h"
 #include <utility>
+#include <iostream>
 
 const static char charset[] =
         "0123456789"
@@ -126,6 +127,15 @@ namespace Odo::Interpreting {
         };
 
         return &symbols[funcName];
+    }
+
+    void SymbolTable::debugChain() {
+        std::cout << "Table level " << level << ": " << scopeName <<
+            " | with " << symbols.size() << " symbols\n";
+        if (parent) {
+            std::cout << "\t|\n\tv\n";
+            parent->debugChain();
+        }
     }
 
     SymbolTable::~SymbolTable() {

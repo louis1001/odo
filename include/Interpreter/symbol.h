@@ -80,7 +80,7 @@ namespace Odo::Interpreting {
     class SymbolTable {
         SymbolTable *parent{};
 
-        [[maybe_unused]] std::string scopeName = "";
+        std::string scopeName = "";
         int level=0;
 
     public:
@@ -99,6 +99,7 @@ namespace Odo::Interpreting {
 
         Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol, bool>>& vector);
 
+        void debugChain();
         ~SymbolTable();
     };
 }
