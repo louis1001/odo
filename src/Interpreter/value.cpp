@@ -153,4 +153,43 @@ namespace Odo::Interpreting {
     std::vector<Symbol>& Value::as_list_symbol() {
         return std::any_cast< std::vector<Symbol>& >(val);
     }
+
+    std::string Value::to_string() {
+        std::string result;
+        if (kind == ModuleVal) {
+            result = "<module> at: " + std::to_string(address);
+        } else if (type.kind == PrimitiveType){
+            if (type.name == "double") {
+                auto this_as_double = as_double();
+                result = std::to_string(this_as_double);
+            } else if (type.name == "int"){
+                auto this_as_int = as_int();
+                result = std::to_string(this_as_int);
+            } else if (type.name == "string"){
+                result = as_string();
+            } else if (type.name == "bool"){
+                auto this_as_bool = as_bool();
+                result = this_as_bool ? "true" : "false";
+            } else if (type.name == "NullType"){
+                result = "null";
+            } else {
+                result = "< corrupted :o >";
+            }
+        } else if (kind == ListVal) {
+            result += "[";
+            auto values_in_v = std::any_cast< std::vector<Symbol> >(val);
+            for (auto mySym = values_in_v.begin(); mySym < values_in_v.end(); mySym++) {
+                result += mySym->value ? mySym->value->to_string() : "null";
+
+                if (mySym != values_in_v.end()-1) {
+                    result += ", ";
+                }
+            }
+            result += "]";
+        } else {
+            result = "<value> at: " + std::to_string(address);
+        }
+
+        return result;
+    }
 }

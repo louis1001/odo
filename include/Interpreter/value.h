@@ -47,6 +47,8 @@ namespace Odo::Interpreting {
         double as_double();
         std::vector<Value*> as_list_value();
         std::vector<Symbol>& as_list_symbol();
+
+        std::string to_string();
     };
 
     class ValueTable {

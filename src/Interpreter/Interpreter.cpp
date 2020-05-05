@@ -66,7 +66,7 @@ namespace Odo::Interpreting {
         add_native_function("print", [&](auto values) {
             for (auto v : values) {
                 if (v)
-                    std::cout << value_to_string(v);
+                    std::cout << v->to_string();
             }
             // Might make printing slower... I don't know of a better way of doing this.
             std::cout.flush();
@@ -76,7 +76,7 @@ namespace Odo::Interpreting {
         add_native_function("println", [&](auto values) {
             for (auto v : values) {
                 if (v)
-                    std::cout << value_to_string(v);
+                    std::cout << v->to_string();
             }
             std::cout << std::endl;
             return null;
@@ -198,7 +198,7 @@ namespace Odo::Interpreting {
         add_native_function("read", [&](const std::vector<Value*>& vals) {
             std::string result;
             for (auto v : vals) {
-                std::cout << value_to_string(v);
+                std::cout << v->to_string();
             }
 
             std::getline(std::cin, result);
@@ -208,7 +208,7 @@ namespace Odo::Interpreting {
         add_native_function("read_int", [&](const std::vector<Value*>& vals) {
             int result;
             for (auto v : vals) {
-                std::cout << value_to_string(v);
+                std::cout << v->to_string();
             }
             std::cin >> result;
             std::cin.ignore();
@@ -218,7 +218,7 @@ namespace Odo::Interpreting {
         add_native_function("read_double", [&](const std::vector<Value*>& vals) {
             double result;
             for (auto v : vals) {
-                std::cout << value_to_string(v);
+                std::cout << v->to_string();
             }
             std::cin >> result;
             std::cin.ignore();
@@ -393,49 +393,6 @@ namespace Odo::Interpreting {
                 return null;
         }
         return null;
-    }
-
-    std::string Interpreter::value_to_string(Value *v) {
-        std::string result;
-        if (v->kind == ModuleVal) {
-            result = "<module> at: " + std::to_string(v->address);
-        } else if (v->type.kind == PrimitiveType){
-            if (v->type.name == "double") {
-                auto as_double = v->as_double();
-                result = std::to_string(as_double);
-            } else if (v->type.name == "int"){
-                auto as_int = v->as_int();
-                result = std::to_string(as_int);
-            } else if (v->type.name == "string"){
-                result = v->as_string();
-            } else if (v->type.name == "bool"){
-                auto as_bool = v->as_bool();
-                result = as_bool ? "true" : "false";
-            } else if (v == null){
-                result = "null";
-            } else {
-                throw Exceptions::TypeException(
-                        "Invalid primitive type " + v->type.name,
-                        current_line,
-                        current_col
-                );
-            }
-        } else if (v->type.kind == ListType) {
-            result += "[";
-            auto values_in_v = v->as_list_value();
-            for (auto val = values_in_v.begin(); val < values_in_v.end(); val++) {
-                result += value_to_string(*val);
-
-                if (val != values_in_v.end()-1) {
-                    result += ", ";
-                }
-            }
-            result += "]";
-        } else {
-            result = "<value> at: " + std::to_string(v->address);
-        }
-
-        return result;
     }
 
     int Interpreter::add_native_function(const std::string& name, NativeFunction callback) {
@@ -1001,9 +958,9 @@ namespace Odo::Interpreting {
                         return new_list;
                     }
                 } else if (leftVisited->type.name == "string") {
-                    return create_literal(leftVisited->as_string()+value_to_string(rightVisited), "string");
+                    return create_literal(leftVisited->as_string()+rightVisited->to_string(), "string");
                 } else if (rightVisited->type.name == "string") {
-                    return create_literal(value_to_string(leftVisited) + rightVisited->as_string(), "string");
+                    return create_literal(leftVisited->to_string() + rightVisited->as_string(), "string");
                 } else if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() + rightVisited->as_int();
