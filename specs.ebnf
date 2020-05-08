@@ -25,7 +25,7 @@ identifier = letter, {letter | digit | "_"};
 integer = digit, {digit};
 (*
 Can I use `integer, ".", integer`?
-Would that ignore spaces between the point?
+Would that ignore spaces around the point?
 *)
 
 real = digit, {digit}, ".", digit, {digit};
@@ -85,6 +85,8 @@ static_statement = "static", statement;
 
 constructor = "init", func_params, closure;
 
+new_initializer = "new", identifier, call_arguments
+
 
 function = "func", identifier, func_params, [":", identifier], closure;
 
@@ -141,5 +143,3 @@ factor =
         | "[", comma_expression_list, "]"
         | function_expression
         | "null";
-
-new_initializer = "new", identifier, call_arguments
