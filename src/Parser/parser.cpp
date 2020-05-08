@@ -217,7 +217,6 @@ namespace Odo::Parsing{
 
         Token inherits(NOTHING, "");
 
-//        TODO: Fix Inheritance
         if (current_token.tp == COLON) {
             eat(COLON);
             inherits = current_token;
