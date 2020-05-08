@@ -1,0 +1,145 @@
+(* I haven't done this before, so this will be a work in progress. *)
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+
+letter =  "A" | "B" | "C" | "D" | "E" | "F" | "G"
+        | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+        | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+        | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+        | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+        | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+        | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+        | "x" | "y" | "z";
+
+symbol =  "," | ";" | ":" | "?" | "-" | "+" | "="
+        | "*" | "/" | "%" | "&" | "|" | "^" | "!"
+        | "<" | ">" | "(" | ")" | "{" | "}" | "["
+        | "]";
+
+character = digit | letter | symbol;
+
+new_line = "\n";
+
+identifier = letter, {letter | digit | "_"};
+
+integer = digit, {digit};
+(*
+Can I use `integer, ".", integer`?
+Would that ignore spaces between the point?
+*)
+
+real = digit, {digit}, ".", digit, {digit};
+
+string = "'", {character | '"'}, "'" | '"', {character | "'"}, '"';
+
+statement_terminator
+        = {new_line}
+        | ";", {new_line};
+
+program = statement_list;
+
+statement_list = {statement};
+comma_expression_list = [ternary_op, {",", ternary_op}];
+
+single_statement = closure
+        |  module
+        | "import", (string|identifier)
+        | if_statement
+        | class_statement
+        | static_statement
+        | constructor
+        | function
+        | "return", ternary_op
+        | for_statement
+        | while_statement
+        | loop_statement
+        | "break"
+        | "continue"
+        | "debug"
+        | ternary_op;
+
+statement = single_statement, statement_terminator;
+
+func_params = "(", [var_declaration, {",", var_declaration}], ")";
+call_arguments = "(", comma_expression_list, ")";
+
+var_declaration = identifier, identifier, ["[]"], ["=", ternary_op];
+
+closure = "{", statement_list,  "}";
+
+module = "module", identifier, closure;
+
+
+if_statement = if_expression | if_block, else_block;
+
+if_expression = "if", ternary_op, ternary_op;
+
+if_block = "if", ternary_op, closure;
+
+else_block = {"else", if_block}, ["else", closure];
+
+
+class_statement = "class", identifier, [":", identifier], closure;
+
+static_statement = "static", statement;
+
+constructor = "init", func_params, closure;
+
+
+function = "func", identifier, func_params, [":", identifier], closure;
+
+function_expression = "func", func_params, "->", (closure | ternary_op);
+
+
+for_statement = "for", "(", statement, ternary_op, statement, ")", (closure | statement);
+
+while_statement = "while", ternary_op, closure;
+
+loop_statement = "loop", closure;
+
+
+comparison_operator = "==" | "!=" | ">" | "<" | "<=" | ">=";
+expression_operator = "+" | "-";
+term_operator = "*" | "/" | "%";
+
+ternary_op = or_comparison, ["?", or_comparison, ":", or_comparison];
+
+or_comparison = and_comparison, ["||", and_comparison];
+
+and_comparison = comparison, ["&&", comparison];
+
+comparison = expression, [comparison_operator, expression];
+
+expression = term, [expression_operator, term];
+
+term = prod, [term_operator, term];
+
+prod = postfix, ["^", postfix];
+
+postfix = factor, {post_operation}
+
+post_operation = 
+        "++"
+        | "--"
+        | ("+=" | "-=" | "*=" | "/="), factor
+        | ("."|"::"), identifier
+        | call_arguments
+        | "[", ternary_op, "]"
+        | "=", ternary_op;
+
+factor = 
+        real
+        | integer
+        | string
+        | "true" | "false"
+        | "!", postfix
+        | "(", factor, ")"
+        | ("+", "-"), postfix
+        | new_initializer
+        | identifier                    
+        | var_declaration
+        | "[", comma_expression_list, "]"
+        | function_expression
+        | "null";
+
+new_initializer = "new", identifier, call_arguments
