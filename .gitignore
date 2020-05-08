@@ -1,2 +1,4 @@
 cmake-*
+.vscode
+build/
 **/.DS_Store
