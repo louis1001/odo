@@ -4,6 +4,7 @@
 
 #include "Interpreter/symbol.h"
 #include "Exceptions/exception.h"
+#include "utils.h"
 #include <utility>
 #include <iostream>
 
@@ -19,7 +20,7 @@ namespace Odo::Interpreting {
         auto randchar = []() -> char
         {
             const size_t max_index = (sizeof(charset) - 1);
-            return charset[ rand() % max_index ];
+            return charset[ rand_int(0, max_index) ];
         };
         std::string str(length,0);
         std::generate_n( str.begin(), length, randchar );

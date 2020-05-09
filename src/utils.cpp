@@ -3,6 +3,7 @@
 //
 
 #include "utils.h"
+#include <random>
 
 namespace Odo {
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t) {
@@ -24,4 +25,18 @@ namespace Odo {
             return false;
         }
     }
+
+    int rand_int(int min, int max) {
+        std::default_random_engine generator(clock());
+        std::uniform_int_distribution<int> distribution(min, max-1);
+        return distribution(generator);
+    }
+
+    double rand_double(double min, double max) {
+        std::default_random_engine generator(clock());
+        std::uniform_real_distribution<double> distribution(min, max);
+        return distribution(generator);
+    }
+
+    double rand_double(double max) { return rand_double(0, max); }
 }

@@ -12,5 +12,8 @@ namespace Odo {
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t);
     bool ends_with(std::string const &, std::string const &);
     bool starts_with(std::string const &, std::string const &);
+    int rand_int(int min, int max);
+    double rand_double(double min, double max);
+    double rand_double(double max=1);
 }
 #endif //ODO_PORT_UTILS_H

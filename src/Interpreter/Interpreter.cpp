@@ -9,22 +9,9 @@
 
 #include <cmath>
 #include <iostream>
-#include <random>
 #include <utility>
 namespace Odo::Interpreting {
     using namespace Parsing;
-
-    double rand_int(int min, int max) {
-        std::default_random_engine generator(clock());
-        std::uniform_int_distribution<int> distribution(min, max-1);
-        return distribution(generator);
-    }
-
-    double rand_double(double min, double max) {
-        std::default_random_engine generator(clock());
-        std::uniform_real_distribution<double> distribution(min, max);
-        return distribution(generator);
-    }
 
     Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         auto any_symbol = Symbol{.name="any", .isType=true, .kind=PrimitiveType};
