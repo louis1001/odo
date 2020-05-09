@@ -625,6 +625,16 @@ namespace Odo::Interpreting {
                     newValue = valueTable.copyValue(*newValue);
                 }
 
+                if (type_->name == "any") {
+                    type_ = currentScope->findSymbol(newValue->type.name);
+                } else {
+                    if (type_->name == "int" && newValue->type.name == "double") {
+                        newValue = create_literal(std::to_string((int)newValue->as_double()), "int");
+                    } else if (type_->name == "double" && newValue->type.name == "int") {
+                        newValue = create_literal(std::to_string((double)newValue->as_int()), "double");
+                    }
+                }
+
                 newVar = {
                     type_,
                     name.value,
@@ -725,7 +735,18 @@ namespace Odo::Interpreting {
                 if (newValue->type.kind == PrimitiveType) {
                     newValue = valueTable.addNewValue(newValue->type, newValue->val);
                 }
+
+                if (varSym->tp->name == "any") {
+                    varSym->tp = currentScope->findSymbol(newValue->type.name);
+                } else {
+                    if (varSym->tp->name == "int" && newValue->type.name == "double") {
+                        newValue = create_literal(std::to_string((int)newValue->as_double()), "int");
+                    } else if (varSym->tp->name == "double" && newValue->type.name == "int") {
+                        newValue = create_literal(std::to_string((double)newValue->as_int()), "double");
+                    }
+                }
             }
+
             varSym->value = newValue;
             newValue->addReference(*varSym);
         } else {
