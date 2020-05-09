@@ -54,7 +54,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    Symbol* SymbolTable::addSymbol(Symbol sym) {
+    Symbol* SymbolTable::addSymbol(const Symbol& sym) {
         auto foundS = symbols.find(sym.name);
 
         if (foundS != symbols.end()) {

@@ -66,15 +66,15 @@ namespace Odo::Parsing{
     }
 
     AST Parser::block() {
-        return add_dbg_info({ Block, .lst_AST=statement_list() });
+        return add_dbg_info({ .tp=Block, .lst_AST=statement_list() });
     }
 
     AST Parser::func_body(){
-        return add_dbg_info({ FuncBody, .lst_AST=statement_list() });
+        return add_dbg_info({ .tp=FuncBody, .lst_AST=statement_list() });
     }
 
     AST Parser::class_body(){
-        return add_dbg_info({ ClassBody, .lst_AST=statement_list() });
+        return add_dbg_info({ .tp=ClassBody, .lst_AST=statement_list() });
     }
 
     std::vector<AST> Parser::statement_list() {
@@ -514,7 +514,7 @@ namespace Odo::Parsing{
         auto node = and_comparison();
 
         while (current_token.tp == OR) {
-            AST result = add_dbg_info({BinOp, .token=current_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=current_token});
 
             eat(OR);
             result.nodes = {
@@ -531,7 +531,7 @@ namespace Odo::Parsing{
         auto node = comparison();
 
         while (current_token.tp == AND) {
-            AST result = add_dbg_info({BinOp, .token=current_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=current_token});
             eat(AND);
 
             result.nodes = {
@@ -549,7 +549,7 @@ namespace Odo::Parsing{
 
         while (contains_type(compType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({BinOp, .token=c_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
             eat(current_token.tp);
             result.nodes = {
                 {"left", exp},
@@ -568,7 +568,7 @@ namespace Odo::Parsing{
 
         while (contains_type(exprType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({BinOp, .token=c_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(current_token.tp);
 
@@ -589,7 +589,7 @@ namespace Odo::Parsing{
 
         while (contains_type(termType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({BinOp, .token=c_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(current_token.tp);
 
@@ -608,7 +608,7 @@ namespace Odo::Parsing{
 
         while (current_token.tp == POW) {
             auto c_token = current_token;
-            AST result = add_dbg_info({BinOp, .token=c_token});
+            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(POW);
             result.nodes = {
@@ -648,12 +648,12 @@ namespace Odo::Parsing{
                     }
                     auto one = Token(INT, "1");
                     AST operation = {
-                        BinOp,
+                            .tp=BinOp,
                         .token=binOP,
                         .nodes={
                             {"left", node},
                             {"right", {
-                                 Int,
+                                 .tp=Int,
                                  .token=one
                             }},
                         },
@@ -692,7 +692,7 @@ namespace Odo::Parsing{
                     eat(current_token.tp);
 
                     AST operation = {
-                        BinOp,
+                        .tp=BinOp,
                         .token=binOP,
                         .nodes={
                             {"left", node},
@@ -828,7 +828,7 @@ namespace Odo::Parsing{
             case REAL:
             {
                 auto double_literal = add_dbg_info({
-                    Double,
+                    .tp=Double,
                     .token=current_token
                });
                 eat(REAL);
@@ -837,7 +837,7 @@ namespace Odo::Parsing{
             case INT:
             {
                 auto int_literal = add_dbg_info({
-                    Int,
+                    .tp=Int,
                     .token=current_token
                 });
                 eat(INT);
@@ -846,7 +846,7 @@ namespace Odo::Parsing{
             case STR:
             {
                 auto str_literal = add_dbg_info({
-                    Str,
+                    .tp=Str,
                     .token=current_token
                 });
                 eat(STR);
@@ -855,7 +855,7 @@ namespace Odo::Parsing{
             case BOOL:
             {
                 auto bool_literal = add_dbg_info({
-                    Bool,
+                    .tp=Bool,
                     .token=current_token
                 });
                 eat(BOOL);
@@ -865,11 +865,11 @@ namespace Odo::Parsing{
             {
                 eat(NOT);
                 auto result = add_dbg_info({
-                    BinOp,
+                    .tp=BinOp,
                     .token=Token(EQU, "=="),
                     .nodes={
                             {"right", AST {
-                                Bool,
+                                .tp=Bool,
                                 .token=Token(BOOL, "false")
                             }}
                     }
@@ -890,7 +890,7 @@ namespace Odo::Parsing{
             case MINUS:
             {
                 auto result = add_dbg_info({
-                    UnaryOp,
+                    .tp=UnaryOp,
                     .token=current_token,
                 });
                 eat(current_token.tp);
@@ -903,7 +903,7 @@ namespace Odo::Parsing{
             case ID:
             {
                 auto idToken = current_token;
-                auto result = add_dbg_info({Variable, .token=idToken});
+                auto result = add_dbg_info({.tp=Variable, .token=idToken});
                 eat(ID);
 
                 if (current_token.tp == ID) {

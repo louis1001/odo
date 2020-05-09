@@ -90,7 +90,7 @@ namespace Odo::Interpreting {
         std::map<std::string, Symbol> symbols;
 
         Symbol* findSymbol(const std::string&, bool and_in_parents=true);
-        Symbol* addSymbol(Symbol);
+        Symbol* addSymbol(const Symbol&);
         Symbol* addListType(Symbol*);
         bool symbolExists(const std::string&);
 
