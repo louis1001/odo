@@ -38,7 +38,12 @@ namespace Odo::Interpreting {
 
         std::map<std::string, NativeFunction> native_functions;
 
-        Value* create_literal(std::string val, const std::string& kind);
+        Value* create_literal_from_string(std::string val, const std::string& kind);
+        Value* create_literal_from_any(std::any val, const std::string& kind);
+        Value* create_literal(std::string val);
+        Value* create_literal(int val);
+        Value* create_literal(double val);
+        Value* create_literal(bool val);
 
         Value* visit_Double(const Lexing::Token& t);
         Value* visit_Int(const Lexing::Token& t);

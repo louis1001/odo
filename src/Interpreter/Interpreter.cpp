@@ -82,7 +82,7 @@ namespace Odo::Interpreting {
                 for(int i = 1; i <= arg1; i++) {
                     result = result * i;
                 }
-                return create_literal(std::to_string(result), "int");
+                return create_literal(result);
             }
             throw Exceptions::RuntimeException(
                 "factorial function requires a single int argument.",
@@ -97,10 +97,10 @@ namespace Odo::Interpreting {
                 auto arg = v[0];
                 if (arg->type.name == "string") {
                     size_t len = arg->as_string().size();
-                    return create_literal(std::to_string(len), "int");
+                    return create_literal((int)len);
                 } else if (arg->kind == ListVal) {
                     size_t len = arg->as_list_value().size();
-                    return create_literal(std::to_string(len), "int");
+                    return create_literal((int)len);
                 }
             }
             throw Exceptions::RuntimeException(
@@ -131,9 +131,9 @@ namespace Odo::Interpreting {
                 }
 
                 if (result_as_int) {
-                    return create_literal(std::to_string((int)trunc(pow(a, b))), "int");
+                    return create_literal((int) trunc(pow(a, b)));
                 } else {
-                    return create_literal(std::to_string(pow(a, b)), "double");
+                    return create_literal(pow(a, b));
                 }
             }
             return null;
@@ -149,7 +149,7 @@ namespace Odo::Interpreting {
                     a = vals[0]->as_int();
                 }
 
-                return create_literal(std::to_string(sqrt(a)), "double");
+                return create_literal(sqrt(a));
             }
             return null;
         });
@@ -163,7 +163,7 @@ namespace Odo::Interpreting {
                     a = vals[0]->as_int();
                 }
 
-                return create_literal(std::to_string(sin(a)), "double");
+                return create_literal(sin(a));
             }
             return null;
         });
@@ -177,7 +177,7 @@ namespace Odo::Interpreting {
                     a = vals[0]->as_int();
                 }
 
-                return create_literal(std::to_string(cos(a)), "double");
+                return create_literal(cos(a));
             }
             return null;
         });
@@ -189,7 +189,7 @@ namespace Odo::Interpreting {
             }
 
             std::getline(std::cin, result);
-            return create_literal(result, "string");
+            return create_literal(result);
         });
 
         add_native_function("read_int", [&](const std::vector<Value*>& vals) {
@@ -199,7 +199,7 @@ namespace Odo::Interpreting {
             }
             std::cin >> result;
             std::cin.ignore();
-            return create_literal(std::to_string(result), "int");
+            return create_literal(result);
         });
 
         add_native_function("read_double", [&](const std::vector<Value*>& vals) {
@@ -209,7 +209,7 @@ namespace Odo::Interpreting {
             }
             std::cin >> result;
             std::cin.ignore();
-            return create_literal(std::to_string(result), "double");
+            return create_literal(result);
         });
 
         add_native_function("rand", [&](auto vals) {
@@ -235,7 +235,7 @@ namespace Odo::Interpreting {
                 }
             }
 
-            return create_literal(std::to_string(rand_double(min, max)), "double");
+            return create_literal(rand_double(min, max));
         });
 
         add_native_function("randInt", [&](auto vals) {
@@ -248,7 +248,7 @@ namespace Odo::Interpreting {
                 max = vals[1]->as_int();
             }
 
-            return create_literal(std::to_string(rand_int(min, max)), "int");
+            return create_literal(rand_int(min, max));
         });
 
         add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
@@ -391,7 +391,7 @@ namespace Odo::Interpreting {
         return 0;
     }
 
-    Value* Interpreter::create_literal(std::string val, const std::string& kind) {
+    Value* Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
         std::any newValue;
         if (kind == "double") {
             newValue = strtod(val.c_str(), nullptr);
@@ -416,27 +416,50 @@ namespace Odo::Interpreting {
         // Handle errors in conversions are incorrect.
 
         auto the_value = valueTable.addNewValue(
-                *globalTable.findSymbol(kind),
-                newValue
+            *globalTable.findSymbol(kind),
+            newValue
         );
 
         return the_value;
     }
 
+    Value* Interpreter::create_literal_from_any(std::any val, const std::string &kind) {
+        return valueTable.addNewValue(
+            *globalTable.findSymbol(kind),
+            std::move(val)
+        );
+    }
+
+    Value* Interpreter::create_literal(std::string val) {
+        return create_literal_from_any(val, "string");
+    }
+
+    Value* Interpreter::create_literal(int val) {
+        return create_literal_from_any(val, "int");
+    }
+
+    Value* Interpreter::create_literal(double val) {
+        return create_literal_from_any(val, "double");
+    }
+
+    Value* Interpreter::create_literal(bool val) {
+        return create_literal_from_any(val, "bool");
+    }
+
     Value* Interpreter::visit_Double(const Lexing::Token& t) {
-        return create_literal(t.value, "double");
+        return create_literal_from_string(t.value, "double");
     }
 
     Value* Interpreter::visit_Int(const Lexing::Token& t) {
-        return create_literal(t.value, "int");
+        return create_literal_from_string(t.value, "int");
     }
 
     Value* Interpreter::visit_Bool(const Lexing::Token& t) {
-        return create_literal(t.value, "bool");
+        return create_literal_from_string(t.value, "bool");
     }
 
     Value* Interpreter::visit_Str(const Lexing::Token& t) {
-        return create_literal(t.value, "string");
+        return create_literal_from_string(t.value, "string");
     }
 
     Value* Interpreter::visit_Block(const std::vector<AST>& statements) {
@@ -629,9 +652,9 @@ namespace Odo::Interpreting {
                     type_ = currentScope->findSymbol(newValue->type.name);
                 } else {
                     if (type_->name == "int" && newValue->type.name == "double") {
-                        newValue = create_literal(std::to_string((int)newValue->as_double()), "int");
+                        newValue = create_literal((int) newValue->as_double());
                     } else if (type_->name == "double" && newValue->type.name == "int") {
-                        newValue = create_literal(std::to_string((double)newValue->as_int()), "double");
+                        newValue = create_literal((double) newValue->as_int());
                     }
                 }
 
@@ -740,9 +763,9 @@ namespace Odo::Interpreting {
                     varSym->tp = currentScope->findSymbol(newValue->type.name);
                 } else {
                     if (varSym->tp->name == "int" && newValue->type.name == "double") {
-                        newValue = create_literal(std::to_string((int)newValue->as_double()), "int");
+                        newValue = create_literal((int) newValue->as_double());
                     } else if (varSym->tp->name == "double" && newValue->type.name == "int") {
-                        newValue = create_literal(std::to_string((double)newValue->as_int()), "double");
+                        newValue = create_literal((double) newValue->as_int());
                     }
                 }
             }
@@ -791,11 +814,11 @@ namespace Odo::Interpreting {
 
                 if (int_indx >= 0 && int_indx < str.size()) {
                     std::string result(1, str[int_indx]);
-                    return create_literal(result, "string");
+                    return create_literal_from_string(result, "string");
                 } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
                     size_t actual_indx = str.size() - int_indx;
                     std::string result(1, str[actual_indx]);
-                    return create_literal(result, "string");
+                    return create_literal_from_string(result, "string");
                 } else {
                     throw Exceptions::ValueException(
                             "Indexing a string out of bounds.",
@@ -966,16 +989,16 @@ namespace Odo::Interpreting {
                         return new_list;
                     }
                 } else if (leftVisited->type.name == "string") {
-                    return create_literal(leftVisited->as_string()+rightVisited->to_string(), "string");
+                    return create_literal(leftVisited->as_string() + rightVisited->to_string());
                 } else if (rightVisited->type.name == "string") {
-                    return create_literal(leftVisited->to_string() + rightVisited->as_string(), "string");
+                    return create_literal(leftVisited->to_string() + rightVisited->as_string());
                 } else if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() + rightVisited->as_int();
-                        return create_literal(std::to_string(result), "int");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() + rightVisited->as_double();
-                        return create_literal(std::to_string(result), "double");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -989,10 +1012,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() - rightVisited->as_int();
-                        return create_literal(std::to_string(result), "int");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() - rightVisited->as_double();
-                        return create_literal(std::to_string(result), "double");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1006,10 +1029,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() * rightVisited->as_int();
-                        return create_literal(std::to_string(result), "int");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() * rightVisited->as_double();
-                        return create_literal(std::to_string(result), "double");
+                        return create_literal(result);
                     }
                 } else if (leftVisited->kind == ListVal && rightVisited->type.name == "int") {
                     int right_as_int = rightVisited->as_int();
@@ -1041,7 +1064,7 @@ namespace Odo::Interpreting {
                         new_string += left_as_string;
                     }
 
-                    auto new_val = create_literal(new_string, "string");
+                    auto new_val = create_literal(new_string);
                     return new_val;
                 } else {
                     throw Exceptions::TypeException(
@@ -1054,7 +1077,7 @@ namespace Odo::Interpreting {
             case Lexing::DIV:
                 if (leftVisited->type == rightVisited->type && leftVisited->type.name == "double") {
                     auto result = leftVisited->as_double() / rightVisited->as_double();
-                    return create_literal(std::to_string(result), "double");
+                    return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
                             "Division operation can only be used with values of type double.",
@@ -1066,7 +1089,7 @@ namespace Odo::Interpreting {
             case Lexing::MOD:
                 if (leftVisited->type == rightVisited->type && leftVisited->type.name == "int") {
                     auto result = leftVisited->as_int() % rightVisited->as_int();
-                    return create_literal(std::to_string(result), "int");
+                    return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
                             "Modulo operation can only be used with values of type int.",
@@ -1079,10 +1102,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = powl(leftVisited->as_int(), rightVisited->as_int());
-                        return create_literal(std::to_string(result), "int");
+                        return create_literal((double)result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = powl(leftVisited->as_double(), rightVisited->as_double());
-                        return create_literal(std::to_string(result), "double");
+                        return create_literal((double)result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1094,23 +1117,23 @@ namespace Odo::Interpreting {
                 break;
             case Lexing::EQU:
                 if (leftVisited == rightVisited)
-                    return create_literal("true", "bool");
+                    return create_literal(true);
 
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() == rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() == rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "bool") {
                         auto result = leftVisited->as_bool() == rightVisited->as_bool();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "string") {
                         auto result = leftVisited->as_string() == rightVisited->as_string();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else {
-                        return create_literal("false", "bool");
+                        return create_literal(false);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1122,23 +1145,23 @@ namespace Odo::Interpreting {
                 break;
             case Lexing::NEQ:
                 if (leftVisited == rightVisited)
-                    return create_literal("false", "bool");
+                    return create_literal(false);
 
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() != rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() != rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "bool") {
                         auto result = leftVisited->as_bool() != rightVisited->as_bool();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "string") {
                         auto result = leftVisited->as_string() != rightVisited->as_string();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else {
-                        return create_literal("true", "bool");
+                        return create_literal(true);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1152,10 +1175,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() < rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() < rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1169,10 +1192,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() > rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() > rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1186,10 +1209,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() <= rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() <= rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1203,10 +1226,10 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type.name == "int") {
                         auto result = leftVisited->as_int() >= rightVisited->as_int();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     } else if (leftVisited->type.name == "double") {
                         auto result = leftVisited->as_double() >= rightVisited->as_double();
-                        return create_literal(result ? "true" : "false", "bool");
+                        return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
@@ -1219,7 +1242,7 @@ namespace Odo::Interpreting {
             case Lexing::AND:
                 if (leftVisited->type == rightVisited->type && leftVisited->type.name == "bool") {
                     auto result = leftVisited->as_bool() && rightVisited->as_bool();
-                    return create_literal(result ? "true" : "false", "bool");
+                    return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
                             "Logical operator can only be used with values of type bool.",
@@ -1231,7 +1254,7 @@ namespace Odo::Interpreting {
             case Lexing::OR:
                 if (leftVisited->type == rightVisited->type && leftVisited->type.name == "bool") {
                     auto result = leftVisited->as_bool() || rightVisited->as_bool();
-                    return create_literal(result ? "true" : "false", "bool");
+                    return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
                             "Logical operator can only be used with values of type bool.",
