@@ -188,15 +188,21 @@ namespace Odo::Interpreting {
             }
         } else if (kind == ListVal) {
             result += "[";
-            auto values_in_v = std::any_cast< std::vector<Symbol> >(val);
+            auto values_in_v = std::any_cast<std::vector<Symbol> >(val);
             for (auto mySym = values_in_v.begin(); mySym < values_in_v.end(); mySym++) {
                 result += mySym->value ? mySym->value->to_string() : "null";
 
-                if (mySym != values_in_v.end()-1) {
+                if (mySym != values_in_v.end() - 1) {
                     result += ", ";
                 }
             }
             result += "]";
+        } else if (kind == ClassVal){
+            result = "<class> at: " + std::to_string(address);
+        } else if (kind == InstanceVal){
+            result = "<instance> at: " + std::to_string(address);
+        } else if (kind == FunctionVal){
+            result = "<function> at: " + std::to_string(address);
         } else {
             result = "<value> at: " + std::to_string(address);
         }
