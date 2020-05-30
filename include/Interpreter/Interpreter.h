@@ -38,6 +38,8 @@ namespace Odo::Interpreting {
 
         std::map<std::string, NativeFunction> native_functions;
 
+        std::pair<Value*, Value*> coerce_type(Value *lhs, Value *rhs);
+
         Value* create_literal_from_string(std::string val, const std::string& kind);
         Value* create_literal_from_any(std::any val, const std::string& kind);
         Value* create_literal(std::string val);

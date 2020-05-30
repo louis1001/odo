@@ -256,6 +256,33 @@ namespace Odo::Interpreting {
         add_native_function("wait", [&](auto){ std::cin.get(); return null; });
     }
 
+    std::pair<Value*, Value*> Interpreter::coerce_type(Value* lhs, Value*rhs) {
+        std::pair<Value*, Value*> result = {lhs, rhs};
+        if (lhs->type.kind != PrimitiveType || rhs->type.kind != PrimitiveType)
+            return result;
+
+        auto is_numerical = [](Value* v) {
+            return v->type.name == "int" || v->type.name == "double";
+        };
+
+        // Check if both values are numerical
+        if (lhs->type.name != rhs->type.name && is_numerical(lhs) && is_numerical(rhs)) {
+            if (lhs->type.name == "int") {
+                auto new_left = create_literal((double)std::any_cast<int>(lhs->val));
+
+                result.first = new_left;
+            }
+
+            if (rhs->type.name == "int") {
+                auto new_left = create_literal((double)std::any_cast<int>(rhs->val));
+
+                result.second = new_left;
+            }
+        }
+
+        return result;
+    }
+
     Value* Interpreter::visit(AST node) {
         current_line = node.line_number;
         current_col = node.column_number;
@@ -925,6 +952,10 @@ namespace Odo::Interpreting {
         leftVisited->important = true;
         auto rightVisited = visit(right);
         leftVisited->important = false;
+
+        auto coerced = coerce_type(leftVisited, rightVisited);
+        leftVisited = coerced.first;
+        rightVisited = coerced.second;
 
         switch (token.tp) {
             case Lexing::PLUS:
