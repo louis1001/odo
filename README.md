@@ -1,4 +1,7 @@
 # Odo
+[![Generic badge](https://img.shields.io/badge/version-0.1_beta-blue.svg)](https://shields.io/)
+
+
 A port to C++ of my personal programming language.
 
 ---
@@ -21,8 +24,13 @@ The requirements for building the project are:
 - [CMake](https://cmake.org/) installed.
 
 
-**This will be edited in a moment, but in the mean time, just please investigate how to build a CMake project
-in your platform.**
+When you have the requirements, building is done as follows:
+
+- Open a terminal in the directory of the project
+- `mkdir` a directory called build, and `cd` (or `dir` on windows.) into it.
+- Run the command `cmake ..` and then `make`.
+- Now you can use `odo` as the executable in the build directory.
+
 ## Design
 
 The main objective is having a typed interpreted language that implements features from
