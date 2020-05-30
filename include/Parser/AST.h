@@ -48,6 +48,8 @@ namespace Odo::Parsing {
         Module,
         Import,
 
+        Enum,
+
         Class,
         ClassBody,
         InstanceBody,

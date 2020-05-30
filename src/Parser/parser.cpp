@@ -126,6 +126,10 @@ namespace Odo::Parsing{
                 eat(IF);
                 ex = ifstatement();
                 break;
+            case ENUM:
+                eat(ENUM);
+                ex = enumstatement();
+                break;
             case CLASS:
                 eat(CLASS);
                 ex = classstatement();
@@ -205,6 +209,32 @@ namespace Odo::Parsing{
 
         result.lst_AST = body;
         result.token = name;
+
+        return result;
+    }
+
+    AST Parser::enumstatement() {
+        AST result = add_dbg_info({Enum});
+        auto name = current_token;
+
+        eat(ID);
+
+        eat(LCUR);
+
+        std::vector<AST> variants;
+        while (current_token.tp != RCUR) {
+            ignore_nl();
+            variants.push_back(add_dbg_info({.tp=Variable, .token=current_token}));
+            eat(ID);
+            ignore_nl();
+            if (current_token.tp != RCUR) {
+                eat(COMMA);
+            }
+        }
+        eat(RCUR);
+
+        result.token = name;
+        result.lst_AST = variants;
 
         return result;
     }

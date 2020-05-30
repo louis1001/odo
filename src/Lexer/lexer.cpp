@@ -30,6 +30,7 @@ namespace Odo::Lexing {
             {"module", Token(MODULE, "module")},
             {"import", Token(IMPORT, "import")},
             {"as", Token(AS, "as")},
+            {"enum", Token(ENUM, "enum")},
             {"class", Token(CLASS, "class")},
             {"new", Token(NEW, "new")},
             {"static", Token(STATIC, "static")},

@@ -203,6 +203,10 @@ namespace Odo::Interpreting {
             result = "<instance> at: " + std::to_string(address);
         } else if (kind == FunctionVal){
             result = "<function> at: " + std::to_string(address);
+        } else if (kind == EnumVal){
+            result = "<enum> at: " + std::to_string(address);
+        } else if (kind == EnumVarVal){
+            result = as_string();
         } else {
             result = "<value> at: " + std::to_string(address);
         }

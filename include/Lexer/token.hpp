@@ -86,6 +86,7 @@ namespace Odo::Lexing {
         IMPORT,
         AS,
 
+        ENUM,
         CLASS,
         INIT,
         NEW,

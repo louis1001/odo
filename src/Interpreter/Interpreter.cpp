@@ -343,6 +343,9 @@ namespace Odo::Interpreting {
                 return visit_Return(node.nodes["val"]);
                 break;
 
+            case Enum:
+                return visit_Enum(node.token, node.lst_AST);
+
             // Classes
             case Class:
                 return visit_Class(node.token, node.type, node.nodes["body"]);
@@ -1517,6 +1520,54 @@ namespace Odo::Interpreting {
         return null;
     }
 
+    Value* Interpreter::visit_Enum(const Lexing::Token& name, const std::vector<AST>& variants) {
+        if (currentScope->symbolExists(name.value)) {
+            throw Exceptions::NameException(
+                    "Variable called '" + name.value + "' already exists",
+                    current_line,
+                    current_col
+            );
+        }
+
+        Symbol newEnumSym = {
+            .name=name.value,
+            .isType=true,
+            .kind=EnumType
+        };
+
+        Symbol* enumInTable = currentScope->addSymbol(newEnumSym);
+
+        SymbolTable enum_variant_scope;
+
+        for (int i = 0; i < variants.size(); i++) {
+            auto variant = variants[i];
+            auto variant_name = variant.token.value;
+
+            auto variant_value = valueTable.addNewValue({
+                .type=*enumInTable,
+                .val=variant_name,
+                .kind=EnumVarVal
+            });
+
+            auto in_scope = enum_variant_scope.addSymbol({
+                enumInTable,
+                variant_name,
+                variant_value
+            });
+
+            variant_value->addReference(*in_scope);
+        }
+
+        auto newValue = valueTable.addNewValue({
+            .kind=EnumVal,
+            .ownScope=enum_variant_scope
+        });
+        newValue->addReference(*enumInTable);
+        enumInTable->value = newValue;
+
+        return null;
+    }
+
     Value* Interpreter::visit_Class(const Lexing::Token& name, const Lexing::Token& ty, AST body) {
         Symbol* typeSym = nullptr;
 
@@ -1844,12 +1895,24 @@ namespace Odo::Interpreting {
                     current_col
                 );
             }
-
-        } else {
-            throw Exceptions::ValueException(
-                    "Cannot read static variable from this value.",
+        } else if (instance->kind == EnumVal) {
+            auto sm = instance->ownScope.findSymbol(name.value, false);
+            if (sm) {
+                if (sm->value)
+                    return sm->value;
+                return null;
+            } else {
+                throw Exceptions::NameException(
+                    "'" + name.value + "' is not a variant in enum '" + inst.token.value + "'.",
                     current_line,
                     current_col
+                );
+            }
+        } else {
+            throw Exceptions::ValueException(
+                "Cannot read static variable from this value.",
+                current_line,
+                current_col
             );
         }
 

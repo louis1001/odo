@@ -21,6 +21,8 @@ namespace Odo::Interpreting {
         ClassType,
         FunctionType,
         FunctionSymbol,
+        EnumType,
+        EnumsSymbol
     };
 
     /* So here's the thing...

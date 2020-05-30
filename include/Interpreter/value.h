@@ -21,7 +21,9 @@ namespace Odo::Interpreting {
         FunctionVal,
         ModuleVal,
         ClassVal,
-        InstanceVal
+        InstanceVal,
+        EnumVal,
+        EnumVarVal
     };
 
     struct Value {

@@ -81,6 +81,8 @@ namespace Odo::Interpreting {
         Value* visit_FuncBody(const std::vector<Parsing::AST>& statements);
         Value* visit_Return(Parsing::AST val);
 
+        Value* visit_Enum(const Lexing::Token& name, const std::vector<Parsing::AST>& variants);
+
         Value* visit_Class(const Lexing::Token& name, const Lexing::Token& ty, Parsing::AST body);
         Value* visit_ClassBody(std::vector<Parsing::AST> statements);
 

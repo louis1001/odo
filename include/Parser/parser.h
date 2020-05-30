@@ -34,6 +34,8 @@ namespace Odo::Parsing {
 
         AST module_statement();
 
+        AST enumstatement();
+
         AST classstatement();
         AST newInitializer();
         AST constructor();
