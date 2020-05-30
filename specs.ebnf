@@ -45,6 +45,7 @@ single_statement = closure
         |  module
         | "import", (string|identifier)
         | if_statement
+        | enum_statement
         | class_statement
         | static_statement
         | constructor
@@ -77,6 +78,8 @@ if_expression = "if", ternary_op, ternary_op;
 if_block = "if", ternary_op, closure;
 
 else_block = {"else", if_block}, ["else", closure];
+
+enum_statement = "enum", identifier, "{", [identifier, {",", identifier}], "}"
 
 
 class_statement = "class", identifier, [":", identifier], closure;
