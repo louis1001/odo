@@ -5,7 +5,7 @@ func exp(double x) {
 }
 
 func abs(double x) {
-    if x > 0.0 {
+    if x > 0 {
         return x
     }
 

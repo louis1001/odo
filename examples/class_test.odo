@@ -2,13 +2,13 @@
 class Vector{
     double x
     double y
-    init(double x_ = 0.0, double y_ = 0.0){
+    init(double x_ = 0, double y_ = 0){
         x = x_
         y = y_
     }
 
     func hypot() : double{
-        return sqrt(pow(x, 2.0) + pow(y, 2.0))
+        return sqrt(pow(x, 2) + pow(y, 2))
     }
 
     func copy() : Vector{
@@ -37,7 +37,7 @@ func printX(Vector v){
     println(v.x)
 }
 
-Vector a = new Vector(1.0, 2.0)
+Vector a = new Vector(1, 2)
 print("a.x: ")
 printX(a)
 
@@ -52,7 +52,7 @@ pri.printX()
 
 println()
 println("a.x = 4")
-a.x = 4.0
+a.x = 4
 println()
 
 print("a.x: ")

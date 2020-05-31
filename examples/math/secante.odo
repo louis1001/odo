@@ -1,7 +1,7 @@
 module math {
     double e = 2.718281828
     func abs(double x): double {
-        if (x >= 0.0){
+        if (x >= 0){
             return x
         }
         return -x
@@ -51,6 +51,6 @@ any fun = func (double x) -> {
     return math::exp(-pow(x, 2))-x
 }
 
-double x = approx_raiz(fun, -0.5, 3.0, 0.01)
+double x = approx_raiz(fun, -0.5, 3, 0.01)
 
 println("The result is = ", x)
