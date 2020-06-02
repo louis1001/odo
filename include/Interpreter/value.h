@@ -68,7 +68,7 @@ namespace Odo::Interpreting {
         Value* addNewValue(Symbol type, std::any val);
         Value* addNewValue(Value);
 
-        void removeReference(Symbol ref);
+        void removeReference(const Symbol& ref);
 
 //        Value* findFromPointer(int ptr);
 

@@ -8,16 +8,6 @@
 #include <vector>
 
 namespace Odo::Interpreting {
-    [[maybe_unused]] bool existsInSymbols (std::set<Symbol> arr, Symbol target) {
-        auto found = std::find(arr.begin(), arr.end(), target);
-        return found != arr.end();
-    }
-
-    auto indexInArray (std::set<Symbol> arr, Symbol target) {
-        auto found = std::find(arr.begin(), arr.end(), target);
-        return found;
-    }
-
     ValueTable::ValueTable() = default;
 
     Value* ValueTable::addNewValue(Symbol type, std::any val) {
@@ -53,26 +43,19 @@ namespace Odo::Interpreting {
         return &values[newAddress];
     }
 
-    void ValueTable::removeReference(Symbol ref) {
-        for (auto p : values) {
+    void ValueTable::removeReference(const Symbol& ref) {
+        for (const auto& p : values) {
+            if (p.second.references.empty()) continue;
             Value v = p.second;
-            auto indx = indexInArray(v.references, ref);
+            auto indx = v.references.find(ref);
 
             if (indx != v.references.end()) {
-                v.references.erase(ref);
+                // This is too expensive, apparently. I need to investigate.
+                // Also, don't make as many cleanups...
+                v.references.erase(indx);
             }
         }
     }
-
-//    Value* ValueTable::findFromPointer(int ptr) {
-//        auto result = values.find(ptr);
-//
-//        if (result == values.end()) {
-//            return nullptr;
-//        } else {
-//            return &result->second;
-//        }
-//    }
 
     void ValueTable::cleanUp() {
         auto pm_it = values.begin();
@@ -109,7 +92,7 @@ namespace Odo::Interpreting {
     }
 
     void ValueTable::cleanUp(SymbolTable &symTable) {
-        for (auto ref : symTable.symbols) {
+        for (const auto& ref : symTable.symbols) {
             removeReference(ref.second);
         }
 
@@ -125,7 +108,8 @@ namespace Odo::Interpreting {
     }
 
     void Value::removeReference(Symbol &ref) {
-        auto indx = indexInArray(references, ref);
+        if (references.empty()) return;
+        auto indx = references.find(ref);
 
         if (indx != references.end()) {
             references.erase(ref);
