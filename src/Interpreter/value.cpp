@@ -6,6 +6,8 @@
 #include "utils.h"
 #include <utility>
 #include <vector>
+#include <iomanip>
+#include <sstream>
 
 namespace Odo::Interpreting {
     ValueTable::ValueTable() = default;
@@ -154,7 +156,11 @@ namespace Odo::Interpreting {
         } else if (type.kind == PrimitiveType){
             if (type.name == "double") {
                 auto this_as_double = as_double();
-                result = std::to_string(this_as_double);
+
+                std::stringstream double_parsed;
+                double_parsed << std::setprecision(std::numeric_limits<double>::digits10+1) << this_as_double;
+
+                result = double_parsed.str();
                 result.erase ( result.find_last_not_of('0') + 1, std::string::npos );
                 if (*(result.end()-1) == '.') result += "0";
             } else if (type.name == "int"){
