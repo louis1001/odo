@@ -20,14 +20,14 @@ namespace Odo::Interpreting {
             {"any", any_symbol}
         };
 
-        any_type = &any_symbol;
+        auto any_sym = &buildInTypes["any"];
 
-        buildInTypes["int"] = Symbol{.tp=any_type, .name="int", .isType=true, .kind=PrimitiveType};
-        buildInTypes["double"] = Symbol{.tp=any_type, .name="double", .isType=true, .kind=PrimitiveType};
-        buildInTypes["string"] = Symbol{.tp=any_type, .name="string", .isType=true, .kind=PrimitiveType};
-        buildInTypes["bool"] = Symbol{.tp=any_type, .name="bool", .isType=true, .kind=PrimitiveType};
-        buildInTypes["pointer"] = Symbol{.tp=any_type, .name="pointer", .isType=true, .kind=PrimitiveType};
-        buildInTypes["NullType"] = Symbol{.tp=any_type, .name="NullType", .isType=true, .kind=PrimitiveType};
+        buildInTypes["int"] = Symbol{.tp=any_sym, .name="int", .isType=true, .kind=PrimitiveType};
+        buildInTypes["double"] = Symbol{.tp=any_sym, .name="double", .isType=true, .kind=PrimitiveType};
+        buildInTypes["string"] = Symbol{.tp=any_sym, .name="string", .isType=true, .kind=PrimitiveType};
+        buildInTypes["bool"] = Symbol{.tp=any_sym, .name="bool", .isType=true, .kind=PrimitiveType};
+        buildInTypes["pointer"] = Symbol{.tp=any_sym, .name="pointer", .isType=true, .kind=PrimitiveType};
+        buildInTypes["NullType"] = Symbol{.tp=any_sym, .name="NullType", .isType=true, .kind=PrimitiveType};
 
         globalTable = SymbolTable("global", buildInTypes);
         currentScope = &globalTable;
@@ -254,6 +254,10 @@ namespace Odo::Interpreting {
         add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
 
         add_native_function("wait", [&](auto){ std::cin.get(); return null; });
+    }
+
+    Symbol* Interpreter::any_type() {
+        return &globalTable.symbols["any"];
     }
 
     std::pair<Value*, Value*> Interpreter::coerce_type(Value* lhs, Value*rhs) {
@@ -939,7 +943,7 @@ namespace Odo::Interpreting {
         if (list_t) {
             list_type = list_t;
         } else {
-            list_type = globalTable.addListType(any_type);
+            list_type = globalTable.addListType(any_type());
         }
 
         auto in_val_table = valueTable.addNewValue(*list_type, list_syms);

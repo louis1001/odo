@@ -26,7 +26,7 @@ namespace Odo::Interpreting {
         SymbolTable replScope;
 
         Value* null;
-        Symbol* any_type;
+        Symbol* any_type();
 
         bool breaking = false;
         bool continuing = false;
