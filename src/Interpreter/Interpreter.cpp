@@ -251,6 +251,15 @@ namespace Odo::Interpreting {
             return create_literal(rand_int(min, max));
         });
 
+        add_native_function("typeof", [&](const auto& vals) {
+            if (vals.size() == 1) {
+                auto v = vals[0];
+                if (v) return create_literal(v->type.name);
+            }
+
+            return null;
+        });
+
         add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
 
         add_native_function("wait", [&](auto){ std::cin.get(); return null; });
