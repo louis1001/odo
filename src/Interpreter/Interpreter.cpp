@@ -251,6 +251,24 @@ namespace Odo::Interpreting {
             return create_literal(rand_int(min, max));
         });
 
+        add_native_function("pop", [&](auto vals) {
+            if (vals.size() == 1) {
+                auto& lst = vals[0];
+                if (lst->kind == ListVal) {
+                    std::vector<Symbol>& syms = lst->as_list_symbol();
+
+                    if (!syms.empty()) {
+                        auto* v = &*syms.end()-1;
+                        syms.pop_back();
+
+                        return (v && v->value) ? v->value : null;
+                    }
+                }
+            }
+
+            return null;
+        });
+
         add_native_function("typeof", [&](const auto& vals) {
             if (vals.size() == 1) {
                 auto v = vals[0];
