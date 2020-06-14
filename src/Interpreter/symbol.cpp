@@ -14,19 +14,6 @@ const static char charset[] =
         "abcdefghijklmnopqrstuvwxyz";
 
 namespace Odo::Interpreting {
-    std::string random_string(size_t length) {
-        // Taken from:
-        // https://stackoverflow.com/a/12468109
-        auto randchar = []() -> char
-        {
-            const size_t max_index = (sizeof(charset) - 1);
-            return charset[ clock()%max_index ];
-        };
-        std::string str(length,0);
-        std::generate_n( str.begin(), length, randchar );
-        return str;
-    }
-
     SymbolTable::SymbolTable() = default;
 
     SymbolTable::SymbolTable(std::string name_, std::map<std::string, Symbol> types_, SymbolTable *parent_) {

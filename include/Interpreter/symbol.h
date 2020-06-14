@@ -7,6 +7,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <limits>
+#include "utils.h"
 
 #include "Lexer/token.hpp"
 namespace Odo::Interpreting {
@@ -54,9 +56,11 @@ namespace Odo::Interpreting {
         SymbolType kind = Var;
         std::vector< std::pair<Symbol, bool> > functionTypes;
 
-        std::string uuid = random_string(9);
+        int uuid = rand_int(0, 1e8);
 
-        bool operator==(const Symbol& rhs) const { return (this->name + this->uuid) == (rhs.name + rhs.uuid); }
+        bool operator==(const Symbol& rhs) const { return this->uuid == rhs.uuid; }
+
+        bool operator<(const Odo::Interpreting::Symbol& rhs) const { return uuid > rhs.uuid; }
 
         static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol, bool> >& paramTypes) {
             std::string result = "(";
@@ -105,17 +109,6 @@ namespace Odo::Interpreting {
 
         void debugChain();
         ~SymbolTable();
-    };
-}
-
-namespace std
-{
-    template<> struct std::less<Odo::Interpreting::Symbol>
-    {
-        bool operator() (const Odo::Interpreting::Symbol& lhs, const Odo::Interpreting::Symbol& rhs) const
-        {
-            return (lhs.name + lhs.uuid) > (rhs.name + rhs.uuid);
-        }
     };
 }
 #endif //ODO_PORT_SYMBOL_H
