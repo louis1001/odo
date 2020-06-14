@@ -601,6 +601,8 @@ namespace Odo::Interpreting {
             actual_cond = visit(cond)->as_bool();
         }
 
+        continuing = false;
+
         currentScope = forScope.getParent();
         valueTable.cleanUp(forScope);
 
