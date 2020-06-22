@@ -10,6 +10,9 @@
 #include <cmath>
 #include <iostream>
 #include <utility>
+
+#define noop (void)0
+
 namespace Odo::Interpreting {
     using namespace Parsing;
 
@@ -437,6 +440,7 @@ namespace Odo::Interpreting {
                 break;
 
             case Debug:
+                noop;
             case Null:
                 return null;
         }
