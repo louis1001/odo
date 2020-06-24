@@ -105,6 +105,8 @@ namespace Odo::Interpreting {
 
         Symbol *getMemberVarSymbol(Parsing::AST mem);
 
+        bool is_copyable(const Value* v);
+
     public:
         void interpret(std::string);
         Value* eval(std::string);
