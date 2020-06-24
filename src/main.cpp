@@ -10,6 +10,23 @@
 #define YELLOW  "\033[33m"        /* Yellow */
 //#define BLUE    "\033[34m"      /* Blue */
 
+std::string logo = R"(
+      (((((((((((((((
+   (((((((((((((((((((((
+ (((((((           ******
+ ((((((             ******
+ ((((((             **   *
+ ((((((             ******
+ ((((((((         *******
+   (((((((((((((((((((((
+      (((((((((((((((
+
+         odo(-lang)
+  Luis Gonzalez (louis1001)
+         2019-2020
+
+)";
+
 int main(int argc, char* argv[]) {
     using namespace Odo;
 
@@ -49,6 +66,11 @@ int main(int argc, char* argv[]) {
 
         inter.add_native_function("exit", [&](auto vals){
             continuing = false;
+            return inter.get_null();
+        });
+
+        inter.add_native_function("about", [&](auto) {
+            std::cout << logo << std::endl;
             return inter.get_null();
         });
 
