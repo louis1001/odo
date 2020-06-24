@@ -1,11 +1,12 @@
 # Odo
 [![Generic badge](https://img.shields.io/badge/version-0.1_beta-blue.svg)](https://shields.io/)
 
-
 A port to C++ of my personal programming language.
 
 ---
 <sup>The README is a work in progress.</sup>
+
+<img src="./docs/assets/imgs/logo.png?raw=true" height="110" alt="logo"></img>
 
 This is my first attempt at making a usable, personalized interpreted programming language.
 *First* as in, the specs. This is the 2nd time I port this language, the first edition was written
