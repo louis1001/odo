@@ -1206,6 +1206,8 @@ namespace Odo::Interpreting {
                     } else {
                         return create_literal(false);
                     }
+                } else if (leftVisited->type == null->type || rightVisited->type == null->type) {
+                    return create_literal(false);
                 } else {
                     throw Exceptions::TypeException(
                             "Comparison operation can only be used with values of same type.",
@@ -1234,6 +1236,8 @@ namespace Odo::Interpreting {
                     } else {
                         return create_literal(true);
                     }
+                } else if (leftVisited->type == null->type || rightVisited->type == null->type) {
+                    return create_literal(true);
                 } else {
                     throw Exceptions::TypeException(
                             "Comparison operation can only be used with values of same type.",
