@@ -27,7 +27,7 @@ namespace Odo::Interpreting {
     };
 
     struct Value {
-        Symbol type;
+        Symbol* type;
         std::any val;
 
         ValueType kind = NormalVal;
@@ -65,8 +65,8 @@ namespace Odo::Interpreting {
     public:
         ValueTable();
 
-        Value* addNewValue(Symbol type, std::any val);
-        Value* addNewValue(Value);
+        Value* addNewValue(Symbol* type, std::any val);
+        Value* addNewValue(const Value&);
 
         void removeReference(const Symbol& ref);
 

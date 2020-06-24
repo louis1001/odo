@@ -12,11 +12,11 @@
 namespace Odo::Interpreting {
     ValueTable::ValueTable() = default;
 
-    Value* ValueTable::addNewValue(Symbol type, std::any val) {
+    Value* ValueTable::addNewValue(Symbol* type, std::any val) {
         int newAddress = last_index() + 1;
 
         Value newValue = {
-            std::move(type),
+            type,
             std::move(val),
             NormalVal,
             newAddress
@@ -27,11 +27,11 @@ namespace Odo::Interpreting {
         return &values[newAddress];
     }
 
-    Value* ValueTable::addNewValue(Value val) {
+    Value* ValueTable::addNewValue(const Value& val) {
         int newAddress = last_index() + 1;
 
-        Value newValue = {
-                std::move(val.type),
+        Value newVal = {
+                val.type,
                 val.val,
                 val.kind,
                 newAddress,
@@ -40,7 +40,7 @@ namespace Odo::Interpreting {
                 val.params
         };
 
-        values[newAddress] = newValue;
+        values[newAddress] = std::move(newVal);
 
         return &values[newAddress];
     }
@@ -153,8 +153,8 @@ namespace Odo::Interpreting {
         std::string result;
         if (kind == ModuleVal) {
             result = "<module> at: " + std::to_string(address);
-        } else if (type.kind == PrimitiveType){
-            if (type.name == "double") {
+        } else if (type->kind == PrimitiveType){
+            if (type->name == "double") {
                 auto this_as_double = as_double();
 
                 std::stringstream double_parsed;
@@ -163,15 +163,15 @@ namespace Odo::Interpreting {
                 result = double_parsed.str();
                 result.erase ( result.find_last_not_of('0') + 1, std::string::npos );
                 if (*(result.end()-1) == '.') result += "0";
-            } else if (type.name == "int"){
+            } else if (type->name == "int"){
                 auto this_as_int = as_int();
                 result = std::to_string(this_as_int);
-            } else if (type.name == "string"){
+            } else if (type->name == "string"){
                 result = as_string();
-            } else if (type.name == "bool"){
+            } else if (type->name == "bool"){
                 auto this_as_bool = as_bool();
                 result = this_as_bool ? "true" : "false";
-            } else if (type.name == "NullType"){
+            } else if (type->name == "NullType"){
                 result = "null";
             } else {
                 result = "< corrupted :o >";
