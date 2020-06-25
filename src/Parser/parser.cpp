@@ -986,6 +986,6 @@ namespace Odo::Parsing{
     AST Parser::add_dbg_info(AST ins) {
         ins.line_number = lexer.getCurrentLine();
         ins.column_number = lexer.getCurrentCol();
-        return std::move(ins);
+        return ins;
     }
 }

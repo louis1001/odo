@@ -10,7 +10,7 @@
 namespace Odo::Exceptions {
     class Exception: std::exception {
     public:
-        virtual const char* what() noexcept {
+        [[nodiscard]] virtual const char* what() const noexcept {
             return "OdoError";
         }
     };
@@ -21,7 +21,7 @@ namespace Odo::Exceptions {
 
         std::string message{};
 
-        virtual std::string exception_name() { return "GenericError"; };
+        [[nodiscard]] virtual std::string exception_name() const { return "GenericError"; };
     public:
         explicit OdoException(const std::string& msg, unsigned int line_n=0, unsigned int col_n=0) {
             message = msg;
@@ -29,7 +29,7 @@ namespace Odo::Exceptions {
             column_number = col_n;
         }
 
-        const char* what() noexcept final {
+        [[nodiscard]] const char* what() const noexcept final {
             std::string ss;
             ss += exception_name() + " (line " + std::to_string(line_number) + ", column " +
                     std::to_string(column_number) + ")\n\t" + message;
@@ -45,43 +45,43 @@ namespace Odo::Exceptions {
             path = _path;
         }
 
-        const char* what() noexcept final {
+        [[nodiscard]] const char* what() const noexcept final {
             return (std::string("IOError\n\tCannot open file '") + path + "'").c_str();
         };
     };
 
     class FileException: public OdoException {
-        std::string exception_name() override { return "FileError"; }
+        [[nodiscard]] std::string exception_name() const  override { return "FileError"; }
     public:
         using OdoException::OdoException;
     };
 
     class SyntaxException: public OdoException {
-        std::string exception_name() override { return "SyntaxError"; }
+        [[nodiscard]] std::string exception_name() const  override { return "SyntaxError"; }
     public:
         using OdoException::OdoException;
     };
 
     class TypeException: public OdoException {
-        std::string exception_name() override { return "TypeError"; }
+        [[nodiscard]] std::string exception_name() const override { return "TypeError"; }
     public:
         using OdoException::OdoException;
     };
 
     class ValueException: public OdoException {
-        std::string exception_name() override { return "ValueError"; }
+        [[nodiscard]] std::string exception_name() const override { return "ValueError"; }
     public:
         using OdoException::OdoException;
     };
 
     class NameException: public OdoException {
-        std::string exception_name() override { return "NameError"; }
+        [[nodiscard]] std::string exception_name() const override { return "NameError"; }
     public:
         using OdoException::OdoException;
     };
 
     class RuntimeException: public OdoException {
-        std::string exception_name() override { return "RuntimeError"; }
+        [[nodiscard]] std::string exception_name() const override { return "RuntimeError"; }
     public:
         using OdoException::OdoException;
     };

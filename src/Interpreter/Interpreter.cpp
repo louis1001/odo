@@ -1409,7 +1409,7 @@ namespace Odo::Interpreting {
     }
 
     Value * Interpreter::visit_Import(const Lexing::Token& path, const Lexing::Token& name) {
-        auto mod = interpret_as_module(path.value, name);
+        interpret_as_module(path.value, name);
         return null;
     }
 

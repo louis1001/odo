@@ -8,11 +8,6 @@
 #include <utility>
 #include <iostream>
 
-const static char charset[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
 namespace Odo::Interpreting {
     SymbolTable::SymbolTable() = default;
 
