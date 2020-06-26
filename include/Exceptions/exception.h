@@ -35,6 +35,7 @@ namespace Odo::Exceptions {
                     std::to_string(column_number) + ")\n\t" + message;
             return ss.c_str();
         }
+        virtual bool should_show_traceback() const { return true; }
     };
 
     class IOException: public Exception {
@@ -58,8 +59,10 @@ namespace Odo::Exceptions {
 
     class SyntaxException: public OdoException {
         [[nodiscard]] std::string exception_name() const  override { return "SyntaxError"; }
+
     public:
         using OdoException::OdoException;
+        bool should_show_traceback() const override { return false; }
     };
 
     class TypeException: public OdoException {
@@ -80,8 +83,14 @@ namespace Odo::Exceptions {
         using OdoException::OdoException;
     };
 
-    class RuntimeException: public OdoException {
-        [[nodiscard]] std::string exception_name() const override { return "RuntimeError"; }
+    class FunctionCallException: public OdoException {
+        [[nodiscard]] std::string exception_name() const override { return "FunctionCallError"; }
+    public:
+        using OdoException::OdoException;
+    };
+
+    class RecursionException: public OdoException {
+        [[nodiscard]] std::string exception_name() const override { return "RecursionError"; }
     public:
         using OdoException::OdoException;
     };

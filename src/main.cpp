@@ -56,8 +56,16 @@ int main(int argc, char* argv[]) {
         try {
             inter.interpret(code);
         } catch(Odo::Exceptions::OdoException& e) {
-            std::cout << std::endl;
-            std::cerr << RED << e.what() << RESET << std::flush;
+            std::cout << std::endl << RED;
+            if (e.should_show_traceback()) {
+                auto& calls = inter.get_call_stack();
+                for (const auto& frame : calls) {
+                    std::cout << "line " << frame.line_number << ", column " << frame.column_number << " in " << frame.name << "\n";
+                }
+                calls.clear();
+            }
+
+            std::cerr << e.what() << RESET << std::flush;
             exit(1);
         }
     // Else
@@ -95,9 +103,17 @@ int main(int argc, char* argv[]) {
                     std::cout << GREEN << as_str << RESET << "\n";
                 }
             } catch (Odo::Exceptions::OdoException& e) {
-                std::cout << std::endl;
+                std::cout << std::endl << RED;
+                if (e.should_show_traceback()) {
+                    auto& calls = inter.get_call_stack();
+                    for (const auto& frame : calls) {
+                        std::cout << "line " << frame.line_number << ", column " << frame.column_number << " in " << frame.name << "\n";
+                    }
+                    calls.clear();
+                }
+
                 std::string msg = e.what();
-                std::cout << RED << msg << RESET << std::endl;
+                std::cout << msg << RESET << std::endl;
             }
         }
         std::cout << "Bye! :)\n";

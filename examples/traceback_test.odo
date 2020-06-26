@@ -1,0 +1,17 @@
+func the_problem_func(): int {
+    println("Look, ma. A NameError problem!")
+    return my_friend
+}
+
+func some_other_process() {
+    println("This doesn't fail yet")
+    the_problem_func()
+}
+
+func main() {
+    println("2+2 = ", 2+2)
+    some_other_process()
+}
+
+println("This program should fail with a NameError exception. \nAnd a traceback n.n\n")
+main()

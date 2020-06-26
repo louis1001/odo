@@ -87,7 +87,7 @@ namespace Odo::Interpreting {
                 }
                 return create_literal(result);
             }
-            throw Exceptions::RuntimeException(
+            throw Exceptions::FunctionCallException(
                 "factorial function requires a single int argument.",
                 current_line,
                 current_col
@@ -106,7 +106,7 @@ namespace Odo::Interpreting {
                     return create_literal((int)len);
                 }
             }
-            throw Exceptions::RuntimeException(
+            throw Exceptions::FunctionCallException(
                 "length function requires a single argument of type string or list.",
                 current_line,
                 current_col
@@ -1477,8 +1477,8 @@ namespace Odo::Interpreting {
     }
 
     Value *Interpreter::visit_FuncCall(AST expr, const Lexing::Token& fname, std::vector<AST> args) {
-        if (callDepth >= MAX_CALL_DEPTH) {
-            throw Exceptions::RuntimeException("Callback depth exceeded.", current_line, current_col);
+        if (call_stack.size() >= MAX_CALL_DEPTH) {
+            throw Exceptions::RecursionException("Callback depth exceeded.", current_line, current_col);
         }
 
         if (fname.tp != Lexing::NOTHING){
@@ -1538,7 +1538,14 @@ namespace Odo::Interpreting {
             }
 
             currentScope = &funcScope;
-            callDepth++;
+
+            std::string function_name = "<anonimous>";
+            if (!fVal->references.empty()) {
+                auto& ref = *fVal->references.begin();
+                function_name = ref.name;
+            }
+
+            call_stack.push_back({function_name, current_line, current_col});
 
             for (int i = 0; i < newDecls.size(); i++) {
                 visit(newDecls[i]);
@@ -1557,7 +1564,7 @@ namespace Odo::Interpreting {
             valueTable.cleanUp(funcScope);
 
             result->important = false;
-            callDepth--;
+            call_stack.pop_back();
             return result;
         }
 
@@ -1718,6 +1725,10 @@ namespace Odo::Interpreting {
     }
 
     Value* Interpreter::visit_ConstructorCall(const Lexing::Token& t) {
+        if (call_stack.size() >= MAX_CALL_DEPTH) {
+            throw Exceptions::RecursionException("Callback depth exceeded.", current_line, current_col);
+        }
+
         auto constr = currentScope->findSymbol(t.value);
 
         auto fVal = constr ? constr->value : nullptr;
@@ -1759,7 +1770,8 @@ namespace Odo::Interpreting {
             }
 
             currentScope = &funcScope;
-            callDepth++;
+
+            call_stack.push_back({"<constructor>", current_line, current_col});
 
             for (int i = 0; i < newDecls.size(); i++) {
                 visit(newDecls[i]);
@@ -1775,7 +1787,7 @@ namespace Odo::Interpreting {
             visit(body_as_ast);
             valueTable.cleanUp(funcScope);
             currentScope = calleeScope;
-            callDepth--;
+            call_stack.pop_back();
         } else {
             // Error.
             throw Exceptions::ValueException(
@@ -2083,10 +2095,14 @@ namespace Odo::Interpreting {
 
         auto root = parser.program();
 
+        call_stack.push_back({"global", 1, 1});
         visit(root);
+        call_stack.pop_back();
     }
 
     Value* Interpreter::eval(std::string code) {
+
+        call_stack.push_back({"global", 1, 1});
         parser.set_text(std::move(code));
 
         auto statements = parser.program_content();
@@ -2101,6 +2117,7 @@ namespace Odo::Interpreting {
 
         currentScope = &globalTable;
     //    }
+        call_stack.pop_back();
 
         return result;
     }
@@ -2144,7 +2161,12 @@ namespace Odo::Interpreting {
             .column_number=0
         };
 
-        return visit(file_module);
+        call_stack.push_back({"module '" + full_path + "'", 1, 1});
+
+        auto result = visit(file_module);
+
+        call_stack.pop_back();
+        return result;
     }
 
     std::vector<std::pair<Symbol, bool>> Interpreter::getParamTypes(const std::vector<AST>& params) {
@@ -2158,7 +2180,7 @@ namespace Odo::Interpreting {
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
-                        throw Exceptions::RuntimeException(
+                        throw Exceptions::TypeException(
                                 "Unknown type " + par.type.value + ".",
                                 par.line_number,
                                 par.column_number
@@ -2170,7 +2192,7 @@ namespace Odo::Interpreting {
                     if (auto ft = currentScope->findSymbol(par.type.value)) {
                         ts.emplace_back(*ft, par.nodes["initial"].tp == NoOp);
                     } else {
-                        throw Exceptions::RuntimeException(
+                        throw Exceptions::TypeException(
                                 "Unknown type " + par.type.value + ".",
                                 par.line_number,
                                 par.column_number

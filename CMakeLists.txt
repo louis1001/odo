@@ -30,4 +30,5 @@ add_executable(odo
         src/Exceptions/exception.cpp
         include/Exceptions/exception.h
         include/IO/io.h
-        src/IO/io.cpp)
+        src/IO/io.cpp
+        include/Interpreter/frame.h)

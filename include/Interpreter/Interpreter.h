@@ -8,11 +8,12 @@
 #include "Parser/AST.h"
 #include "value.h"
 #include "symbol.h"
+#include "frame.h"
 
 #include <functional>
 #include <vector>
 
-#define MAX_CALL_DEPTH 1000
+#define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
     typedef std::function<Value*(std::vector<Value*>)> NativeFunction;
     class Interpreter {
@@ -31,7 +32,7 @@ namespace Odo::Interpreting {
         bool breaking = false;
         bool continuing = false;
         Value* returning;
-        int callDepth = 0;
+        std::vector<Frame> call_stack;
 
         unsigned int current_line{0};
         unsigned int current_col{0};
@@ -114,6 +115,7 @@ namespace Odo::Interpreting {
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
 
+        std::vector<Frame>& get_call_stack() { return call_stack; };
         Value* get_null() { return null; }
     };
 }
