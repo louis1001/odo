@@ -12,6 +12,7 @@
 #include <utility>
 
 #define noop (void)0
+// #define DEBUG_FUNCTIONS
 
 namespace Odo::Interpreting {
     using namespace Parsing;
@@ -52,6 +53,14 @@ namespace Odo::Interpreting {
         null->addReference(*nullSym);
 
         returning = nullptr;
+
+#ifdef DEBUG_FUNCTIONS
+        add_native_function("valueAt", [&](auto values) {
+            int a = values[0]->as_int();
+
+            return &valueTable.value_map()[a];
+        });
+#endif
 
         add_native_function("print", [&](auto values) {
             for (auto v : values) {
