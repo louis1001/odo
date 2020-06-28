@@ -41,12 +41,12 @@ namespace Odo::Interpreting {
         valueTable = ValueTable();
 
         null = valueTable.addNewValue(
-            &buildInTypes["NullType"],
+            &globalTable.symbols["NullType"],
             "null"
         );
 
         auto nullSym = globalTable.addSymbol({
-            .tp = &buildInTypes["NullType"],
+            .tp = &globalTable.symbols["NullType"],
             .name = "null",
             .value = null
         });
