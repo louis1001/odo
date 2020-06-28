@@ -58,7 +58,7 @@ namespace Odo::Interpreting {
 
         int last_index() {
             return values.empty() ?
-            0 :
+            -1 :
             (--values.end())->first;
         }
 
