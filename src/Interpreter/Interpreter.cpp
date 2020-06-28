@@ -433,7 +433,11 @@ namespace Odo::Interpreting {
             case ClassInitializer:
                 return visit_ClassInitializer(node.token, node.lst_AST);
             case StaticStatement:
-    //            return visit_StaticStatement(node.nodes["statement"]);
+                throw Exceptions::OdoException(
+                    "Static statements can only appear inside a class body.",
+                    current_line,
+                    current_col
+                );
             case MemberVar:
                 return visit_MemberVar(node.nodes["inst"], node.token);
                 break;
