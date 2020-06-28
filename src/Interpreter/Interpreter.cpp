@@ -23,17 +23,17 @@ namespace Odo::Interpreting {
         std::map<std::string, Symbol> buildInTypes = {
             {"any", any_symbol}
         };
-
-        auto any_sym = &buildInTypes["any"];
-
-        buildInTypes["int"] = Symbol{.tp=any_sym, .name="int", .isType=true, .kind=PrimitiveType};
-        buildInTypes["double"] = Symbol{.tp=any_sym, .name="double", .isType=true, .kind=PrimitiveType};
-        buildInTypes["string"] = Symbol{.tp=any_sym, .name="string", .isType=true, .kind=PrimitiveType};
-        buildInTypes["bool"] = Symbol{.tp=any_sym, .name="bool", .isType=true, .kind=PrimitiveType};
-        buildInTypes["pointer"] = Symbol{.tp=any_sym, .name="pointer", .isType=true, .kind=PrimitiveType};
-        buildInTypes["NullType"] = Symbol{.tp=any_sym, .name="NullType", .isType=true, .kind=PrimitiveType};
-
         globalTable = SymbolTable("global", buildInTypes);
+
+        auto any_sym = &globalTable.symbols["any"];
+
+        globalTable.symbols["int"] = {.tp=any_sym, .name="int", .isType=true, .kind=PrimitiveType};
+        globalTable.symbols["double"] = Symbol{.tp=any_sym, .name="double", .isType=true, .kind=PrimitiveType};
+        globalTable.symbols["string"] = Symbol{.tp=any_sym, .name="string", .isType=true, .kind=PrimitiveType};
+        globalTable.symbols["bool"] = Symbol{.tp=any_sym, .name="bool", .isType=true, .kind=PrimitiveType};
+        globalTable.symbols["pointer"] = Symbol{.tp=any_sym, .name="pointer", .isType=true, .kind=PrimitiveType};
+        globalTable.symbols["NullType"] = Symbol{.tp=any_sym, .name="NullType", .isType=true, .kind=PrimitiveType};
+
         currentScope = &globalTable;
 
         replScope = SymbolTable("repl", {}, &globalTable);
