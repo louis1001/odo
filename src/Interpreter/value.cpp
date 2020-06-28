@@ -153,7 +153,7 @@ namespace Odo::Interpreting {
         std::string result;
         if (kind == ModuleVal) {
             result = "<module> at: " + std::to_string(address);
-        } else if (type->kind == PrimitiveType){
+        } else if (type && type->kind == PrimitiveType){
             if (type->name == "double") {
                 auto this_as_double = as_double();
 
