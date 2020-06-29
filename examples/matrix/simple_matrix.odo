@@ -1,0 +1,16 @@
+import matrix_utils as mu
+
+int m[][] = mu::create_matrix(5, 4, func()->randInt(0, 9))
+
+mu::print_matrix(m)
+
+double mapped[][] = mu::map_matrix(m, func(int x) -> {
+    return x+rand(0, 1)
+})
+
+println("\n  |\n  v\n")
+
+mu::for_each_in_matrix(mapped, func(double x)-> {
+    print(round(x, 3), "\t")
+}, func() -> println())
+

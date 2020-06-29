@@ -1,0 +1,94 @@
+func choose(any lst[]) {
+    int rnd_index = randInt(0, length(lst))
+
+    return lst[rnd_index]
+}
+
+func filter(any lst[], bool lambda = func(any x) -> true) {
+    any result[] = []
+
+    foreach element : lst {
+        if lambda(element) {
+            result += element
+        }
+    }
+
+    return result
+}
+
+func map(any lst[], any lambda = func(any x, int i) -> x) {
+    any result[] = []
+    foreach element : lst {
+        any c = lambda(element, i)
+
+        result += c
+    }
+
+    return result
+}
+
+func print_matrix(int mat[][]) {
+    foreach row : mat {
+        foreach element : row {
+            print(element, " ")
+        }
+        println()
+    }
+}
+
+func empty_check(any x) { return true }
+
+func filter_list(any lst[], bool lambda = empty_check) {
+
+    any result[] = []
+
+    foreach element : lst {
+        if lambda(element) {
+            result += element
+        }
+    }
+
+    return result
+}
+
+func for_each_in_matrix(any mat[][], any lambda = func(any val)->{}, any row_break = empty_check) {
+    foreach row : mat {
+        foreach element : row {
+            lambda(element)
+        }
+
+        row_break()
+    }
+}
+
+func map_matrix(any mat[][], any lambda = func(any val)-> val) {
+    any result[][] = []
+
+    foreach row : mat {
+        any row_result = []
+        foreach element : row {
+            row_result += lambda(element)
+        }
+
+        result += [row_result]
+    }
+
+    return result
+}
+
+func create_matrix(int w, int h, any generator = func() -> 0) {
+    int result[][] = []
+
+    for (int i = 0; i < h; i++) {
+        int row[] = []
+        for (int j = 0; j < w; j++) {
+            int a = generator(j, i)
+
+            row += a
+        }
+
+        result += [row]
+    }
+
+    return result
+}
