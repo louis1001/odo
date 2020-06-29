@@ -1,0 +1,170 @@
+# At 10x10 this some seconds to complete.
+
+import "matrix_utils" as mu
+
+func max(int a, int b) {
+    return a > b ? a : b
+}
+
+func to_percent(int n, int m): double {
+    double cn = n / (m+0.0)
+    return cn * 100
+}
+
+class Cell {
+    int x
+    int y
+                        # up     right  down   left
+    int walls[] =       [ false, false, false, false]
+    Cell neighbors[] =  [ null,  null,  null,  null ]
+
+    bool visited = false
+
+    init(int x_, int y_) {
+        x = x_
+        y = y_
+    }
+}
+
+class Neighbor {
+    Cell cell
+    int dir
+    init(Cell c_, int dir_) { cell = c_; dir = dir_ }
+}
+
+class Maze {
+    int width
+    int height
+
+    Cell cells[][]
+
+    init(int w, int h) {
+        width = w
+        height = h
+
+        cells = []#mu::create_matrix(w, h, func(int x, int y) -> new Cell(x, y))
+        for (int y = 0; y < h; y++) {
+            Cell row[] = []
+            for (int x = 0; x < w; x++) {
+                row += new Cell(x, y)
+            }
+            cells += [row]
+        }
+
+        foreach row : cells {
+            foreach c : row {
+                c.neighbors = this.find_neighbors(c.x, c.y)
+            }
+        }
+    }
+
+    func find_neighbors(int x, int y): Cell {
+        Cell ns[] = [null, null, null, null]
+
+        if y > 0 {
+            ns[0] = cells[y-1][x]
+        }
+        if x > 0 {
+            ns[1] = cells[y][x-1]
+        }
+
+        if y < height-1 {
+            ns[2] = cells[y+1][x]
+        }
+
+        if x < width-1 {
+            ns[3] = cells[y][x+1]
+        }
+
+        return ns
+    }
+
+    func generate() {
+        Cell initial = cells[0][0];
+
+        Cell stack[] = [initial]
+        initial.visited = true
+        int n_visited = 1
+        int max_visit = width * height
+
+        while length(stack) > 0 {
+            Cell current = pop(stack)
+            print("Generating Maze: ", trunc(to_percent(n_visited, max_visit)), "%\r")
+
+            Cell possible_neighbors[] = []
+
+            int i = 0
+            foreach neigh_cell : current.neighbors {
+                if (neigh_cell != null) {
+                    if (!neigh_cell.visited) {
+                        possible_neighbors += new Neighbor(neigh_cell, i)
+                    }
+                }
+
+                i++
+            }
+
+            int neigh_amount = length(possible_neighbors)
+
+            if (neigh_amount > 0) {
+                stack += current
+                Neighbor next = mu::choose(possible_neighbors)
+
+                current.walls[next.dir] = true
+                next.cell.walls[(next.dir+2)%4] = true
+                next.cell.visited = true
+                n_visited++
+
+                stack += next.cell
+            }
+        }
+    }
+
+    func print_maze(int x = 0, int y = 0) {
+        println()
+        int canvas_height = height*2+1
+        int canvas_width = width*2+1
+
+        string b[][] = [["#"]*canvas_width]*canvas_height
+
+        int canvas_max = canvas_width*canvas_height
+        int counter = 0
+
+        foreach row : cells {
+            foreach c : row {
+                int x = c.x*2 + 1
+                int y = c.y*2 + 1
+
+                b[y][x] = " "
+
+                any ws = c.walls
+                if ws[0] {
+                    b[y - 1][x + 0] = " "
+                }
+                if ws[1] || (c.x == 0 && c.y == 0){
+                    b[y + 0][x - 1] = " "
+                }
+                if ws[2] {
+                    b[y + 1][x + 0] = " "
+                }
+                if ws[3] || (c.x == width-1 && c.y == height-1){
+                    b[y + 0][x + 1] = " "
+                }
+            }
+        }
+
+        foreach row : b {
+            foreach char : row {
+                print(char, " ")
+            }
+            println()
+        }
+    }
+}
+
+int w = 7
+int h = 7
+
+Maze main = new Maze(w, h)
+main.generate()
+main.print_maze()
