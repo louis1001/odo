@@ -102,7 +102,30 @@ namespace Odo::Interpreting {
     }
 
     Value* ValueTable::copyValue(const Value& v) {
+        if (v.kind == ListVal)
+            return copyListValue(v);
+
         return addNewValue(v);
+    }
+
+    Value* ValueTable::copyListValue(Value val) {
+        auto val_els = val.as_list_value();
+        std::vector<Symbol> symbols_copied;
+        for (auto value_in_val : val_els) {
+            Value* list_el = value_in_val;
+            if (value_in_val->is_copyable()) {
+                list_el = copyValue(*list_el);
+            }
+            symbols_copied.push_back({value_in_val->type, "list_element", list_el});
+
+            auto& new_sym = *(symbols_copied.end()-1);
+            list_el->addReference(new_sym);
+            new_sym.value = list_el;
+        }
+
+        auto n = addNewValue(val.type, std::move(symbols_copied));
+        n->kind = ListVal;
+        return n;
     }
 
     void Value::addReference(const Symbol& ref) {

@@ -52,7 +52,9 @@ namespace Odo::Interpreting {
 
         std::string to_string();
 
-        bool is_copyable() { return type->kind == PrimitiveType && type->name != "NullType"; }
+        [[nodiscard]] bool is_copyable() const {
+            return kind == ListVal || (type && type->kind == PrimitiveType && type->name != "NullType");
+        }
     };
 
     class ValueTable {
@@ -63,6 +65,8 @@ namespace Odo::Interpreting {
             -1 :
             (--values.end())->first;
         }
+
+        Value* copyListValue(Value);
 
     public:
         ValueTable();
