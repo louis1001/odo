@@ -987,11 +987,11 @@ namespace Odo::Interpreting {
 
                 theValue->removeReference(*varSym);
                 if (newValue->is_copyable()) {
-                    newValue = valueTable.addNewValue(newValue->type, newValue->val);
+                    newValue = valueTable.copyValue(*newValue);
                 }
             } else {
                 if (newValue->is_copyable()) {
-                    newValue = valueTable.addNewValue(newValue->type, newValue->val);
+                    newValue = valueTable.copyValue(*newValue);
                 }
 
                 if (varSym->tp->name == "any") {
