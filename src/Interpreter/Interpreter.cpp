@@ -194,6 +194,80 @@ namespace Odo::Interpreting {
             return null;
         });
 
+        add_native_function("floor", [&](auto vals) {
+            if (vals.size() == 1) {
+                auto v1 = vals[0];
+                double v = 0;
+                if (v1->type->name == "double") {
+                    v = v1->as_double();
+                } else if (v1->type->name == "int") {
+                    v = v1->as_int();
+                } else {
+                    throw Exceptions::ValueException("floor function can only be called with numeric values");
+                }
+
+                return create_literal(static_cast<int>(floor(v)));
+            }
+
+            return null;
+        });
+
+        add_native_function("trunc", [&](auto vals) {
+            if (vals.size() == 1) {
+                auto v1 = vals[0];
+                double v = 0;
+                if (v1->type->name == "double") {
+                    v = v1->as_double();
+                } else if (v1->type->name == "int") {
+                    v = v1->as_int();
+                } else {
+                    throw Exceptions::ValueException("trunc function can only be called with numeric values");
+                }
+
+                return create_literal(static_cast<int>(trunc(v)));
+            }
+
+            return null;
+        });
+
+        add_native_function("round", [&](auto vals) {
+            if (!vals.empty()) {
+                auto v1 = vals[0];
+                double v = 0;
+                if (v1->type->name == "double") {
+                    v = v1->as_double();
+                } else if (v1->type->name == "int") {
+                    v = v1->as_int();
+                } else {
+                    throw Exceptions::ValueException(
+                        "trunc function can only be called with numeric values and an optional int+",
+                        current_line,
+                        current_col
+                    );
+                }
+
+                if (vals.size() == 1) {
+                    return create_literal(static_cast<int>(round(v)));
+                }
+
+                auto v2 = vals[1];
+                if (v2->type->name != "int") {
+                    throw Exceptions::ValueException(
+                        "trunc function can only be called with a numeric value and an optional int-",
+                        current_line,
+                        current_col
+                    );
+                }
+
+                int rounding = v2->as_int();
+                int decimal = pow(10, rounding);
+                double result = round(v*decimal)/decimal;
+                return create_literal(result);
+            }
+
+            return null;
+        });
+
         add_native_function("read", [&](const std::vector<Value*>& vals) {
             std::string result;
             for (auto v : vals) {

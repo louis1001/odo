@@ -158,7 +158,7 @@ namespace Odo::Interpreting {
                 auto this_as_double = as_double();
 
                 std::stringstream double_parsed;
-                double_parsed << std::setprecision(std::numeric_limits<double>::digits10+1) << this_as_double;
+                double_parsed << std::setprecision(std::numeric_limits<double>::digits10) << this_as_double;
 
                 result = double_parsed.str();
                 result.erase ( result.find_last_not_of('0') + 1, std::string::npos );
