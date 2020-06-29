@@ -52,6 +52,7 @@ single_statement = closure
         | function
         | "return", ternary_op
         | for_statement
+        | foreach_statement
         | while_statement
         | loop_statement
         | "break"
@@ -98,6 +99,14 @@ function_expression = "func", func_params, "->", (closure | ternary_op);
 
 for_statement = "for", "(", statement, ternary_op, statement, ")", (closure | statement);
 
+foreach_statement =
+    "foreach",
+    (
+        ( "(", identifier, ":", ternary_op, ")" ) |
+        ( identifier, ":", ternary_op )
+    ),
+    statement | closure;
+
 while_statement = "while", ternary_op, closure;
 
 loop_statement = "loop", closure;
@@ -123,7 +132,7 @@ prod = postfix, ["^", postfix];
 
 postfix = factor, {post_operation}
 
-post_operation = 
+post_operation =
         "++"
         | "--"
         | ("+=" | "-=" | "*=" | "/="), factor
@@ -132,7 +141,7 @@ post_operation =
         | "[", ternary_op, "]"
         | "=", ternary_op;
 
-factor = 
+factor =
         real
         | integer
         | string
@@ -141,7 +150,7 @@ factor =
         | "(", factor, ")"
         | ("+", "-"), postfix
         | new_initializer
-        | identifier                    
+        | identifier
         | var_declaration
         | "[", comma_expression_list, "]"
         | function_expression

@@ -364,6 +364,9 @@ namespace Odo::Interpreting {
             case For:
                 return visit_For(node.nodes["ini"], node.nodes["cond"], node.nodes["incr"], node.nodes["body"]);
                 break;
+            case ForEach:
+                return visit_ForEach(node.token, node.nodes["lst"], node.nodes["body"]);
+                break;
             case While:
                 return visit_While(node.nodes["cond"], node.nodes["body"]);
                 break;
@@ -642,6 +645,58 @@ namespace Odo::Interpreting {
         valueTable.cleanUp(forScope);
 
         return null;
+    }
+
+    Value* Interpreter::visit_ForEach(const Lexing::Token& v, const Parsing::AST& lst, const Parsing::AST& body) {
+        auto forScope = SymbolTable("foreach:loop", {}, currentScope);
+        currentScope = &forScope;
+
+        auto lst_value = visit(lst);
+        if(!lst_value || lst_value->kind != ListVal) {
+            throw Exceptions::ValueException(
+                "foreach statement can only be used with list values.",
+                current_line,
+                current_col
+            );
+        }
+
+        AST iterator_decl;
+        if (lst_value->type->tp && lst_value->type->tp->kind == ListType) {
+            iterator_decl.tp = ListDeclaration;
+        } else {
+            iterator_decl.tp = Declaration;
+        }
+
+        iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
+        iterator_decl.token = v;
+        visit(iterator_decl);
+
+        auto declared_iter = currentScope->findSymbol(v.value);
+
+        for(auto& s: lst_value->as_list_symbol()){
+            declared_iter->value = s.value;
+
+            visit(body);
+            if (continuing) {
+                continuing = false;
+                continue;
+            }
+
+            if (breaking) {
+                breaking = false;
+                break;
+            }
+
+            if (returning) {
+                break;
+            }
+        }
+
+        currentScope = forScope.getParent();
+        valueTable.cleanUp(forScope);
+
+        return null;
+
     }
 
     Value *Interpreter::visit_While(const AST& cond, const AST& body) {

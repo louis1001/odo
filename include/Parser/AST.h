@@ -37,6 +37,7 @@ namespace Odo::Parsing {
 
         If,
         For,
+        ForEach,
         While,
         Loop,
         Break,

@@ -23,6 +23,7 @@ namespace Odo::Lexing {
             {"func", Token(FUNC, "func")},
             {"return", Token(RET, "return")},
             {"for", Token(FOR, "for")},
+            {"foreach", Token(FOREACH, "foreach")},
             {"while", Token(WHILE, "while")},
             {"loop", Token(LOOP, "loop")},
             {"break", Token(BREAK, "break")},

@@ -156,6 +156,10 @@ namespace Odo::Parsing{
                 eat(FOR);
                 ex = forstatement();
                 break;
+            case FOREACH:
+                eat(FOREACH);
+                ex = foreachstatement();
+                break;
             case WHILE:
                 eat(WHILE);
                 ex = whilestatement();
@@ -367,6 +371,46 @@ namespace Odo::Parsing{
                 {"cond", compar},
                 {"incr", inc},
                 {"body", body},
+        };
+
+        return result;
+    }
+
+    AST Parser::foreachstatement() {
+        AST result = add_dbg_info({ForEach});
+
+        bool has_paren = current_token.tp == LPAR;
+        ignore_nl();
+        if (has_paren){
+            eat(LPAR);
+            ignore_nl();
+        }
+
+        auto var = current_token;
+        if (has_paren)
+            ignore_nl();
+        eat(ID);
+        ignore_nl();
+
+        eat(COLON);
+        ignore_nl();
+
+        auto lst_expression = postfix();
+
+        if (has_paren) {
+            eat(RPAR);
+            ignore_nl();
+        }
+
+        AST body;
+
+        body = statement(false);
+
+        result.token = var;
+
+        result.nodes = {
+            {"lst", lst_expression},
+            {"body", body},
         };
 
         return result;

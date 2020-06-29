@@ -43,6 +43,7 @@ namespace Odo::Parsing {
         AST loopstatement();
         AST whilestatement();
         AST forstatement();
+        AST foreachstatement();
 
         AST ifstatement();
 

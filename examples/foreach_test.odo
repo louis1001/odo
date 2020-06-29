@@ -1,0 +1,23 @@
+
+int mat[][] = [["•"]*11]*11
+
+println("This is so cool... A little too C++sy or Javascripty.")
+println("Love it tho\n<3\n\n")
+
+for (int i = 1; i < 11; i++) {
+    clear()
+    int counter = 0
+    foreach row : mat {
+        foreach x : row {
+            if counter%i == 0 {
+                print(x, " ")
+            } else {
+                print("  ")
+            }
+            counter++
+        }
+        println()
+    }
+
+    for (int k = 0; k < 10000; k++) {}
+}
