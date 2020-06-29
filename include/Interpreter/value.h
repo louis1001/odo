@@ -51,6 +51,8 @@ namespace Odo::Interpreting {
         std::vector<Symbol>& as_list_symbol();
 
         std::string to_string();
+
+        bool is_copyable() { return type->kind == PrimitiveType && type->name != "NullType"; }
     };
 
     class ValueTable {

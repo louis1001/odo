@@ -879,7 +879,7 @@ namespace Odo::Interpreting {
             if (initial.tp != NoOp) {
                 auto newValue = visit(initial);
 
-                if (is_copyable(newValue)) {
+                if (newValue->is_copyable()) {
                     newValue = valueTable.copyValue(*newValue);
                 }
 
@@ -986,11 +986,11 @@ namespace Odo::Interpreting {
                 auto theValue = varSym->value;
 
                 theValue->removeReference(*varSym);
-                if (is_copyable(newValue)) {
+                if (newValue->is_copyable()) {
                     newValue = valueTable.addNewValue(newValue->type, newValue->val);
                 }
             } else {
-                if (is_copyable(newValue)) {
+                if (newValue->is_copyable()) {
                     newValue = valueTable.addNewValue(newValue->type, newValue->val);
                 }
 
@@ -1124,7 +1124,7 @@ namespace Odo::Interpreting {
 
             Value* actual_value;
 
-            if (is_copyable(visited_element)) {
+            if (visited_element->is_copyable()) {
                 actual_value = valueTable.copyValue(*visited_element);
             } else {
                 actual_value = visited_element;
@@ -1173,7 +1173,7 @@ namespace Odo::Interpreting {
                         for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
-                            if (is_copyable(val)) {
+                            if (val->is_copyable()) {
                                 val = valueTable.copyValue(*val);
                             }
 
@@ -1184,7 +1184,7 @@ namespace Odo::Interpreting {
                         for (const auto& el : rightVisited->as_list_symbol()) {
                             auto val = el.value;
 
-                            if (is_copyable(val)) {
+                            if (val->is_copyable()) {
                                 val = valueTable.copyValue(*val);
                             }
 
@@ -1202,7 +1202,7 @@ namespace Odo::Interpreting {
                         for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
-                            if (is_copyable(val)) {
+                            if (val->is_copyable()) {
                                 val = valueTable.copyValue(*val);
                             }
 
@@ -1212,7 +1212,7 @@ namespace Odo::Interpreting {
                         }
 
                         auto val = rightVisited;
-                        if (is_copyable(val)) {
+                        if (val->is_copyable()) {
                             val = valueTable.copyValue(*val);
                         }
 
@@ -1281,7 +1281,7 @@ namespace Odo::Interpreting {
                         for (const auto& el : leftVisited->as_list_symbol()) {
                             auto val = el.value;
 
-                            if (is_copyable(val)) {
+                            if (val->is_copyable()) {
                                 val = valueTable.copyValue(*val);
                             }
 
@@ -1685,7 +1685,7 @@ namespace Odo::Interpreting {
                         case Declaration:
                         {
                             auto newValue = visit(args[i]);
-                            if (is_copyable(newValue)) {
+                            if (newValue->is_copyable()) {
                                 newValue = valueTable.copyValue(*newValue);
                             }
                             initValues.emplace_back(par.token, newValue);
@@ -1923,7 +1923,7 @@ namespace Odo::Interpreting {
                         case ListDeclaration:
                         {
                             auto newValue = constructorParams[i];
-                            if (is_copyable(newValue)) {
+                            if (newValue->is_copyable()) {
                                 newValue = valueTable.copyValue(*newValue);
                             }
                             initValues.emplace_back(par.token, newValue);
@@ -2289,8 +2289,6 @@ namespace Odo::Interpreting {
 
         return result;
     }
-
-    bool Interpreter::is_copyable(const Value* v) { return v->type->kind == PrimitiveType && !(v->type == null->type); }
 
     Value * Interpreter::interpret_as_module(const std::string &path, const Lexing::Token& name) {
         bool has_extension = ends_with(path, ".odo");
