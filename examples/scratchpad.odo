@@ -1,4 +1,8 @@
-
+double numbers[] = []
 for (double i = 0; i < 5; i += 0.1) {
-    println("This was my dream sintax! ", i)
+    numbers += i
+}
+
+foreach n : numbers {
+    println("This made it better! ", n)
 }
