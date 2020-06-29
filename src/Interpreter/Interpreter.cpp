@@ -726,44 +726,70 @@ namespace Odo::Interpreting {
         currentScope = &forScope;
 
         auto lst_value = visit(lst);
-        if(!lst_value || lst_value->kind != ListVal) {
-            throw Exceptions::ValueException(
-                "foreach statement can only be used with list values.",
-                current_line,
-                current_col
-            );
-        }
+        if (lst_value->kind == ListVal) {
+            AST iterator_decl;
+            if (lst_value->type->tp && lst_value->type->tp->kind == ListType) {
+                iterator_decl.tp = ListDeclaration;
+            } else {
+                iterator_decl.tp = Declaration;
+            }
 
-        AST iterator_decl;
-        if (lst_value->type->tp && lst_value->type->tp->kind == ListType) {
-            iterator_decl.tp = ListDeclaration;
+            iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
+            iterator_decl.token = v;
+            visit(iterator_decl);
+
+            auto declared_iter = currentScope->findSymbol(v.value);
+
+            for(auto& s: lst_value->as_list_symbol()){
+                declared_iter->value = s.value;
+
+                visit(body);
+                if (continuing) {
+                    continuing = false;
+                    continue;
+                }
+
+                if (breaking) {
+                    breaking = false;
+                    break;
+                }
+
+                if (returning) {
+                    break;
+                }
+            }
+        } else if (lst_value->type->name == "string") {
+            AST iterator_decl {Declaration};
+            iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, "string");
+            iterator_decl.token = v;
+            visit(iterator_decl);
+
+            auto declared_iter = currentScope->findSymbol(v.value);
+
+            for(auto& s: lst_value->as_string()){
+                declared_iter->value = create_literal(std::string(1, s));
+
+                visit(body);
+                if (continuing) {
+                    continuing = false;
+                    continue;
+                }
+
+                if (breaking) {
+                    breaking = false;
+                    break;
+                }
+
+                if (returning) {
+                    break;
+                }
+            }
         } else {
-            iterator_decl.tp = Declaration;
-        }
-
-        iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
-        iterator_decl.token = v;
-        visit(iterator_decl);
-
-        auto declared_iter = currentScope->findSymbol(v.value);
-
-        for(auto& s: lst_value->as_list_symbol()){
-            declared_iter->value = s.value;
-
-            visit(body);
-            if (continuing) {
-                continuing = false;
-                continue;
-            }
-
-            if (breaking) {
-                breaking = false;
-                break;
-            }
-
-            if (returning) {
-                break;
-            }
+            throw Exceptions::ValueException(
+                    "foreach statement can only be used with list or string values.",
+                    current_line,
+                    current_col
+            );
         }
 
         currentScope = forScope.getParent();
