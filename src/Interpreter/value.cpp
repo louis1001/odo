@@ -157,12 +157,19 @@ namespace Odo::Interpreting {
             if (type->name == "double") {
                 auto this_as_double = as_double();
 
-                std::stringstream double_parsed;
-                double_parsed << std::setprecision(std::numeric_limits<double>::digits10) << this_as_double;
+                int floored = floor(this_as_double);
+                if (this_as_double - floored < 1e-15) {
+                    result = std::to_string(floored) + ".0";
+                } else {
+                    std::stringstream double_parsed;
+                    double_parsed << std::setprecision(std::numeric_limits<double>::digits10) << this_as_double;
 
-                result = double_parsed.str();
-                result.erase ( result.find_last_not_of('0') + 1, std::string::npos );
-                if (*(result.end()-1) == '.') result += "0";
+                    result = double_parsed.str();
+                    result.erase ( result.find_last_not_of('0') + 1, std::string::npos );
+                    if (result.find('.') == std::string::npos){
+                        result += ".0";
+                    }
+                }
             } else if (type->name == "int"){
                 auto this_as_int = as_int();
                 result = std::to_string(this_as_int);
