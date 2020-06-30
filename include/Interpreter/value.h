@@ -55,6 +55,8 @@ namespace Odo::Interpreting {
         [[nodiscard]] bool is_copyable() const {
             return kind == ListVal || (type && type->kind == PrimitiveType && type->name != "NullType");
         }
+
+        [[nodiscard]] bool is_numeric() const { return type->name == "int" || type->name == "double"; }
     };
 
     class ValueTable {

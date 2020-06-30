@@ -381,12 +381,8 @@ namespace Odo::Interpreting {
         if (lhs->type->kind != PrimitiveType || rhs->type->kind != PrimitiveType)
             return result;
 
-        auto is_numerical = [](Value* v) {
-            return v->type->name == "int" || v->type->name == "double";
-        };
-
         // Check if both values are numerical
-        if (lhs->type->name != rhs->type->name && is_numerical(lhs) && is_numerical(rhs)) {
+        if (lhs->type->name != rhs->type->name && lhs->is_numeric() && rhs->is_numeric()) {
             if (lhs->type->name == "int") {
                 auto new_left = create_literal((double)std::any_cast<int>(lhs->val));
 
