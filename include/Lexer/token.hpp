@@ -29,6 +29,8 @@ namespace Odo::Lexing {
 
         ARROW,          // ->
 
+        REV,            // ~
+
         // Operators
         PLUS,           // +
         PLUSE,          // +=

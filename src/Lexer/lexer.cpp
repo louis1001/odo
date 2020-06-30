@@ -301,6 +301,9 @@ namespace Odo::Lexing {
                     }
 
                     return Token(GT, "<");
+                case '~':
+                    advance();
+                    return Token(REV, "~");
                 case '(':
                     advance();
                     return Token(LPAR, "(");

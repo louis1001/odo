@@ -392,6 +392,13 @@ namespace Odo::Parsing{
         eat(ID);
         ignore_nl();
 
+        Lexing::Token reverse_token(NOTHING, "");
+        if (current_token.tp == REV) {
+            eat(REV);
+            reverse_token = {REV, "~"};
+            ignore_nl();
+        }
+
         eat(COLON);
         ignore_nl();
 
@@ -405,6 +412,8 @@ namespace Odo::Parsing{
         AST body;
 
         body = statement(false);
+
+        result.type = reverse_token;
 
         result.token = var;
 

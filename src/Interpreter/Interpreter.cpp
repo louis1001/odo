@@ -442,7 +442,7 @@ namespace Odo::Interpreting {
                 return visit_For(node.nodes["ini"], node.nodes["cond"], node.nodes["incr"], node.nodes["body"]);
                 break;
             case ForEach:
-                return visit_ForEach(node.token, node.nodes["lst"], node.nodes["body"]);
+                return visit_ForEach(node.token, node.nodes["lst"], node.nodes["body"], node.type);
                 break;
             case While:
                 return visit_While(node.nodes["cond"], node.nodes["body"]);
@@ -745,7 +745,18 @@ namespace Odo::Interpreting {
 
             auto declared_iter = currentScope->findSymbol(v.value);
 
-            for(auto& s: lst_value->as_list_symbol()){
+            auto& the_symbols = lst_value->as_list_symbol();
+
+            bool go_backwards = rev.tp != Lexing::NOTHING;
+            lst_value->important = true;
+
+            for(size_t i = 0; i < the_symbols.size(); i++){
+                auto actual_index = i;
+                if (go_backwards) {
+                    actual_index = the_symbols.size()-1-i;
+                }
+
+                auto& s = the_symbols[actual_index];
                 declared_iter->value = s.value;
 
                 visit(body);
@@ -763,6 +774,7 @@ namespace Odo::Interpreting {
                     break;
                 }
             }
+            lst_value->important = false;
         } else if (lst_value->type->name == "string") {
             AST iterator_decl {Declaration};
             iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, "string");
@@ -770,8 +782,15 @@ namespace Odo::Interpreting {
             visit(iterator_decl);
 
             auto declared_iter = currentScope->findSymbol(v.value);
+            auto st = lst_value->as_string();
 
-            for(auto& s: lst_value->as_string()){
+            bool go_backwards = rev.tp != Lexing::NOTHING;
+
+            for(size_t i = 0; i < st.size(); i++){
+                size_t actual_index = i;
+                if (go_backwards) actual_index = st.size() - 1 - i;
+
+                char s = st[actual_index];
                 declared_iter->value = create_literal(std::string(1, s));
 
                 visit(body);

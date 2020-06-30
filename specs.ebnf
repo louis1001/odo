@@ -102,7 +102,7 @@ for_statement = "for", "(", statement, ternary_op, statement, ")", (closure | st
 foreach_statement =
     "foreach",
     (
-        ( "(", identifier, ":", ternary_op, ")" ) |
+        ( "(", identifier, ["~"], ":", ternary_op, ")" ) |
         ( identifier, ":", ternary_op )
     ),
     statement | closure;
