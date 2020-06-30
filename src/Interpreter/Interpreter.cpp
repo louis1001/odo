@@ -790,8 +790,10 @@ namespace Odo::Interpreting {
 
                 char s = st[actual_index];
                 declared_iter->value = create_literal(std::string(1, s));
+                declared_iter->value->addReference(*declared_iter);
 
                 visit(body);
+                declared_iter->value->removeReference(*declared_iter);
                 if (continuing) {
                     continuing = false;
                     continue;
@@ -875,10 +877,10 @@ namespace Odo::Interpreting {
             if (go_backwards) actual_value = max_in_range-1-i;
 
             declared_iter->value = create_literal(actual_value);
-            declared_iter->value->important = true;
+            declared_iter->value->addReference(*declared_iter);
 
             visit(body);
-            declared_iter->value->important = false;
+            declared_iter->value->removeReference(*declared_iter);
             if (continuing) {
                 continuing = false;
                 continue;
