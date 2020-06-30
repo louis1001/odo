@@ -1756,14 +1756,21 @@ namespace Odo::Interpreting {
                 std::vector<Value*> arguments_visited;
                 arguments_visited.reserve(args.size());
 
-                for(const auto& arg : args){
+                std::vector<bool> was_important{};
+                was_important.reserve(args.size());
+                for(int i = 0; i < args.size(); i++){
+                    auto& arg = args[i];
                     auto v = visit(arg);
+                    was_important[i] = v->important;
                     v->important = true;
                     arguments_visited.push_back(v);
                 }
 
                 auto result = found_in_natives->second(arguments_visited);
-                for (auto v : arguments_visited) v->important = false;
+                for (int i = 0; i < arguments_visited.size(); i++) {
+                    if (!was_important[i])
+                        arguments_visited[i]->important = false;
+                }
 
                 return result;
             }
