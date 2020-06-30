@@ -3,9 +3,9 @@
 
 int MAX_COUNT = 50
 
-for(int i = 1; i <= MAX_COUNT; i++) {
+forange i : 1, MAX_COUNT+1 {
     print("\r[", "="*i, ">", " "*(MAX_COUNT-i), "] ", i, "/", MAX_COUNT)
-    for (int j = 0; j < 10000; j++) {
+    forange j : 10000 {
         # This is gonna be slow, hopefully.
     }
 }

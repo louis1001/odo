@@ -1,11 +1,11 @@
 
-int mat[][] = [["•"]*11]*11
+int sz = 11
+int mat[][] = [["•"]*sz]*sz
 
 println("This is so cool... A little too C++sy or Javascripty.")
 println("Love it tho\n<3\n\n")
 
-for (int i = 1; i < 11; i++) {
-    clear()
+forange i : 1, sz {
     int counter = 0
     foreach row : mat {
         foreach x : row {
@@ -19,5 +19,5 @@ for (int i = 1; i < 11; i++) {
         println()
     }
 
-    for (int k = 0; k < 10000; k++) {}
+    forange k: 10000 {}
 }

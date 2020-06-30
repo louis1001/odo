@@ -43,9 +43,9 @@ class Maze {
         height = h
 
         cells = []#mu::create_matrix(w, h, func(int x, int y) -> new Cell(x, y))
-        for (int y = 0; y < h; y++) {
+        forange y: h {
             Cell row[] = []
-            for (int x = 0; x < w; x++) {
+            forange x: w {
                 row += new Cell(x, y)
             }
             cells += [row]

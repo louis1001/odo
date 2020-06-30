@@ -10,31 +10,32 @@ println();
 println();
 
 int size = 10;
-for (int i = 0; i < size; i++){
-    for (int j = 0; j < size-i; j++){
+forange i : size{
+    debug
+    forange _ : size-i{
         print("+");
     }
 
-    for (int j = 0; j < i*2; j++){
+    forange _ : i*2 {
         print(" ");
     }
 
-    for (int j = 0; j < size-i; j++){
+    forange _ : size-i{
         print("+");
     }
     println();
 }
 
-for (int i = 0; i < size; i++){
-    for (int j = 0; j < i; j++){
+forange i : size{
+    forange _ : i {
         print("+");
     }
 
-    for (int j = 0; j < (size-i)*2; j++){
+    forange _ : (size-i)*2 {
         print(" ");
     }
 
-    for (int j = 0; j < i; j++){
+    forange _ : i {
         print("+");
     }
     println();

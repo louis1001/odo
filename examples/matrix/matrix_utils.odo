@@ -79,9 +79,9 @@ func map_matrix(any mat[][], any lambda = func(any val)-> val) {
 func create_matrix(int w, int h, any generator = func() -> 0) {
     int result[][] = []
 
-    for (int i = 0; i < h; i++) {
+    forange i : h {
         int row[] = []
-        for (int j = 0; j < w; j++) {
+        forange j : w {
             int a = generator(j, i)
 
             row += a

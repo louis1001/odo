@@ -14,7 +14,7 @@ func abs(double x) {
 
 func pow(double x, int p) {
     double result = 1.0
-    for (int i = 0; i < p; i++) {
+    forange _ ~: p {
         result = result * x
     }
 

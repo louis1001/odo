@@ -30,13 +30,13 @@ func changeSub(string str, int index, string repl): string {
         return str
     }
     string result = ""
-    for (int i = 0; i < index; i++) {
+    forange i : index {
         result += str[i]
     }
 
     result += repl
 
-    for (int i = index+1; i < length(str); i++) {
+    forange (i : index+1, length(str)) {
         result += str[i]
     }
 
@@ -44,8 +44,8 @@ func changeSub(string str, int index, string repl): string {
 }
 
 func contains(string s[], string val): bool {
-    for (int i = 0; i < length(s); i++) {
-        if (s[i] == val) {
+    foreach char : s {
+        if (char == val) {
             return true
         }
     }
@@ -56,8 +56,8 @@ func contains(string s[], string val): bool {
 while ((right_guesses < w_length) && (errors < max_errors)) {
     clear()
     println("Current guesses: ")
-    for(int i = 0; i < w_length; i++) {
-        print(guessed[i], "")
+    foreach char : guessed {
+        print(char, "")
     }
     println()
     println("Erros:", errors, "/", max_errors)
@@ -73,7 +73,7 @@ while ((right_guesses < w_length) && (errors < max_errors)) {
     letters_tried += guess
 
     int curr_rights = 0
-    for(int i = 0; i < w_length; i++) {
+    forange i: w_length {
         if secret[i] == guess {
             curr_rights++
             guessed = changeSub(guessed, i, guess)

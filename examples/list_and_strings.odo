@@ -15,8 +15,8 @@ while c < n {
     results += c
 }
 
-for(int i = 0; i < length(results); i++) {
-    println("[", i, "]: ", results[i])
+forange i : length(results) {
+    println("[", i, "]:\t", results[i])
 }
 
 println()
