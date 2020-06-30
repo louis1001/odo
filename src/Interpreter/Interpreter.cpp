@@ -875,8 +875,10 @@ namespace Odo::Interpreting {
             if (go_backwards) actual_value = max_in_range-1-i;
 
             declared_iter->value = create_literal(actual_value);
+            declared_iter->value->important = true;
 
             visit(body);
+            declared_iter->value->important = false;
             if (continuing) {
                 continuing = false;
                 continue;
