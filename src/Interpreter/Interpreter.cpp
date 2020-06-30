@@ -440,6 +440,8 @@ namespace Odo::Interpreting {
             case ForEach:
                 return visit_ForEach(node.token, node.nodes["lst"], node.nodes["body"], node.type);
                 break;
+            case FoRange:
+                return visit_FoRange(node.token, node.nodes["first"], node.nodes["second"], node.nodes["body"], node.type);
             case While:
                 return visit_While(node.nodes["cond"], node.nodes["body"]);
                 break;
@@ -720,7 +722,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    Value* Interpreter::visit_ForEach(const Lexing::Token& v, const Parsing::AST& lst, const Parsing::AST& body) {
+    Value* Interpreter::visit_ForEach(const Lexing::Token& v, const Parsing::AST& lst, const Parsing::AST& body, const Lexing::Token& rev) {
         auto forScope = SymbolTable("foreach:loop", {}, currentScope);
         currentScope = &forScope;
 
@@ -817,6 +819,82 @@ namespace Odo::Interpreting {
 
         return null;
 
+    }
+
+    Value* Interpreter::visit_FoRange(const Lexing::Token& v, const Parsing::AST& first, const Parsing::AST& second, const Parsing::AST& body, const Lexing::Token& rev){
+        auto forScope = SymbolTable("forange:loop", {}, currentScope);
+        currentScope = &forScope;
+
+        int max_in_range = 0;
+        auto first_visited = visit(first);
+        if (!first_visited->is_numeric()) {
+            throw Exceptions::ValueException(
+                "Values defining the range of forange statement have to be numerical",
+                current_line,
+                current_col
+            );
+        }
+
+        if (first_visited->type->name == "int")
+            max_in_range = first_visited->as_int();
+        else if (first_visited->type->name == "double")
+            max_in_range = floor(first_visited->as_double());
+
+        int min_in_range = 0;
+
+        if (second.tp != NoOp) {
+            min_in_range = max_in_range;
+
+            auto second_visited = visit(second);
+            if (!second_visited->is_numeric()) {
+                throw Exceptions::ValueException(
+                    "Values defining the range of forange statement have to be numerical",
+                    current_line,
+                    current_col
+                );
+            }
+
+            if (second_visited->type->name == "int")
+                max_in_range = second_visited->as_int();
+            else if (second_visited->type->name == "double")
+                max_in_range = floor(second_visited->as_double());
+        }
+
+        bool go_backwards = rev.tp != Lexing::NOTHING;
+
+        AST iterator_decl { Declaration };
+
+        iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, "int");
+        iterator_decl.token = v;
+        visit(iterator_decl);
+
+        auto declared_iter = currentScope->findSymbol(v.value);
+
+        for(int i = min_in_range; i < max_in_range; i++){
+            auto actual_value = i;
+            if (go_backwards) actual_value = max_in_range-1-i;
+
+            declared_iter->value = create_literal(actual_value);
+
+            visit(body);
+            if (continuing) {
+                continuing = false;
+                continue;
+            }
+
+            if (breaking) {
+                breaking = false;
+                break;
+            }
+
+            if (returning) {
+                break;
+            }
+        }
+        currentScope = forScope.getParent();
+        valueTable.cleanUp(forScope);
+
+        return null;
     }
 
     Value *Interpreter::visit_While(const AST& cond, const AST& body) {

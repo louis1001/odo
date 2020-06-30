@@ -1,8 +1,18 @@
+int count = 5
 double numbers[] = []
-for (double i = 0; i < 5; i += 0.1) {
+
+forange i ~: count {
     numbers += i
 }
 
+println("This is the result: ", numbers, "\n")
+
+println("Forwards")
 foreach n : numbers {
-    println("This made it better! ", n)
+    println("This made it even betterer! ", n)
+}
+
+println("\nAnd then backwards")
+foreach n ~: numbers {
+    println("This made it even betterer! ", n)
 }

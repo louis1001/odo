@@ -64,6 +64,7 @@ namespace Odo::Interpreting {
         Value* visit_If(const Parsing::AST& cond, Parsing::AST trueb, Parsing::AST falseb);
         Value* visit_For(Parsing::AST ini, const Parsing::AST& cond, const Parsing::AST& incr, const Parsing::AST& body);
         Value* visit_ForEach(const Lexing::Token& v, const Parsing::AST& lst, const Parsing::AST& body, const Lexing::Token& rev);
+        Value* visit_FoRange(const Lexing::Token& v, const Parsing::AST& first, const Parsing::AST& second, const Parsing::AST& body, const Lexing::Token& rev);
         Value* visit_While(const Parsing::AST& cond, const Parsing::AST& body);
         Value* visit_Loop(const Parsing::AST& body);
 

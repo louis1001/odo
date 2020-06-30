@@ -24,6 +24,7 @@ namespace Odo::Lexing {
             {"return", Token(RET, "return")},
             {"for", Token(FOR, "for")},
             {"foreach", Token(FOREACH, "foreach")},
+            {"forange", Token(FORANGE, "forange")},
             {"while", Token(WHILE, "while")},
             {"loop", Token(LOOP, "loop")},
             {"break", Token(BREAK, "break")},

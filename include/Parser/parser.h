@@ -44,6 +44,7 @@ namespace Odo::Parsing {
         AST whilestatement();
         AST forstatement();
         AST foreachstatement();
+        AST forangestatement();
 
         AST ifstatement();
 

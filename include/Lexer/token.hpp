@@ -78,6 +78,7 @@ namespace Odo::Lexing {
         RET,
         FOR,
         FOREACH,
+        FORANGE,
         WHILE,
         LOOP,
         BREAK,

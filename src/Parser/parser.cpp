@@ -160,6 +160,10 @@ namespace Odo::Parsing{
                 eat(FOREACH);
                 ex = foreachstatement();
                 break;
+            case FORANGE:
+                eat(FORANGE);
+                ex = forangestatement();
+                break;
             case WHILE:
                 eat(WHILE);
                 ex = whilestatement();
@@ -419,6 +423,64 @@ namespace Odo::Parsing{
 
         result.nodes = {
             {"lst", lst_expression},
+            {"body", body},
+        };
+
+        return result;
+    }
+
+    AST Parser::forangestatement() {
+        AST result = add_dbg_info({FoRange});
+
+        bool has_paren = current_token.tp == LPAR;
+        ignore_nl();
+        if (has_paren){
+            eat(LPAR);
+            ignore_nl();
+        }
+
+        auto var = current_token;
+        if (has_paren)
+            ignore_nl();
+        eat(ID);
+        ignore_nl();
+
+        Lexing::Token reverse_token(NOTHING, "");
+        if (current_token.tp == REV) {
+            eat(REV);
+            reverse_token = {REV, "~"};
+            ignore_nl();
+        }
+
+        eat(COLON);
+        ignore_nl();
+
+        auto first_expression = postfix();
+        AST second_expression {NoOp};
+
+        if (current_token.tp == COMMA) {
+            ignore_nl();
+            eat(COMMA);
+            ignore_nl();
+            second_expression = postfix();
+        }
+
+        if (has_paren) {
+            ignore_nl();
+            eat(RPAR);
+            ignore_nl();
+        }
+
+        AST body;
+
+        body = statement(false);
+
+        result.type = reverse_token;
+
+        result.token = var;
+        result.nodes = {
+            {"first", first_expression},
+            {"second", second_expression},
             {"body", body},
         };
 
