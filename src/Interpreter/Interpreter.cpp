@@ -780,6 +780,9 @@ namespace Odo::Interpreting {
             visit(iterator_decl);
 
             auto declared_iter = currentScope->findSymbol(v.value);
+            declared_iter->value = create_literal(std::string(1, '\0'));
+            declared_iter->value->addReference(*declared_iter);
+
             auto st = lst_value->as_string();
 
             bool go_backwards = rev.tp != Lexing::NOTHING;
@@ -789,11 +792,9 @@ namespace Odo::Interpreting {
                 if (go_backwards) actual_index = st.size() - 1 - i;
 
                 char s = st[actual_index];
-                declared_iter->value = create_literal(std::string(1, s));
-                declared_iter->value->addReference(*declared_iter);
+                declared_iter->value->val = std::string(1, s);
 
                 visit(body);
-                declared_iter->value->removeReference(*declared_iter);
                 if (continuing) {
                     continuing = false;
                     continue;
@@ -808,6 +809,7 @@ namespace Odo::Interpreting {
                     break;
                 }
             }
+            declared_iter->value->removeReference(*declared_iter);
         } else {
             throw Exceptions::ValueException(
                     "foreach statement can only be used with list or string values.",
@@ -871,16 +873,16 @@ namespace Odo::Interpreting {
         visit(iterator_decl);
 
         auto declared_iter = currentScope->findSymbol(v.value);
+        declared_iter->value = create_literal(0);
+        declared_iter->value->addReference(*declared_iter);
 
         for(int i = min_in_range; i < max_in_range; i++){
             auto actual_value = i;
             if (go_backwards) actual_value = max_in_range-1-i;
 
-            declared_iter->value = create_literal(actual_value);
-            declared_iter->value->addReference(*declared_iter);
+            declared_iter->value->val = actual_value;
 
             visit(body);
-            declared_iter->value->removeReference(*declared_iter);
             if (continuing) {
                 continuing = false;
                 continue;
@@ -895,6 +897,7 @@ namespace Odo::Interpreting {
                 break;
             }
         }
+        declared_iter->value->removeReference(*declared_iter);
         currentScope = forScope.getParent();
         valueTable.cleanUp(forScope);
 
