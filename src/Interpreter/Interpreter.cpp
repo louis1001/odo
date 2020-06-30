@@ -14,6 +14,9 @@
 #define noop (void)0
 // #define DEBUG_FUNCTIONS
 
+#define NOT_IMPLEMENTED(...) \
+    throw Exceptions::OdoException("Using function not yet implemented: " + std::string(#__VA_ARGS__), current_line, current_col)
+
 namespace Odo::Interpreting {
     using namespace Parsing;
 
@@ -736,6 +739,8 @@ namespace Odo::Interpreting {
 
             iterator_decl.type = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
             iterator_decl.token = v;
+
+            // TODO: Add debugging info, like line and column number.
             visit(iterator_decl);
 
             auto declared_iter = currentScope->findSymbol(v.value);
