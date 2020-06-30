@@ -406,7 +406,7 @@ namespace Odo::Parsing{
         eat(COLON);
         ignore_nl();
 
-        auto lst_expression = postfix();
+        auto lst_expression = ternary_op();
 
         if (has_paren) {
             eat(RPAR);
@@ -455,14 +455,14 @@ namespace Odo::Parsing{
         eat(COLON);
         ignore_nl();
 
-        auto first_expression = postfix();
+        auto first_expression = ternary_op();
         AST second_expression {NoOp};
 
         if (current_token.tp == COMMA) {
             ignore_nl();
             eat(COMMA);
             ignore_nl();
-            second_expression = postfix();
+            second_expression = ternary_op();
         }
 
         if (has_paren) {
