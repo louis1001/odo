@@ -14,8 +14,6 @@
 namespace Odo::Interpreting {
     struct Value;
 
-    std::string random_string(size_t length);
-
     enum SymbolType {
         Var,
         ListType,

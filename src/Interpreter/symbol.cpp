@@ -4,7 +4,6 @@
 
 #include "Interpreter/symbol.h"
 #include "Exceptions/exception.h"
-#include <ctime>
 #include <utility>
 #include <iostream>
 
