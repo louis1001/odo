@@ -1,3 +1,8 @@
+
+# TODO: How about this idea? returns a list with every iteration.
+#int a = mapeach x: a { x*10 }
+#int a = maprange x: 20 { x*10 }
+
 int count = 5
 double numbers[] = []
 
