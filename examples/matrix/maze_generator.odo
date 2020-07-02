@@ -1,4 +1,31 @@
-# At 10x10 this some seconds to complete.
+
+/* At 10x10 this some seconds to complete.
+ * An example of 10x10
+ *
+ * ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+ * • • ■ • • • • • • • ■ • • • ■ • • • • • ■
+ * ■ • ■ ■ ■ ■ ■ • ■ • ■ • ■ • ■ ■ ■ ■ ■ • ■
+ * ■ • • • • • ■ • ■ • • • ■ • • • • • • • ■
+ * ■ ■ ■ ■ ■ • ■ • ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ • ■
+ * ■ • • • ■ • • • ■ • • • • • • • • • ■ • ■
+ * ■ • ■ • ■ ■ ■ ■ ■ • ■ ■ ■ ■ ■ ■ ■ • ■ • ■
+ * ■ • ■ • • • • • • • ■ • • • • • ■ • ■ • ■
+ * ■ • ■ ■ ■ • ■ ■ ■ ■ ■ • ■ ■ ■ • ■ ■ ■ • ■
+ * ■ • • • ■ • • • • • • • ■ • • • ■ • • • ■
+ * ■ ■ ■ • ■ ■ ■ ■ ■ ■ ■ ■ ■ • ■ ■ ■ • ■ ■ ■
+ * ■ • ■ • ■ • • • • • • • ■ • ■ • • • ■ • ■
+ * ■ • ■ • ■ • ■ ■ ■ • ■ ■ ■ • ■ • ■ ■ ■ • ■
+ * ■ • • • ■ • • • ■ • • • ■ • ■ • • • ■ • ■
+ * ■ • ■ ■ ■ ■ ■ ■ ■ ■ ■ • ■ • ■ ■ ■ • ■ • ■
+ * ■ • ■ • • • • • ■ • • • ■ • • • ■ • • • ■
+ * ■ • ■ • ■ ■ ■ • ■ • ■ • ■ ■ ■ • ■ ■ ■ • ■
+ * ■ • ■ • ■ • ■ • • • ■ • ■ • ■ • • • • • ■
+ * ■ • ■ • ■ • ■ ■ ■ ■ ■ • ■ • ■ ■ ■ ■ ■ ■ ■
+ * ■ • • • ■ • • • • • • • • • • • • • • • •
+ * ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+ *
+ */
+
 
 import "matrix_utils" as mu
 
@@ -125,7 +152,10 @@ class Maze {
         int canvas_height = height*2+1
         int canvas_width = width*2+1
 
-        string b[][] = [["#"]*canvas_width]*canvas_height
+        string path_spaces = "•"
+        string wall_char = "■"
+
+        string b[][] = [[wall_char]*canvas_width]*canvas_height
 
         int canvas_max = canvas_width*canvas_height
         int counter = 0
@@ -135,20 +165,20 @@ class Maze {
                 int x = c.x*2 + 1
                 int y = c.y*2 + 1
 
-                b[y][x] = " "
+                b[y][x] = path_spaces
 
                 any ws = c.walls
                 if ws[0] {
-                    b[y - 1][x + 0] = " "
+                    b[y - 1][x + 0] = path_spaces
                 }
                 if ws[1] || (c.x == 0 && c.y == 0){
-                    b[y + 0][x - 1] = " "
+                    b[y + 0][x - 1] = path_spaces
                 }
                 if ws[2] {
-                    b[y + 1][x + 0] = " "
+                    b[y + 1][x + 0] = path_spaces
                 }
                 if ws[3] || (c.x == width-1 && c.y == height-1){
-                    b[y + 0][x + 1] = " "
+                    b[y + 0][x + 1] = path_spaces
                 }
             }
         }
