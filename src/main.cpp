@@ -102,6 +102,8 @@ int main(int argc, char* argv[]) {
                     auto as_str = result->to_string();
                     std::cout << GREEN << as_str << RESET << "\n";
                 }
+
+                inter.set_repl_last(result);
             } catch (Odo::Exceptions::OdoException& e) {
                 std::cout << std::endl << RED;
                 if (e.should_show_traceback()) {

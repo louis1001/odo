@@ -114,6 +114,7 @@ namespace Odo::Interpreting {
         Value* visit(Parsing::AST node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
+        void set_repl_last(Value*);
 
         std::vector<Frame>& get_call_stack() { return call_stack; };
         Value* get_null() { return null; }

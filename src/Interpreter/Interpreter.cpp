@@ -55,6 +55,8 @@ namespace Odo::Interpreting {
         });
         null->addReference(*nullSym);
 
+        replScope.symbols["_"] = {.tp=any_sym, .name="_", .value=null, .isType=false, .kind=Var};
+
         returning = nullptr;
 
 #ifdef DEBUG_FUNCTIONS
@@ -2400,6 +2402,14 @@ namespace Odo::Interpreting {
         call_stack.pop_back();
 
         return result;
+    }
+
+    void Interpreter::set_repl_last(Value* v) {
+        auto& last_value_symbol = replScope.symbols.at("_");
+        // Note: This may have some mistakes if the value has no references.
+        // But by the nature of the repl, there shouldn't be much problems
+        // _ Should be treated as any value that was just created on the spot.
+        last_value_symbol.value = v;
     }
 
     Value * Interpreter::interpret_as_module(const std::string &path, const Lexing::Token& name) {
