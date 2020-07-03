@@ -1,5 +1,5 @@
 # Odo
-[![Generic badge](https://img.shields.io/badge/version-0.1_beta-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-0.2_beta-blue.svg)](https://shields.io/)
 
 A port to C++ of my personal programming language.
 
@@ -83,5 +83,34 @@ I'm gonna refactor the whole project, specially the `Interpreter` section, and u
 of the way I'm doing things now, putting every kind of member variable a value can have in every single
 value, even though they're not being used.
 
-Also, if anyone wants to help compiling the project in Linux and Windows, that'd be amazing.
-I haven't tested that yet, but from what I gather, it shouldn't be too difficult.
+**New Logo!**
+(And the ascii art if you type about() on the repl)
+
+Optimizations:
+- Faster value and symbol lookup
+- Visual optimization of double to string values
+- Symbol identifier now is a int instead of string (faster comparisons)
+- Value now has a pointer to its type instead of taking a copy of its value
+- double to_string conversion now checks if the value is just an integer.
+
+Bug fixes:
+- Any_type pointer was inconsistent/relying on shaky memory.
+- The null value was inconsistent/relying on shaky memory (when assigning its type).
+- For loop wasn't resetting the continuing flag.
+- Function in Value now checks if the value can or should be copied.
+- A comparison with null shouldn't fail because anything can be null.
+- The c++ compiler now warns on every little bug (hopefully).
+- The *null* value was getting the address 1 by mistake. I should be 0.
+- The use of static statements outside of a class is now an error.
+- lists now copy their contents (if they're copyable) as well as the list_value.
+- Native functions now checks if any of its arguments was already important.
+- Removed unused code.
+
+New Features:
+- **typeof function**. Returns the type name of the value passed
+- **pop function**. Deletes the las element from a list and returns it
+- **function callstack**. Errors now have more meaning! Prints a traceback of the error.
+- **valueAt function**. This is debug only. Returns a value given an address in the valueTable.
+- **foreach and forange statement**. This is an improvement over the c-like for. 
+The actual loop should have now native speeds.
+- **new "last result" variable**. In the repl you can now type _ to get the last value returned.

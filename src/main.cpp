@@ -21,7 +21,7 @@ std::string logo = R"(
    (((((((((((((((((((((
       (((((((((((((((
 
-         odo(-lang)
+    odo(-lang) v0.2-beta
   Luis Gonzalez (louis1001)
          2019-2020
 
