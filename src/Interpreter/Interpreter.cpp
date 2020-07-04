@@ -880,7 +880,7 @@ namespace Odo::Interpreting {
 
         for(int i = min_in_range; i < max_in_range; i++){
             auto actual_value = i;
-            if (go_backwards) actual_value = max_in_range-1-i;
+            if (go_backwards) actual_value = min_in_range + max_in_range-1-i;
 
             declared_iter->value->val = actual_value;
 
