@@ -208,11 +208,12 @@ namespace Odo::Interpreting {
             }
         } else if (kind == ListVal) {
             result += "[";
-            auto values_in_v = std::any_cast<std::vector<Symbol> >(val);
-            for (auto mySym = values_in_v.begin(); mySym < values_in_v.end(); mySym++) {
-                result += mySym->value ? mySym->value->to_string() : "null";
+            auto values_in_v = as_list_value();
+            for (auto myValIter = values_in_v.begin(); myValIter < values_in_v.end(); myValIter++) {
+                Value* myVal = *myValIter;
+                result += myVal ? myVal->to_string() : "<corrupted>";
 
-                if (mySym != values_in_v.end() - 1) {
+                if (myValIter != values_in_v.end() - 1) {
                     result += ", ";
                 }
             }
