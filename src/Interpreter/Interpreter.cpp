@@ -128,6 +128,26 @@ namespace Odo::Interpreting {
             return null;
         });
 
+        add_native_function("fromAsciiCode", [&](auto vals){
+            if (!vals.empty()) {
+                int val = vals[0]->as_int();
+
+                return create_literal(std::string(1, val));
+            }
+
+            return null;
+        });
+
+        add_native_function("toAsciiCode", [&](auto vals) {
+            if (!vals.empty()) {
+                char val = vals[0]->as_string()[0];
+
+                return create_literal(static_cast<int>(val));
+            }
+
+            return null;
+        });
+
         add_native_function("pow", [&](auto vals) {
             if (vals.size() >= 2) {
                 bool result_as_int = true;
