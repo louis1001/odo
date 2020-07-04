@@ -1063,6 +1063,11 @@ namespace Odo::Interpreting {
         if (initial.tp != NoOp) {
             auto newValue = visit(initial);
 
+            // Well... Given the nature of my language right now
+            // I shouldn't care about this.
+            // TODO: But this is surely a warning.
+            if (newValue->kind != ListVal) noop;
+
             newVar = currentScope->addSymbol({
                 list_type,
                 name.value,
@@ -1070,7 +1075,6 @@ namespace Odo::Interpreting {
             });
 
             newValue->addReference(*newVar);
-            newValue->kind = ListVal;
             valueReturn = newValue;
 
             return valueReturn;
