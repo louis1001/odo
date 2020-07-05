@@ -10,6 +10,8 @@
 #include <cmath>
 #include <iostream>
 #include <utility>
+#include <chrono>
+#include <thread>
 
 #define noop (void)0
 // #define DEBUG_FUNCTIONS
@@ -392,6 +394,15 @@ namespace Odo::Interpreting {
         add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
 
         add_native_function("wait", [&](auto){ std::cin.get(); return null; });
+
+        add_native_function("sleep", [&](auto vals){
+            if (!vals.empty()) {
+                auto delay_time = vals[0]->as_int();
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(delay_time));
+            }
+            return null;
+        });
     }
 
     Symbol* Interpreter::any_type() {
