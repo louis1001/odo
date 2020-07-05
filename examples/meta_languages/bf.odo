@@ -1,0 +1,262 @@
+class Node {
+    string tp
+    Node children[]
+    init(string _tp, Node _children[]) {
+        tp = _tp
+        children = _children
+    }
+}
+
+enum TType {
+    add,
+    sub,
+    pta,
+    pts,
+    opl,
+    cll,
+    dot,
+    com,
+    hlt
+}
+
+class Token {
+    string tp
+
+    init (string _tp) {
+        tp = _tp
+    }
+
+    func toString(): string {
+        return "Token(" + tp + ")"
+    }
+}
+
+class Lexer {
+    string text
+    int pos
+
+    static string operators[] = ["+", "-", ">", "<", ".", ",", "[", "]"]
+    init(string _txt = "") {
+        text = _txt
+        pos = 0
+    }
+
+    func currChar(): string {
+        if pos >= length(text) {
+            return null
+        }
+
+        return text[pos]
+    }
+
+    func isOperator() {
+        string c = currChar()
+        foreach op : Lexer::operators {
+            if op == c { return true }
+        }
+
+        return false
+    }
+
+    func ignoreAny() {
+        while currChar() != null && !isOperator() {
+            pos++
+        }
+    }
+
+    func getNextToken(): Node {
+        ignoreAny()
+        if currChar() == null || pos >= length(text) {
+            return new Token(null)
+        }
+
+        if currChar() == "+" {
+            pos++
+            return new Token(TType::add)
+        } else if currChar() == "-" {
+            pos++
+            return new Token(TType::sub)
+        } else if currChar() == ">" {
+            pos++
+            return new Token(TType::pta)
+        } else if currChar() == "<" {
+            pos++
+            return new Token(TType::pts)
+        } else if currChar() == "[" {
+            pos++
+            return new Token(TType::opl)
+        } else if currChar() == "]" {
+            pos++
+            return new Token(TType::cll)
+        } else if currChar() == "." {
+            pos++
+            return new Token(TType::dot)
+        } else if currChar() == "," {
+            pos++
+            return new Token(TType::com)
+        }
+
+        return new Token(null)
+    }
+
+    func setText(string _text) {
+        text = _text
+        pos = 0
+    }
+}
+
+enum NodeType {
+    block,
+    add,
+    sub,
+    pta,
+    pts,
+    dot,
+    com,
+    opl
+}
+
+class AST {
+    string tp
+    AST children[]
+    init (string _tp, AST _children[] = []) {
+        tp = _tp
+        children = _children
+    }
+}
+
+class Parser {
+    Lexer lex
+    Token currToken
+    init (Lexer _lex = new Lexer()) {
+        lex = _lex
+        currToken = new Token(null)
+    }
+
+    func eat(TType tp) {
+        if currToken.tp == tp {
+            currToken = lex.getNextToken()
+        } else {
+            println("Error! Expected *", tp, "* but got *", currToken.tp, "*.")
+            invalid_token = null
+        }
+    }
+
+    func program(string text) {
+        lex.setText(text)
+        currToken = lex.getNextToken()
+        AST result = block()
+
+        return result
+    }
+
+    func block() {
+        TType delimiters[] = [TType::cll, null]
+        AST statements[] = []
+        while currToken.tp != null && currToken.tp != TType::cll {
+            AST n = statement()
+            statements += n
+        }
+
+        return new AST(NodeType::block, statements)
+    }
+
+    func statement() {
+        if currToken.tp == TType::add {
+            eat(TType::add)
+            return new AST(NodeType::add)
+        } else if currToken.tp == TType::sub {
+            eat(TType::sub)
+            return new AST(NodeType::sub)
+        } else if currToken.tp == TType::pta {
+            eat(TType::pta)
+            return new AST(NodeType::pta)
+        } else if currToken.tp == TType::pts {
+            eat(TType::pts)
+            return new AST(NodeType::pts)
+        } else if currToken.tp == TType::dot {
+            eat(TType::dot)
+            return new AST(NodeType::dot)
+        } else if currToken.tp == TType::com {
+            eat(TType::com)
+            return new AST(NodeType::com)
+        } else if currToken.tp == TType::opl {
+            eat(TType::opl)
+            AST body = block()
+            eat(TType::cll)
+            return new AST(NodeType::opl, body)
+        }
+    }
+}
+
+class Interpreter {
+    int pointer = 0
+    int memory[]
+    init() {
+        memory = [0]*300
+    }
+
+    func visit(AST node) {
+        if node.tp == NodeType::block {
+            foreach child : node.children {
+                visit(child)
+            }
+        } else if node.tp == NodeType::add {
+            memory[pointer]++
+            return null
+        } else if node.tp == NodeType::sub {
+            memory[pointer]--
+            return null
+        }  else if node.tp == NodeType::pta {
+            pointer++
+            return null
+        } else if node.tp == NodeType::pts {
+            pointer--
+            return null
+        } else if node.tp == NodeType::dot {
+            print(fromAsciiCode(memory[pointer]))
+            return null
+        } else if node.tp == NodeType::com {
+            string c = read()[0]
+            memory[pointer] = toAsciiCode(c)
+
+            return null
+        } else if node.tp == NodeType::opl {
+            while(memory[pointer] > 0){
+                visit(node.children)
+            }
+        }
+    }
+
+    func interpret(string code) {
+        Parser p = new Parser()
+        AST tree = p.program(code)
+        visit(tree)
+    }
+}
+
+# HelloWorld Example:
+# >+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-] <.>+++++++++++
+# [<++++++++>-]<-.--------.+++.------.--------.[-]>++++++++[<++++>- ]<+.[-]++++++++++.
+
+# Shows every character in the ascii set (It also show that my fromAsciiCode doesn't support all ascii)
+# .+[.+]
+
+string co = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<.>+
+++++++++++[<++++++++>-]<-.--------.+++.------.--------.[-]>++++++++[<++++>- ]<+.[-]++++++++++."
+
+Interpreter p = new Interpreter()
+
+p.interpret(co)
+
+# Set to true to print the memory
+bool debugging = false
+
+if debugging {
+    forange i : 10{
+        forange j : 30 {
+            print(p.memory[j + (30*i)])
+        }
+        println()
+    }
+}
