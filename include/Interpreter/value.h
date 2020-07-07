@@ -15,7 +15,9 @@
 
 #include "symbol.h"
 namespace Odo::Interpreting {
-    enum ValueType {
+    class ValueTable;
+
+    enum class ValueType {
         NormalVal,
         ListVal,
         FunctionVal,
@@ -27,63 +29,147 @@ namespace Odo::Interpreting {
     };
 
     struct Value {
-        Symbol* type;
+        Symbol* type {nullptr};
+        int address {0};
+        bool important{false};
+        std::set<Symbol*> references;
+
+        virtual ValueType kind()=0;
+        virtual std::shared_ptr<Value> copy(ValueTable&)=0;
+        [[nodiscard]] virtual bool is_numeric() const { return false; }
+        [[nodiscard]] virtual bool is_copyable() const { return false; }
+
+        virtual std::string to_string() { return "<value> at: " + std::to_string(address); }
+
+        virtual void addReference(Symbol&);
+        virtual void removeReference(Symbol&);
+
+        template<typename T>
+        std::shared_ptr<T> as() { return dynamic_cast<T*>(this); }
+
+        explicit Value(Symbol* sym, int add=0): type(sym), address(add) { }
+    };
+
+    struct NormalValue: public Value {
         std::any val;
 
-        ValueType kind = NormalVal;
-        int address = 0;
+        ValueType kind() final { return ValueType::NormalVal; }
+        [[nodiscard]] bool is_numeric() const final { return type->name == "int" || type->name == "double"; }
+        [[nodiscard]] bool is_copyable() const final { return type->name != "NullType"; }
 
-        SymbolTable* scope;
-        SymbolTable ownScope;
-        std::vector<Parsing::AST> params;
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
 
-        std::set<Symbol> references;
-        bool important = false;
-
-        void addReference(const Symbol& ref);
-        void removeReference(Symbol &ref);
-
-        bool as_bool();
-        std::string as_string();
         int as_int();
         double as_double();
-        std::vector<Value*> as_list_value();
-        std::vector<Symbol>& as_list_symbol();
+        bool as_bool();
+        std::string as_string();
 
-        std::string to_string();
+        std::string to_string() final;
+        NormalValue(Symbol *tp, std::any the_value);
+    };
 
-        [[nodiscard]] bool is_copyable() const {
-            return kind == ListVal || (type && type->kind == PrimitiveType && type->name != "NullType");
-        }
+    struct ListValue: public Value {
+        std::vector<Symbol> elements;
+        ValueType kind() final { return ValueType::ListVal; }
+        [[nodiscard]] bool is_copyable() const final { return true; }
 
-        [[nodiscard]] bool is_numeric() const { return type->name == "int" || type->name == "double"; }
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final;
+        std::vector<std::shared_ptr<Value>> as_list_value();
+        ListValue(Symbol* tp, std::vector<Symbol> sym_elements);
+    };
+
+    struct FunctionValue: public Value {
+        std::vector<Parsing::AST> params;
+        Parsing::AST body;
+        ValueType kind() final { return ValueType::FunctionVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return "<function> at: " + std::to_string(address); }
+
+        FunctionValue(Symbol* tp, std::vector<Parsing::AST> params_, Parsing::AST body_);
+    };
+
+    struct ModuleValue: public Value {
+        SymbolTable ownScope;
+        ValueType kind() final { return ValueType::ModuleVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return "<module> at: " + std::to_string(address); }
+
+        ModuleValue(Symbol* tp, const SymbolTable& scope);
+    };
+
+    struct ClassValue: public Value {
+        SymbolTable ownScope;
+        Parsing::AST body;
+        // What's the point of the parent scope if ownscope has it?
+        std::shared_ptr<SymbolTable> parentScope;
+        ValueType kind() final { return ValueType::ClassVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return "<class> at: " + std::to_string(address); }
+
+        ClassValue(Symbol* tp, const SymbolTable& scope, Parsing::AST body_);
+    };
+
+    struct InstanceValue: public Value {
+        std::shared_ptr<ClassValue> molde;
+        SymbolTable ownScope;
+
+        ValueType kind() final { return ValueType::InstanceVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return "<instance> at: " + std::to_string(address); }
+
+        InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
+    };
+
+    struct EnumValue: public Value {
+        SymbolTable ownScope;
+        ValueType kind() final { return ValueType::EnumVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return "<enum> at: " + std::to_string(address); }
+
+        EnumValue(Symbol* tp, const SymbolTable& scope);
+    };
+
+    struct EnumVarValue: public Value {
+        std::string name;
+        ValueType kind() final { return ValueType::EnumVarVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::string to_string() final { return name; }
+
+        EnumVarValue(Symbol* tp, std::string name_);
     };
 
     class ValueTable {
-        std::map<int, Value> values;
-
-        int last_index() {
-            return values.empty() ?
-            -1 :
-            (--values.end())->first;
-        }
-
-        Value* copyListValue(Value);
+        std::vector<std::shared_ptr<Value>> values;
 
     public:
+        int last_index() {
+            if (values.empty()) return -1;
+            return (--values.end())->get()->address;
+        }
         ValueTable();
 
-        Value* addNewValue(Symbol* type, std::any val);
-        Value* addNewValue(const Value&);
+//        Value* addNewValue(Symbol* type, std::any val);
+//        Value* addNewValue(const Value&);
+        void addNewValue(const std::shared_ptr<Value>&);
 
-        void removeReference(const Symbol& ref);
-
-//        Value* findFromPointer(int ptr);
+        void removeReference(Symbol& ref);
 
         void cleanUp();
         void cleanUp(SymbolTable &symTable);
-
-        Value* copyValue(const Value&);
     };
 }
 #endif //ODO_PORT_VALUE_H

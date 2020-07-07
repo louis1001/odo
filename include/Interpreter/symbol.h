@@ -49,7 +49,7 @@ namespace Odo::Interpreting {
     struct Symbol {
         Symbol *tp = nullptr;
         std::string name = "";
-        Value* value = nullptr;
+        std::shared_ptr<Value> value = nullptr;
         bool isType = false;
         SymbolType kind = Var;
         std::vector< std::pair<Symbol, bool> > functionTypes;
