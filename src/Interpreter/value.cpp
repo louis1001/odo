@@ -45,11 +45,11 @@ namespace Odo::Interpreting {
         return &values[newAddress];
     }
 
-    void ValueTable::removeReference(const Symbol& ref) {
+    void ValueTable::removeReference(Symbol &ref) {
         for (const auto& p : values) {
             if (p.second.references.empty()) continue;
             Value v = p.second;
-            auto indx = v.references.find(ref);
+            auto indx = v.references.find(&ref);
 
             if (indx != v.references.end()) {
                 // This is too expensive, apparently. I need to investigate.
@@ -94,7 +94,7 @@ namespace Odo::Interpreting {
     }
 
     void ValueTable::cleanUp(SymbolTable &symTable) {
-        for (const auto& ref : symTable.symbols) {
+        for (auto& ref : symTable.symbols) {
             removeReference(ref.second);
         }
 
@@ -128,16 +128,16 @@ namespace Odo::Interpreting {
         return n;
     }
 
-    void Value::addReference(const Symbol& ref) {
-        references.insert(ref);
+    void Value::addReference(Symbol &ref) {
+        references.insert(&ref);
     }
 
     void Value::removeReference(Symbol &ref) {
         if (references.empty()) return;
-        auto indx = references.find(ref);
+        auto indx = references.find(&ref);
 
         if (indx != references.end()) {
-            references.erase(ref);
+            references.erase(&ref);
         }
     }
 

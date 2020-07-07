@@ -37,10 +37,10 @@ namespace Odo::Interpreting {
         SymbolTable ownScope;
         std::vector<Parsing::AST> params;
 
-        std::set<Symbol> references;
+        std::set<Symbol*> references;
         bool important = false;
 
-        void addReference(const Symbol& ref);
+        void addReference(Symbol &ref);
         void removeReference(Symbol &ref);
 
         bool as_bool();
@@ -76,7 +76,7 @@ namespace Odo::Interpreting {
         Value* addNewValue(Symbol* type, std::any val);
         Value* addNewValue(const Value&);
 
-        void removeReference(const Symbol& ref);
+        void removeReference(Symbol &ref);
 
 //        Value* findFromPointer(int ptr);
 

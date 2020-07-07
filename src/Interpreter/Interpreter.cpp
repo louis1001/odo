@@ -1859,7 +1859,7 @@ namespace Odo::Interpreting {
             std::string function_name = "<anonimous>";
             if (!fVal->references.empty()) {
                 auto& ref = *fVal->references.begin();
-                function_name = ref.name;
+                function_name = ref->name;
             }
 
             call_stack.push_back({function_name, current_line, current_col});
