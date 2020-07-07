@@ -71,7 +71,7 @@ namespace Odo::Interpreting {
             .tp=tp,
             .name=tp->name+"[]",
             .isType=true,
-            .kind=ListType,
+            .kind=SymbolType::ListType,
         };
 
         return &symbols[tp->name + "[]"];
@@ -104,8 +104,7 @@ namespace Odo::Interpreting {
             .tp=type,
             .name=funcName,
             .isType=true,
-            .kind=FunctionType,
-            .functionTypes=params
+            .kind=SymbolType::FunctionType
         };
 
         return &symbols[funcName];
