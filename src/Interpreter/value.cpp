@@ -26,7 +26,7 @@ namespace Odo::Interpreting {
     NormalValue::NormalValue(Symbol *tp, std::any the_value) : Value(tp), val(std::move(the_value)) {}
 
     std::shared_ptr<Value> NormalValue::copy(ValueTable &vt) {
-        std::shared_ptr<Value> copied_value(new NormalValue(type, val));
+        auto copied_value = std::make_shared<NormalValue>(type, val);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -107,7 +107,7 @@ namespace Odo::Interpreting {
             new_sym.value = list_el;
         }
 
-        std::shared_ptr<Value> copied_value(new ListValue(type, std::move(symbols_copied)));
+        auto copied_value = std::make_shared<ListValue>(type, std::move(symbols_copied));
 
         // Add value to the table
         vt.addNewValue(copied_value);
@@ -141,14 +141,15 @@ namespace Odo::Interpreting {
         return results;
     }
 
-    FunctionValue::FunctionValue(Symbol* tp, std::vector<Parsing::AST> params_, Parsing::AST body_)
+    FunctionValue::FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_)
         : Value(tp)
         , params(std::move(params_))
-        , body(std::move(body_)){}
+        , body(std::move(body_))
+        , parentScope(scope_) {}
 
     std::shared_ptr<Value> FunctionValue::copy(ValueTable &vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new FunctionValue(type, params, body));
+        auto copied_value = std::make_shared<FunctionValue>(type, params, body, parentScope);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -162,7 +163,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> ModuleValue::copy(ValueTable& vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new ModuleValue(type, ownScope));
+        auto copied_value = std::make_shared<ModuleValue>(type, ownScope);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -170,14 +171,15 @@ namespace Odo::Interpreting {
         return copied_value;
     }
 
-    ClassValue::ClassValue(Symbol* tp, const SymbolTable& scope, Parsing::AST body_)
+    ClassValue::ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_)
         : Value(tp)
         , ownScope(scope)
-        , body(std::move(body_)) {}
+        , body(std::move(body_))
+        , parentScope(parent_) {}
 
     std::shared_ptr<Value> ClassValue::copy(ValueTable& vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new ClassValue(type, ownScope, body));
+        auto copied_value = std::make_shared<ClassValue>(type, ownScope, parentScope, body);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -192,7 +194,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> InstanceValue::copy(ValueTable& vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new InstanceValue(type, molde, ownScope));
+        auto copied_value = std::make_shared<InstanceValue>(type, molde, ownScope);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -204,7 +206,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> EnumValue::copy(ValueTable& vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new EnumValue(type, ownScope));
+        auto copied_value = std::make_shared<EnumValue>(type, ownScope);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);
@@ -216,7 +218,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> EnumVarValue::copy(ValueTable& vt) {
         // This shouldn't be called ever...
-        std::shared_ptr<Value> copied_value(new EnumVarValue(type, name));
+        auto copied_value = std::make_shared<EnumVarValue>(type, name);
 
         // Add the new value to the value table.
         vt.addNewValue(copied_value);

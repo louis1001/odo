@@ -83,13 +83,14 @@ namespace Odo::Interpreting {
     struct FunctionValue: public Value {
         std::vector<std::shared_ptr<Parsing::Node>> params;
         std::shared_ptr<Parsing::Node> body;
+        SymbolTable* parentScope{};
         ValueType kind() final { return ValueType::FunctionVal; }
 
         std::shared_ptr<Value> copy(ValueTable& vt) final;
 
         std::string to_string() final { return "<function> at: " + std::to_string(address); }
 
-        FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_);
+        FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_);
     };
 
     struct ModuleValue: public Value {
@@ -107,14 +108,14 @@ namespace Odo::Interpreting {
         SymbolTable ownScope;
         std::shared_ptr<Parsing::Node> body;
         // What's the point of the parent scope if ownscope has it?
-        std::shared_ptr<SymbolTable> parentScope;
+        SymbolTable* parentScope;
         ValueType kind() final { return ValueType::ClassVal; }
 
         std::shared_ptr<Value> copy(ValueTable& vt) final;
 
         std::string to_string() final { return "<class> at: " + std::to_string(address); }
 
-        ClassValue(Symbol* tp, const SymbolTable& scope, std::shared_ptr<Parsing::Node> body_);
+        ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
     };
 
     struct InstanceValue: public Value {
