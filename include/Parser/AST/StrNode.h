@@ -3,10 +3,10 @@
 
 namespace Odo::Parsing {
 struct StrNode : public Node {
-    Lexing::Token t;
+    Lexing::Token token;
     
     NodeType kind() final { return NodeType::Str; }
 
-    StrNode(Lexing::Token t_p);
+    StrNode(Lexing::Token token_p);
 };
 }

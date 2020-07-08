@@ -3,8 +3,8 @@
 
 namespace Odo::Parsing {
 
-BlockNode::BlockNode(std::vector<std::shared_ptr<Parsing::Node>> vector_p)
-    : vector(vector_p){}
+BlockNode::BlockNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p)
+    : statements(statements_p){}
 
 }
 

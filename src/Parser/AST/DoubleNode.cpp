@@ -3,8 +3,8 @@
 
 namespace Odo::Parsing {
 
-DoubleNode::DoubleNode(Lexing::Token t_p)
-    : t(t_p){}
+DoubleNode::DoubleNode(Lexing::Token token_p)
+    : token(token_p){}
 
 }
 

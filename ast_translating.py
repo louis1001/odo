@@ -46,24 +46,24 @@ ast_node_names = [
 
 node_members = {
     "Double": [
-        "Lexing::Token t"
+        "Lexing::Token token"
     ],
     "Int": [
-        "Lexing::Token t"
+        "Lexing::Token token"
     ],
     "Bool": [
-        "Lexing::Token t"
+        "Lexing::Token token"
     ],
     "Str": [
-        "Lexing::Token t"
+        "Lexing::Token token"
     ],
     "Block": [
-        "std::vector<std::shared_ptr<Parsing::Node>> vector"
+        "std::vector<std::shared_ptr<Parsing::Node>> statements"
     ],
     "BinOp": [
         "Lexing::Token token",
-        "std::shared_ptr<Parsing::Node> ast",
-        "std::shared_ptr<Parsing::Node> ast1"
+        "std::shared_ptr<Parsing::Node> left",
+        "std::shared_ptr<Parsing::Node> right"
     ],
     "UnaryOp": [
         "Lexing::Token token",
@@ -86,13 +86,13 @@ node_members = {
         "std::shared_ptr<Parsing::Node> body"
     ],
     "ForEach": [
-        "Lexing::Token v",
+        "Lexing::Token var",
         "std::shared_ptr<Parsing::Node> lst",
         "std::shared_ptr<Parsing::Node> body",
         "Lexing::Token rev"
     ],
     "FoRange": [
-        "Lexing::Token v",
+        "Lexing::Token var",
         "std::shared_ptr<Parsing::Node> first",
         "std::shared_ptr<Parsing::Node> second",
         "std::shared_ptr<Parsing::Node> body",

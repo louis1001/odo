@@ -3,7 +3,7 @@
 
 namespace Odo::Parsing {
 struct FoRangeNode : public Node {
-    Lexing::Token v;
+    Lexing::Token var;
     std::shared_ptr<Parsing::Node> first;
     std::shared_ptr<Parsing::Node> second;
     std::shared_ptr<Parsing::Node> body;
@@ -11,6 +11,6 @@ struct FoRangeNode : public Node {
     
     NodeType kind() final { return NodeType::FoRange; }
 
-    FoRangeNode(Lexing::Token v_p, std::shared_ptr<Parsing::Node> first_p, std::shared_ptr<Parsing::Node> second_p, std::shared_ptr<Parsing::Node> body_p, Lexing::Token rev_p);
+    FoRangeNode(Lexing::Token var_p, std::shared_ptr<Parsing::Node> first_p, std::shared_ptr<Parsing::Node> second_p, std::shared_ptr<Parsing::Node> body_p, Lexing::Token rev_p);
 };
 }

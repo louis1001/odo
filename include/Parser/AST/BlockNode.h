@@ -3,10 +3,10 @@
 
 namespace Odo::Parsing {
 struct BlockNode : public Node {
-    std::vector<std::shared_ptr<Parsing::Node>> vector;
+    std::vector<std::shared_ptr<Parsing::Node>> statements;
     
     NodeType kind() final { return NodeType::Block; }
 
-    BlockNode(std::vector<std::shared_ptr<Parsing::Node>> vector_p);
+    BlockNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
 };
 }
