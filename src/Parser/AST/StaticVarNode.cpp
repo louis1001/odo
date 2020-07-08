@@ -4,8 +4,8 @@
 namespace Odo::Parsing {
 
 StaticVarNode::StaticVarNode(std::shared_ptr<Parsing::Node> inst_p, Lexing::Token name_p)
-    : inst(inst_p)
-    , name(name_p){}
+    : inst(std::move(inst_p))
+    , name(std::move(name_p)){}
 
 }
 

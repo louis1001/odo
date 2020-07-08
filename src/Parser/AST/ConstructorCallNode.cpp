@@ -4,7 +4,7 @@
 namespace Odo::Parsing {
 
 ConstructorCallNode::ConstructorCallNode(Lexing::Token t_p)
-    : t(t_p){}
+    : t(std::move(t_p)){}
 
 }
 

@@ -4,11 +4,11 @@
 namespace Odo::Parsing {
 
 FoRangeNode::FoRangeNode(Lexing::Token var_p, std::shared_ptr<Parsing::Node> first_p, std::shared_ptr<Parsing::Node> second_p, std::shared_ptr<Parsing::Node> body_p, Lexing::Token rev_p)
-    : var(var_p)
-    , first(first_p)
-    , second(second_p)
-    , body(body_p)
-    , rev(rev_p){}
+    : var(std::move(var_p))
+    , first(std::move(first_p))
+    , second(std::move(second_p))
+    , body(std::move(body_p))
+    , rev(std::move(rev_p)){}
 
 }
 

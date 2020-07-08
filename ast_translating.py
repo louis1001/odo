@@ -263,8 +263,10 @@ for node_type_name in ast_node_names:
             node_member_definitions += mem + ";\n" + indentation
             constructor_params += mem + "_p"
 
-            mem_name = mem[mem.rfind(" ")+1:]
-            constructor_init += " " + mem_name + "(" + mem_name + "_p" + ")"
+            param_parts = mem.split(" ")
+
+            mem_name = param_parts[1]
+            constructor_init += " " + mem_name + "(std::move(" + mem_name + "_p)" + ")"
             if i != len(members)-1:
                 constructor_params += ", "
                 constructor_init += "\n" + indentation + ","

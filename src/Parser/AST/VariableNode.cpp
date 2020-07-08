@@ -4,7 +4,7 @@
 namespace Odo::Parsing {
 
 VariableNode::VariableNode(Lexing::Token token_p)
-    : token(token_p){}
+    : token(std::move(token_p)){}
 
 }
 
