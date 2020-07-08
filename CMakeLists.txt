@@ -17,8 +17,6 @@ add_executable(odo
         src/main.cpp
         src/Parser/parser.cpp
         include/Parser/parser.h
-        src/Parser/AST.cpp
-        include/Parser/AST.h
         src/Interpreter/Interpreter.cpp
         include/Interpreter/Interpreter.h
         src/Interpreter/value.cpp
@@ -43,7 +41,6 @@ add_executable(odo
         include/Parser/AST/BinOpNode.h
         include/Parser/AST/UnaryOpNode.h
         include/Parser/AST/NoOpNode.h
-        include/Parser/AST/DeclarationNode.h
         include/Parser/AST/ListDeclarationNode.h
         include/Parser/AST/VariableNode.h
         include/Parser/AST/AssignmentNode.h

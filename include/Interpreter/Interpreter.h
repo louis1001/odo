@@ -5,7 +5,7 @@
 #ifndef ODO_PORT_INTERPRETER_H
 #define ODO_PORT_INTERPRETER_H
 #include "Parser/parser.h"
-#include "Parser/AST.h"
+#include "Parser/AST/Node.h"
 #include "value.h"
 #include "symbol.h"
 #include "frame.h"
