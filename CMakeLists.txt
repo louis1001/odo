@@ -41,6 +41,7 @@ add_executable(odo
         include/Parser/AST/BinOpNode.h
         include/Parser/AST/UnaryOpNode.h
         include/Parser/AST/NoOpNode.h
+        include/Parser/AST/VarDeclarationNode.h
         include/Parser/AST/ListDeclarationNode.h
         include/Parser/AST/VariableNode.h
         include/Parser/AST/AssignmentNode.h
@@ -82,6 +83,7 @@ add_executable(odo
         src/Parser/AST/TernaryOpNode.cpp
         src/Parser/AST/BinOpNode.cpp
         src/Parser/AST/UnaryOpNode.cpp
+        src/Parser/AST/VarDeclarationNode.cpp
         src/Parser/AST/ListDeclarationNode.cpp
         src/Parser/AST/VariableNode.cpp
         src/Parser/AST/AssignmentNode.cpp
