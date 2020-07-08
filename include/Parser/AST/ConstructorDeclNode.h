@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct ConstructorDeclNode : public Node {
+struct ConstructorDeclNode final : public Node {
     std::vector<std::shared_ptr<Parsing::Node>> params;
     std::shared_ptr<Parsing::Node> body;
     

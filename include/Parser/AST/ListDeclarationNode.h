@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct ListDeclarationNode : public Node {
+struct ListDeclarationNode final : public Node {
     Lexing::Token var_type;
     Lexing::Token name;
     std::shared_ptr<Parsing::Node> initial;

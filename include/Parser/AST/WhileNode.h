@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct WhileNode : public Node {
+struct WhileNode final : public Node {
     std::shared_ptr<Parsing::Node> cond;
     std::shared_ptr<Parsing::Node> body;
     

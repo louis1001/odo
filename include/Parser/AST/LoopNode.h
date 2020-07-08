@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct LoopNode : public Node {
+struct LoopNode final : public Node {
     std::shared_ptr<Parsing::Node> body;
     
     NodeType kind() final { return NodeType::Loop; }

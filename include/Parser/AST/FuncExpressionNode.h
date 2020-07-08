@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct FuncExpressionNode : public Node {
+struct FuncExpressionNode final : public Node {
     std::vector<std::shared_ptr<Parsing::Node>> params;
     Lexing::Token retType;
     std::shared_ptr<Parsing::Node> body;

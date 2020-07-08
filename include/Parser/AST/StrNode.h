@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct StrNode : public Node {
+struct StrNode final : public Node {
     Lexing::Token token;
     
     NodeType kind() final { return NodeType::Str; }

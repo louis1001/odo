@@ -204,7 +204,7 @@ ast_header_file_template = """
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct <node-name> : public Node {
+struct <node-name> final : public Node {
 <node-members>
     NodeType kind() final { return NodeType::<node-type>; }
 

@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct TernaryOpNode : public Node {
+struct TernaryOpNode final : public Node {
     std::shared_ptr<Parsing::Node> cond;
     std::shared_ptr<Parsing::Node> trueb;
     std::shared_ptr<Parsing::Node> falseb;

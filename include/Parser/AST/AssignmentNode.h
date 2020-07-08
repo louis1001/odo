@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct AssignmentNode : public Node {
+struct AssignmentNode final : public Node {
     std::shared_ptr<Parsing::Node> expr;
     std::shared_ptr<Parsing::Node> val;
     

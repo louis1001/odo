@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct IndexNode : public Node {
+struct IndexNode final : public Node {
     std::shared_ptr<Parsing::Node> val;
     std::shared_ptr<Parsing::Node> expr;
     

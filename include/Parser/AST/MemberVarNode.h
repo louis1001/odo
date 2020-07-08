@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct MemberVarNode : public Node {
+struct MemberVarNode final : public Node {
     std::shared_ptr<Parsing::Node> inst;
     Lexing::Token name;
     

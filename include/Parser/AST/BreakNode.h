@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct BreakNode : public Node {
+struct BreakNode final : public Node {
 
     NodeType kind() final { return NodeType::Break; }
 

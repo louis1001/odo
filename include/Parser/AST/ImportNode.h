@@ -4,7 +4,7 @@
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
-struct ImportNode : public Node {
+struct ImportNode final : public Node {
     Lexing::Token path;
     Lexing::Token name;
     
