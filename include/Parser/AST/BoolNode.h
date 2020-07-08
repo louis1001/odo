@@ -7,6 +7,6 @@ struct BoolNode : public Node {
     
     NodeType kind() final { return NodeType::Bool; }
 
-    BoolNode(Lexing::Token token_p);
+    explicit BoolNode(Lexing::Token token_p);
 };
 }

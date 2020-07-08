@@ -7,6 +7,6 @@ struct IntNode : public Node {
     
     NodeType kind() final { return NodeType::Int; }
 
-    IntNode(Lexing::Token token_p);
+    explicit IntNode(Lexing::Token token_p);
 };
 }

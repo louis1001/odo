@@ -206,7 +206,7 @@ struct <node-name> : public Node {
 <node-members>
     NodeType kind() final { return NodeType::<node-type>; }
 
-    <node-constructor><header-constr-termn>
+    <explicit-spec><node-constructor><header-constr-termn>
 };
 }
 """
@@ -252,7 +252,9 @@ for node_type_name in ast_node_names:
     constructor_init = ""
     constructor_params = ""
 
+    translation_dict["explicit-spec"] = ""
     if has_impl:
+        if len(members) == 1: translation_dict["explicit-spec"] = "explicit "
         constructor_init = indentation + ":"
         node_member_definitions = indentation
         for i, mem in enumerate(members):

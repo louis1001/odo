@@ -7,6 +7,6 @@ struct LoopNode : public Node {
     
     NodeType kind() final { return NodeType::Loop; }
 
-    LoopNode(std::shared_ptr<Parsing::Node> body_p);
+    explicit LoopNode(std::shared_ptr<Parsing::Node> body_p);
 };
 }

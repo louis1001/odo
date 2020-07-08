@@ -7,6 +7,6 @@ struct StrNode : public Node {
     
     NodeType kind() final { return NodeType::Str; }
 
-    StrNode(Lexing::Token token_p);
+    explicit StrNode(Lexing::Token token_p);
 };
 }

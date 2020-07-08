@@ -7,6 +7,6 @@ struct DoubleNode : public Node {
     
     NodeType kind() final { return NodeType::Double; }
 
-    DoubleNode(Lexing::Token token_p);
+    explicit DoubleNode(Lexing::Token token_p);
 };
 }

@@ -7,6 +7,6 @@ struct BlockNode : public Node {
     
     NodeType kind() final { return NodeType::Block; }
 
-    BlockNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+    explicit BlockNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
 };
 }

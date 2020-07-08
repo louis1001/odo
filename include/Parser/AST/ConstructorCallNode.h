@@ -7,6 +7,6 @@ struct ConstructorCallNode : public Node {
     
     NodeType kind() final { return NodeType::ConstructorCall; }
 
-    ConstructorCallNode(Lexing::Token t_p);
+    explicit ConstructorCallNode(Lexing::Token t_p);
 };
 }

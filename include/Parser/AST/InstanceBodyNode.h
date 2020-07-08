@@ -7,6 +7,6 @@ struct InstanceBodyNode : public Node {
     
     NodeType kind() final { return NodeType::InstanceBody; }
 
-    InstanceBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+    explicit InstanceBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
 };
 }

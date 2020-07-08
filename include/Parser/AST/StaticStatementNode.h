@@ -7,6 +7,6 @@ struct StaticStatementNode : public Node {
     
     NodeType kind() final { return NodeType::StaticStatement; }
 
-    StaticStatementNode(std::shared_ptr<Node> statement_p);
+    explicit StaticStatementNode(std::shared_ptr<Node> statement_p);
 };
 }

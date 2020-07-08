@@ -7,6 +7,6 @@ struct FuncBodyNode : public Node {
     
     NodeType kind() final { return NodeType::FuncBody; }
 
-    FuncBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+    explicit FuncBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
 };
 }

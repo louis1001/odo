@@ -7,6 +7,6 @@ struct VariableNode : public Node {
     
     NodeType kind() final { return NodeType::Variable; }
 
-    VariableNode(Lexing::Token token_p);
+    explicit VariableNode(Lexing::Token token_p);
 };
 }

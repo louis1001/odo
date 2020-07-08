@@ -7,6 +7,6 @@ struct ReturnNode : public Node {
     
     NodeType kind() final { return NodeType::Return; }
 
-    ReturnNode(std::shared_ptr<Parsing::Node> val_p);
+    explicit ReturnNode(std::shared_ptr<Parsing::Node> val_p);
 };
 }

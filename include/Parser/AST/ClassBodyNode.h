@@ -7,6 +7,6 @@ struct ClassBodyNode : public Node {
     
     NodeType kind() final { return NodeType::ClassBody; }
 
-    ClassBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+    explicit ClassBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
 };
 }
