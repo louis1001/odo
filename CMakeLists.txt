@@ -109,6 +109,7 @@ add_executable(odo
         src/Parser/AST/ClassInitializerNode.cpp
         src/Parser/AST/ConstructorDeclNode.cpp
         src/Parser/AST/ConstructorCallNode.cpp
+        src/Parser/AST/StaticStatementNode.cpp
         src/Parser/AST/MemberVarNode.cpp
         src/Parser/AST/StaticVarNode.cpp
         src/Parser/AST/IndexNode.cpp
