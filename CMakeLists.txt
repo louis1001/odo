@@ -109,4 +109,5 @@ add_executable(odo
         src/Parser/AST/ConstructorCallNode.cpp
         src/Parser/AST/MemberVarNode.cpp
         src/Parser/AST/StaticVarNode.cpp
-        src/Parser/AST/IndexNode.cpp)
+        src/Parser/AST/IndexNode.cpp
+        include/Parser/AST/Forward.h)
