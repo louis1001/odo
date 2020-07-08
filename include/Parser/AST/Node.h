@@ -67,8 +67,6 @@ namespace Odo::Parsing {
     };
 
     struct Node {
-        NodeType tp;
-
         unsigned int line_number{};
         unsigned int column_number{};
 
