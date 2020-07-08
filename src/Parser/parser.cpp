@@ -1008,7 +1008,7 @@ namespace Odo::Parsing{
                     eat(RPAR);
                     Token name(NOTHING, "");
                     if (node && node->kind() == NodeType::Variable){
-                        name = node->as<VariableNode>()->token;
+                        name = Node::as<VariableNode>(node)->token;
                     }
 
                     result = std::make_shared<FuncCallNode>(node, name, argList);

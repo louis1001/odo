@@ -72,9 +72,10 @@ namespace Odo::Parsing {
 
         virtual NodeType kind()=0;
         template<typename T>
-        std::shared_ptr<T> as() { return std::dynamic_pointer_cast<T>(this); }
+        static std::shared_ptr<T> as(const std::shared_ptr<Node>& n) {
+            return std::dynamic_pointer_cast<T>(n);
+        }
     };
-
 }
 
 #endif //ODO_NODE_H
