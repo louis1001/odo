@@ -10,6 +10,49 @@
 #include "utils.h"
 #include "Exceptions/exception.h"
 
+#include "Parser/AST/DoubleNode.h"
+#include "Parser/AST/IntNode.h"
+#include "Parser/AST/BoolNode.h"
+#include "Parser/AST/StrNode.h"
+#include "Parser/AST/TernaryOpNode.h"
+#include "Parser/AST/BinOpNode.h"
+#include "Parser/AST/UnaryOpNode.h"
+#include "Parser/AST/NoOpNode.h"
+#include "Parser/AST/VarDeclarationNode.h"
+#include "Parser/AST/ListDeclarationNode.h"
+#include "Parser/AST/VariableNode.h"
+#include "Parser/AST/AssignmentNode.h"
+#include "Parser/AST/ListExpressionNode.h"
+#include "Parser/AST/BlockNode.h"
+#include "Parser/AST/FuncExpressionNode.h"
+#include "Parser/AST/FuncDeclNode.h"
+#include "Parser/AST/FuncCallNode.h"
+#include "Parser/AST/FuncBodyNode.h"
+#include "Parser/AST/ReturnNode.h"
+#include "Parser/AST/IfNode.h"
+#include "Parser/AST/ForNode.h"
+#include "Parser/AST/ForEachNode.h"
+#include "Parser/AST/FoRangeNode.h"
+#include "Parser/AST/WhileNode.h"
+#include "Parser/AST/LoopNode.h"
+#include "Parser/AST/BreakNode.h"
+#include "Parser/AST/ContinueNode.h"
+#include "Parser/AST/NullNode.h"
+#include "Parser/AST/DebugNode.h"
+#include "Parser/AST/ModuleNode.h"
+#include "Parser/AST/ImportNode.h"
+#include "Parser/AST/EnumNode.h"
+#include "Parser/AST/ClassNode.h"
+#include "Parser/AST/ClassBodyNode.h"
+#include "Parser/AST/InstanceBodyNode.h"
+#include "Parser/AST/ClassInitializerNode.h"
+#include "Parser/AST/ConstructorDeclNode.h"
+#include "Parser/AST/ConstructorCallNode.h"
+#include "Parser/AST/StaticStatementNode.h"
+#include "Parser/AST/MemberVarNode.h"
+#include "Parser/AST/StaticVarNode.h"
+#include "Parser/AST/IndexNode.h"
+
 namespace Odo::Parsing{
     using namespace Lexing;
 
@@ -58,27 +101,27 @@ namespace Odo::Parsing{
         }
     }
 
-    AST Parser::program() {
+    std::shared_ptr<Node> Parser::program() {
         auto result = block();
         eat(EOFT);
 
         return result;
     }
 
-    AST Parser::block() {
-        return add_dbg_info({ .tp=Block, .lst_AST=statement_list() });
+    std::shared_ptr<Node> Parser::block() {
+        return add_dbg_info(std::make_shared<BlockNode>(statement_list()));
     }
 
-    AST Parser::func_body(){
-        return add_dbg_info({ .tp=FuncBody, .lst_AST=statement_list() });
+    std::shared_ptr<Node> Parser::func_body(){
+        return add_dbg_info(std::make_shared<FuncBodyNode>(statement_list()));
     }
 
-    AST Parser::class_body(){
-        return add_dbg_info({ .tp=ClassBody, .lst_AST=statement_list() });
+    std::shared_ptr<Node> Parser::class_body(){
+        return add_dbg_info(std::make_shared<ClassBodyNode>(statement_list()));
     }
 
-    std::vector<AST> Parser::statement_list() {
-        auto result = std::vector<AST>();
+    std::vector<std::shared_ptr<Node>> Parser::statement_list() {
+        auto result = std::vector<std::shared_ptr<Node>>();
 
         ignore_nl();
 
@@ -93,9 +136,12 @@ namespace Odo::Parsing{
         return result;
     }
 
-    AST Parser::statement(bool with_term) {
+    std::shared_ptr<Node> Parser::statement(bool with_term) {
         ignore_nl();
-        AST ex;
+        std::shared_ptr<Node> ex;
+
+        auto line_start = line();
+        auto col_start = column();
 
         switch (current_token.tp) {
             case LCUR:
@@ -108,20 +154,26 @@ namespace Odo::Parsing{
                 ex = module_statement();
                 break;
             case IMPORT:
+            {
                 eat(IMPORT);
-                ex = add_dbg_info({Import, current_token});
+                auto path = current_token;
                 if (current_token.tp == STR){
                     eat(STR);
                 } else {
                     eat(ID);
                 }
 
+                Token name{NOTHING, ""};
+
                 if (current_token.tp == AS) {
                     eat(AS);
-                    ex.type = current_token;
+                    name = current_token;
                     eat(ID);
                 }
+
+                ex = std::make_shared<ImportNode>(path, name);
                 break;
+            }
             case IF:
                 eat(IF);
                 ex = ifstatement();
@@ -145,11 +197,8 @@ namespace Odo::Parsing{
             case RET:
             {
                 eat(RET);
-                ex = add_dbg_info({
-                        Return
-                });
                 auto val = ternary_op();
-                ex.nodes["val"] = val;
+                ex = std::make_shared<ReturnNode>(val);
                 break;
             }
             case FOR:
@@ -174,25 +223,25 @@ namespace Odo::Parsing{
                 break;
             case BREAK:
                 eat(BREAK);
-                ex = {Break};
+                ex = std::make_shared<BreakNode>();
                 break;
             case CONTINUE:
                 eat(CONTINUE);
-                ex = {Continue};
+                ex = std::make_shared<ContinueNode>();
                 break;
             case STATIC:
                 eat(STATIC);
-                ex = add_dbg_info({StaticStatement});
-                ex.nodes["statement"] = statement(false);
+                ex = std::make_shared<StaticStatementNode>(statement(false));
                 break;
             case EOFT:
             case RCUR:
             case RPAR:
-                return add_dbg_info({ NoOp });
+                ex = std::make_shared<NoOpNode>();
+                break;
             case DEBUG:
-                ex = add_dbg_info({Debug});
+                ex = std::make_shared<DebugNode>();
                 eat(DEBUG);
-                return ex;
+                break;
             default:
                 ex = ternary_op();
                 break;
@@ -202,11 +251,15 @@ namespace Odo::Parsing{
             statement_terminator();
         }
 
+        ex->line_number = line_start;
+        ex->column_number = col_start;
+
         return ex;
     }
 
-    AST Parser::module_statement() {
-        AST result = add_dbg_info({Module});
+    std::shared_ptr<Node> Parser::module_statement() {
+        auto ln = line();
+        auto cl = column();
         auto name = current_token;
 
         eat(ID);
@@ -215,25 +268,31 @@ namespace Odo::Parsing{
         auto body = statement_list();
         eat(RCUR);
 
-        result.lst_AST = body;
-        result.token = name;
-
-        return result;
+        auto result = std::make_shared<ModuleNode>(name, body);
+        result->line_number = ln;
+        result->column_number = cl;
+        return std::move(result);
     }
 
-    AST Parser::enumstatement() {
-        AST result = add_dbg_info({Enum});
+    std::shared_ptr<Node> Parser::enumstatement() {
+        auto ln = line();
+        auto cl = column();
         auto name = current_token;
 
         eat(ID);
 
         eat(LCUR);
 
-        std::vector<AST> variants;
+        std::vector<std::shared_ptr<Node>> variants;
         while (current_token.tp != RCUR) {
             ignore_nl();
-            variants.push_back(add_dbg_info({.tp=Variable, .token=current_token}));
+            auto variant = std::make_shared<VariableNode>(current_token);
             eat(ID);
+            variant->line_number = line();
+            variant->column_number = column();
+
+            variants.push_back(std::move(variant));
+
             ignore_nl();
             if (current_token.tp != RCUR) {
                 eat(COMMA);
@@ -241,14 +300,15 @@ namespace Odo::Parsing{
         }
         eat(RCUR);
 
-        result.token = name;
-        result.lst_AST = variants;
-
-        return result;
+        auto result = std::make_shared<EnumNode>(name, std::move(variants));
+        result->line_number = ln;
+        result->column_number = cl;
+        return std::move(result);
     }
 
-    AST Parser::classstatement() {
-        AST result = add_dbg_info({Class});
+    std::shared_ptr<Node> Parser::classstatement() {
+        auto ln = line();
+        auto cl = column();
         auto name = current_token;
 
         eat(ID);
@@ -265,19 +325,20 @@ namespace Odo::Parsing{
         auto body = class_body();
         eat(RCUR);
 
-        result.token = name;
-        result.type = inherits;
-        result.nodes["body"] = body;
+        auto result = std::make_shared<ClassNode>(name, inherits, body);
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::newInitializer() {
-        AST result = add_dbg_info({ClassInitializer});
+    std::shared_ptr<Node> Parser::newInitializer() {
+        auto ln = line();
+        auto cl = column();
         auto name = current_token;
         eat(ID);
 
-        std::vector<AST> argList;
+        std::vector<std::shared_ptr<Node>> argList;
         if (current_token.tp == LPAR) {
             eat(LPAR);
 
@@ -292,14 +353,16 @@ namespace Odo::Parsing{
             eat(RPAR);
         }
 
-        result.token = name;
-        result.lst_AST = argList;
+        auto result = std::make_shared<ClassInitializerNode>(name, argList);
 
+        result->line_number = ln;
+        result->column_number = cl;
         return result;
     }
 
-    AST Parser::constructor() {
-        AST result = add_dbg_info({ConstructorDecl});
+    std::shared_ptr<Node> Parser::constructor() {
+        auto ln = line();
+        auto cl = column();
         eat(LPAR);
         auto params = parameters();
         eat(RPAR);
@@ -308,14 +371,17 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        result.lst_AST = params;
-        result.nodes["body"] = bl;
+        auto result = std::make_shared<ConstructorDeclNode>(params, bl);
+
+        result->line_number = ln;
+        result->column_number = cl;
         return result;
     }
 
-    AST Parser::loopstatement() {
-        AST result = add_dbg_info({ Loop });
-        AST body;
+    std::shared_ptr<Node> Parser::loopstatement() {
+        auto ln = line();
+        auto cl = column();
+        std::shared_ptr<Node> body;
 
         if (current_token.tp == LCUR) {
             eat(LCUR);
@@ -324,16 +390,22 @@ namespace Odo::Parsing{
         } else {
             body = statement();
         }
-        result.nodes["body"] = body;
+
+        auto result = std::make_shared<LoopNode>(body);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::whilestatement() {
-        AST result = add_dbg_info({While});
+    std::shared_ptr<Node> Parser::whilestatement() {
+        auto ln = line();
+        auto cl = column();
+
         auto comp = ternary_op();
 
-        AST body;
+        std::shared_ptr<Node> body;
         if (current_token.tp == LCUR) {
             eat(LCUR);
             body = block();
@@ -341,16 +413,19 @@ namespace Odo::Parsing{
         } else {
             body = statement();
         }
-        result.nodes = {
-                {"body", body},
-                {"cond", comp}
-        };
+
+        auto result = std::make_shared<WhileNode>(comp, body);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::forstatement() {
-        AST result = add_dbg_info({For});
+    std::shared_ptr<Node> Parser::forstatement() {
+        auto ln = line();
+        auto cl = column();
+
         eat(LPAR);
         auto initializer = statement();
 
@@ -360,7 +435,7 @@ namespace Odo::Parsing{
 
         eat(RPAR);
 
-        AST body;
+        std::shared_ptr<Node> body;
 
         if (current_token.tp == LCUR) {
             eat(LCUR);
@@ -370,18 +445,17 @@ namespace Odo::Parsing{
             body = statement();
         }
 
-        result.nodes = {
-                {"ini", initializer},
-                {"cond", compar},
-                {"incr", inc},
-                {"body", body},
-        };
+        auto result = std::make_shared<ForNode>(initializer, compar, inc, body);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::foreachstatement() {
-        AST result = add_dbg_info({ForEach});
+    std::shared_ptr<Node> Parser::foreachstatement() {
+        auto ln = line();
+        auto cl = column();
 
         bool has_paren = current_token.tp == LPAR;
         ignore_nl();
@@ -413,24 +487,21 @@ namespace Odo::Parsing{
             ignore_nl();
         }
 
-        AST body;
+        std::shared_ptr<Node> body;
 
         body = statement(false);
 
-        result.type = reverse_token;
+        auto result = std::make_shared<ForEachNode>(std::move(var), std::move(lst_expression), body, std::move(reverse_token));
 
-        result.token = var;
-
-        result.nodes = {
-            {"lst", lst_expression},
-            {"body", body},
-        };
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::forangestatement() {
-        AST result = add_dbg_info({FoRange});
+    std::shared_ptr<Node> Parser::forangestatement() {
+        auto ln = line();
+        auto cl = column();
 
         bool has_paren = current_token.tp == LPAR;
         ignore_nl();
@@ -456,7 +527,7 @@ namespace Odo::Parsing{
         ignore_nl();
 
         auto first_expression = ternary_op();
-        AST second_expression {NoOp};
+        std::shared_ptr<Node> second_expression;
 
         if (current_token.tp == COMMA) {
             ignore_nl();
@@ -471,24 +542,22 @@ namespace Odo::Parsing{
             ignore_nl();
         }
 
-        AST body;
+        std::shared_ptr<Node> body;
 
         body = statement(false);
 
-        result.type = reverse_token;
+        auto result = std::make_shared<FoRangeNode>(var, first_expression, second_expression, body, reverse_token);
 
-        result.token = var;
-        result.nodes = {
-            {"first", first_expression},
-            {"second", second_expression},
-            {"body", body},
-        };
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::ifstatement() {
-        AST result = add_dbg_info({If});
+    std::shared_ptr<Node> Parser::ifstatement() {
+        auto ln = line();
+        auto cl = column();
+
         auto exp = ternary_op();
 
         if (current_token.tp == LCUR) {
@@ -500,7 +569,7 @@ namespace Odo::Parsing{
             if (current_token.tp == ELSE) {
                 eat(ELSE);
 
-                AST elseBlock;
+                std::shared_ptr<Node> elseBlock;
 
                 if (current_token.tp == LCUR) {
                     eat(LCUR);
@@ -511,36 +580,34 @@ namespace Odo::Parsing{
                     elseBlock = ifstatement();
                 }
 
-                result.nodes = {
-                        {"expr", exp},
-                        {"trueb", trueBlock},
-                        {"falseb", elseBlock}
-                };
+                auto result = std::make_shared<IfNode>(exp, trueBlock, elseBlock);
+
+                result->line_number = ln;
+                result->column_number = cl;
 
                 return result;
             }
 
-            result.nodes = {
-                    {"expr", exp},
-                    {"trueb", trueBlock},
-                    {"falseb", {}}
-            };
+            auto result = std::make_shared<IfNode>(exp, trueBlock, nullptr);
+
+            result->line_number = ln;
+            result->column_number = cl;
 
             return result;
         } else {
+            auto result = std::make_shared<IfNode>(exp, statement(), nullptr);
 
-            result.nodes = {
-                    {"expr", exp},
-                    {"trueb", statement()},
-                    {"falseb", {}}
-            };
+            result->line_number = ln;
+            result->column_number = cl;
 
             return result;
         }
     }
 
-    AST Parser::function() {
-        AST result = add_dbg_info({FuncDecl});
+    std::shared_ptr<Node> Parser::function() {
+        auto ln = line();
+        auto cl = column();
+
         auto name = current_token;
         eat(ID);
 
@@ -560,16 +627,16 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        result.token = name;
-        result.lst_AST = params;
-        result.type = retType;
-        result.nodes = {{"body", bl}};
+        auto result = std::make_shared<FuncDeclNode>(name, params, retType, bl);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    std::vector<AST> Parser::parameters() {
-        std::vector<AST> params;
+    std::vector<std::shared_ptr<Node>> Parser::parameters() {
+        std::vector<std::shared_ptr<Node>> params;
 
         if (current_token.tp != RPAR) {
             auto typeToken = current_token;
@@ -587,12 +654,14 @@ namespace Odo::Parsing{
         return params;
     }
 
-    AST Parser::declaration(const Token& token) {
-        AST result = add_dbg_info({});
+    std::shared_ptr<Node> Parser::declaration(const Token& token) {
+        auto ln = line();
+        auto cl = column();
+
         auto varName = current_token;
         eat(ID);
 
-        AST assignment = {NoOp};
+        std::shared_ptr<Node> assignment{nullptr};
 
         if (current_token.tp == LBRA) {
             auto tp = token;
@@ -610,10 +679,10 @@ namespace Odo::Parsing{
                 assignment = ternary_op();
             }
 
-            result.tp = ListDeclaration;
-            result.type=token;
-            result.token=varName;
-            result.nodes = {{"initial", assignment}};
+            auto result = std::make_shared<ListDeclarationNode>(token, varName, assignment);
+
+            result->line_number = ln;
+            result->column_number = cl;
 
             return result;
         }
@@ -623,150 +692,188 @@ namespace Odo::Parsing{
             assignment = ternary_op();
         }
 
-        result.tp = Declaration;
-        result.type=token;
-        result.token=varName;
-        result.nodes = {{"initial", assignment}};
+        auto result = std::make_shared<VarDeclarationNode>(token, varName, assignment);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::ternary_op() {
+    std::shared_ptr<Node> Parser::ternary_op() {
         ignore_nl();
+        auto ln = line();
+        auto cl = column();
 
         auto comp = or_comparison();
 
         while (current_token.tp == QUEST) {
-            AST result =add_dbg_info({TernaryOp});
             eat(QUEST);
             auto trueSection = or_comparison();
 
             eat(COLON);
             auto falseSection = or_comparison();
 
-            result.nodes = {
-                { "cond", comp },
-                { "trueb", trueSection },
-                { "falseb", falseSection }
-            };
+            auto result = std::make_shared<TernaryOpNode>(comp, trueSection, falseSection);
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
+
             comp = result;
         }
 
         return comp;
     }
 
-    AST Parser::or_comparison() {
+    std::shared_ptr<Node> Parser::or_comparison() {
+        auto ln = line();
+        auto cl = column();
         auto node = and_comparison();
 
         while (current_token.tp == OR) {
-            AST result = add_dbg_info({.tp=BinOp, .token=current_token});
-
+            auto or_tk = current_token;
             eat(OR);
-            result.nodes = {
-                {"left", node},
-                {"right", and_comparison()}
-            };
+
+            auto result = std::make_shared<BinOpNode>(or_tk, node, and_comparison());
+
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
             node = result;
         }
 
         return node;
     }
 
-    AST Parser::and_comparison() {
+    std::shared_ptr<Node> Parser::and_comparison() {
+        auto ln = line();
+        auto cl = column();
+
         auto node = comparison();
 
         while (current_token.tp == AND) {
-            AST result = add_dbg_info({.tp=BinOp, .token=current_token});
+            auto and_tk = current_token;
             eat(AND);
 
-            result.nodes = {
-                {"left", node},
-                {"right", comparison()}
-            };
+            auto result = std::make_shared<BinOpNode>(and_tk, node, comparison());
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
             node = result;
         }
         return node;
     }
 
-    AST Parser::comparison() {
+    std::shared_ptr<Node> Parser::comparison() {
+        auto ln = line();
+        auto cl = column();
+
         auto exp = expression();
         auto compType = {EQU, NEQ, GT, LT, LET, GET};
 
         while (contains_type(compType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
             eat(current_token.tp);
-            result.nodes = {
-                {"left", exp},
-                {"right", expression()}
-            };
+            auto result = std::make_shared<BinOpNode>(c_token, exp, expression());
+
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
             exp = result;
         }
 
         return exp;
     }
 
-    AST Parser::expression() {
+    std::shared_ptr<Node> Parser::expression() {
+        auto ln = line();
+        auto cl = column();
         auto node = term();
 
         auto exprType = {PLUS, MINUS};
 
         while (contains_type(exprType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(current_token.tp);
 
-            result.nodes = {
-                {"left", node},
-                {"right", term()}
-            };
+            auto result = std::make_shared<BinOpNode>(c_token, node, term());
+
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
+
             node = result;
         }
 
         return node;
     }
 
-    AST Parser::term() {
+    std::shared_ptr<Node> Parser::term() {
+        auto ln = line();
+        auto cl = column();
+
         auto node = prod();
 
         auto termType = {MUL, DIV, MOD};
 
         while (contains_type(termType, current_token.tp)) {
             auto c_token = current_token;
-            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(current_token.tp);
 
-            result.nodes = {
-                    {"left", node},
-                    {"right", prod()}
-            };
+            auto result = std::make_shared<BinOpNode>(c_token, node, prod());
+
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
+
             node = result;
         }
 
         return node;
     }
 
-    AST Parser::prod() {
+    std::shared_ptr<Node> Parser::prod() {
+        auto ln = line();
+        auto cl = column();
+
         auto node = postfix();
 
         while (current_token.tp == POW) {
             auto c_token = current_token;
-            AST result = add_dbg_info({.tp=BinOp, .token=c_token});
 
             eat(POW);
-            result.nodes = {
-                {"left", node},
-                {"right", postfix()}
-            };
+            auto result = std::make_shared<BinOpNode>(c_token, node, postfix());
+
+            result->line_number = ln;
+            result->column_number = cl;
+
+            ln = line();
+            cl = column();
+
             node = result;
         }
 
         return node;
     }
 
-    AST Parser::postfix() {
+    std::shared_ptr<Node> Parser::postfix() {
+        auto ln = line();
+        auto cl = column();
+
         auto node = factor();
 
         auto postFixOp = {
@@ -779,7 +886,7 @@ namespace Odo::Parsing{
         };
 
         while (contains_type(postFixOp, current_token.tp)) {
-            AST result = add_dbg_info({});
+            std::shared_ptr<Node> result;
             switch (current_token.tp) {
                 case PLUSP:
                 case MINUSP:
@@ -792,25 +899,21 @@ namespace Odo::Parsing{
                         eat(MINUSP);
                     }
                     auto one = Token(INT, "1");
-                    AST operation = {
-                            .tp=BinOp,
-                        .token=binOP,
-                        .nodes={
-                            {"left", node},
-                            {"right", {
-                                 .tp=Int,
-                                 .token=one
-                            }},
-                        },
-                        .line_number=result.line_number,
-                        .column_number=result.column_number
-                    };
+                    auto operation = std::make_shared<BinOpNode>(binOP, node, std::make_shared<IntNode>(one));
 
-                    result.tp = Assignment,
-                    result.nodes={
-                        {"token", node},
-                        {"right", operation}
-                    };
+                    operation->line_number = ln;
+                    operation->column_number = cl;
+
+                    ln = line();
+                    cl = column();
+
+                    result = std::make_shared<AssignmentNode>(node, operation);
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
 
                     node = result;
                     break;
@@ -836,54 +939,61 @@ namespace Odo::Parsing{
                     }
                     eat(current_token.tp);
 
-                    AST operation = {
-                        .tp=BinOp,
-                        .token=binOP,
-                        .nodes={
-                            {"left", node},
-                            {"right", expression()}
-                        },
-                        .line_number = result.line_number,
-                        .column_number = result.column_number
-                    };
+                    auto operation = std::make_shared<BinOpNode>(binOP, node, expression());
 
-                    result.tp = Assignment;
-                    result.nodes = {
-                        {"token", node},
-                        {"right", operation}
-                    };
+                    operation->line_number = ln;
+                    operation->column_number = cl;
+
+                    ln = line();
+                    cl = column();
+
+                    result = std::make_shared<AssignmentNode>(node, operation);
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
 
                     node = result;
                     break;
                 }
                 case DOT:
                 {
-                    result.tp = MemberVar;
                     eat(DOT);
-                    result.token = current_token;
-                    result.nodes = {
-                        {"inst", node},
-                    };
+                    result = std::make_shared<MemberVarNode>(node, current_token);
+
                     eat(ID);
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
                     node = result;
                     break;
                 }
                 case DCOLON:
                 {
-                    result.tp = StaticVar;
                     eat(DCOLON);
-                    result.token = current_token;
+                    result = std::make_shared<StaticVarNode>(node, current_token);
+
                     eat(ID);
-                    result.nodes = {{"inst", node}};
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
+
                     node = result;
                     break;
                 }
                 case LPAR:
                 {
-                    result.tp = FuncCall;
                     eat(LPAR);
 
-                    std::vector<AST> argList;
+                    std::vector<std::shared_ptr<Node>> argList;
 
                     while (current_token.tp != RPAR) {
                         argList.push_back(ternary_op());
@@ -894,37 +1004,49 @@ namespace Odo::Parsing{
                         }
                         ignore_nl();
                     }
-                    result.lst_AST = argList;
 
                     eat(RPAR);
                     Token name(NOTHING, "");
-                    if (node.tp == Variable){
-                        name = node.token;
+                    if (node && node->kind() == NodeType::Variable){
+                        name = node->as<VariableNode>()->token;
                     }
 
-                    result.token = name;
-                    result.nodes = {{"fun", node}};
+                    result = std::make_shared<FuncCallNode>(node, name, argList);
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
 
                     node = result;
                     break;
                 }
                 case LBRA:
                     eat(LBRA);
-                    result.tp = Index;
-                    result.nodes = {
-                        {"val", node},
-                        {"expr", ternary_op()},
-                    };
+
+                    result = std::make_shared<IndexNode>(node, ternary_op());
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
+
                     node = result;
                     eat(RBRA);
                     break;
                 case ASS:
-                    result.tp = Assignment;
-                    result.nodes = {
-                        {"token", node},
-                    };
                     eat(ASS);
-                    result.nodes["right"] = ternary_op();
+
+                    result = std::make_shared<AssignmentNode>(node, ternary_op());
+
+                    result->line_number = ln;
+                    result->column_number = cl;
+
+                    ln = line();
+                    cl = column();
+
                     node = result;
                     break;
                 default:
@@ -935,8 +1057,10 @@ namespace Odo::Parsing{
         return node;
     }
 
-    AST Parser::funcexpression() {
-        AST result = add_dbg_info({FuncExpression});
+    std::shared_ptr<Node> Parser::funcexpression() {
+        auto ln = line();
+        auto cl = column();
+
         eat(LPAR);
         auto params = parameters();
 
@@ -944,83 +1068,70 @@ namespace Odo::Parsing{
 
         eat(ARROW);
 
-        AST body;
+        std::shared_ptr<Node> body;
         if (current_token.tp == LCUR) {
             eat(LCUR);
             body = func_body();
             eat(RCUR);
         } else {
-            AST fbod = add_dbg_info({FuncBody});
-            AST ex = add_dbg_info({
-              Return
-            });
             auto val = ternary_op();
-            ex.nodes["val"] = val;
-            fbod.lst_AST = {ex};
+            auto ex = std::make_shared<ReturnNode>(val);
+            ex->line_number = ln;
+            ex->column_number = cl;
+
+            std::vector<std::shared_ptr<Node>> bod_list{ex};
+
+            std::shared_ptr<Node> fbod = std::make_shared<FuncBodyNode>(bod_list);
+            fbod->line_number = ln;
+            fbod->column_number = cl;
+
             body = fbod;
         }
 
-        result.lst_AST = params;
-        result.type = Token(NOTHING, "");
-        result.nodes = {{"body", body}};
+        auto result = std::make_shared<FuncExpressionNode>(params, Token(NOTHING, ""), body);
+
+        result->line_number = ln;
+        result->column_number = cl;
 
         return result;
     }
 
-    AST Parser::factor() {
+    std::shared_ptr<Node> Parser::factor() {
         ignore_nl();
         switch (current_token.tp) {
             case REAL:
             {
-                auto double_literal = add_dbg_info({
-                    .tp=Double,
-                    .token=current_token
-               });
+                auto double_literal = std::make_shared<DoubleNode>(current_token);
                 eat(REAL);
                 return double_literal;
             }
             case INT:
             {
-                auto int_literal = add_dbg_info({
-                    .tp=Int,
-                    .token=current_token
-                });
+                auto int_literal = std::make_shared<IntNode>(current_token);
                 eat(INT);
                 return int_literal;
             }
             case STR:
             {
-                auto str_literal = add_dbg_info({
-                    .tp=Str,
-                    .token=current_token
-                });
+                auto str_literal = std::make_shared<StrNode>(current_token);
                 eat(STR);
                 return str_literal;
             }
             case BOOL:
             {
-                auto bool_literal = add_dbg_info({
-                    .tp=Bool,
-                    .token=current_token
-                });
+                auto bool_literal = std::make_shared<BoolNode>(current_token);
                 eat(BOOL);
                 return bool_literal;
             }
             case NOT:
             {
                 eat(NOT);
-                auto result = add_dbg_info({
-                    .tp=BinOp,
-                    .token=Token(EQU, "=="),
-                    .nodes={
-                            {"right", AST {
-                                .tp=Bool,
-                                .token=Token(BOOL, "false")
-                            }}
-                    }
-                });
                 auto c = ternary_op();
-                result.nodes["left"] = c;
+                auto result = std::make_shared<BinOpNode>(
+                    Token(EQU, "=="),
+                    std::make_shared<BoolNode>(Token(BOOL, "false")),
+                    c
+                );
 
                 return result;
             }
@@ -1034,12 +1145,9 @@ namespace Odo::Parsing{
             case PLUS:
             case MINUS:
             {
-                auto result = add_dbg_info({
-                    .tp=UnaryOp,
-                    .token=current_token,
-                });
+                auto op = current_token;
                 eat(current_token.tp);
-                result.nodes["right"] = postfix();
+                auto result = std::make_shared<UnaryOpNode>(op, postfix());
                 return result;
             }
             case NEW:
@@ -1048,9 +1156,9 @@ namespace Odo::Parsing{
             case ID:
             {
                 auto idToken = current_token;
-                auto result = add_dbg_info({.tp=Variable, .token=idToken});
                 eat(ID);
 
+                auto result = std::make_shared<VariableNode>(idToken);
                 if (current_token.tp == ID) {
                     return declaration(idToken);
                 }
@@ -1059,9 +1167,9 @@ namespace Odo::Parsing{
             }
             case LBRA:
             {
-                auto list_expr = add_dbg_info({ListExpression});
                 eat(LBRA);
-                std::vector<AST> contents;
+
+                std::vector<std::shared_ptr<Node>> contents;
                 if (current_token.tp != RBRA) {
                     contents.push_back(ternary_op());
                     while (current_token.tp != RBRA) {
@@ -1072,13 +1180,14 @@ namespace Odo::Parsing{
                         }
                     }
                 }
-                list_expr.lst_AST = contents;
+
                 eat(RBRA);
+                auto list_expr = std::make_shared<ListExpressionNode>(contents);
                 return list_expr;
             }
             case NULLT:
             {
-                auto null_ret = add_dbg_info({Null});
+                auto null_ret = std::make_shared<NullNode>();
                 eat(NULLT);
                 return null_ret;
             }
@@ -1089,18 +1198,18 @@ namespace Odo::Parsing{
                 break;
         }
 
-        return add_dbg_info({ NoOp });
+        return std::make_shared<NoOpNode>();
     }
 
     Parser::Parser(): lexer(Lexer()) {}
 
-    std::vector<AST> Parser::program_content() {
+    std::vector<std::shared_ptr<Node>> Parser::program_content() {
         return statement_list();
     }
 
-    AST Parser::add_dbg_info(AST ins) {
-        ins.line_number = lexer.getCurrentLine();
-        ins.column_number = lexer.getCurrentCol();
-        return ins;
+    std::shared_ptr<Node> Parser::add_dbg_info(std::shared_ptr<Node> ins) {
+        ins->line_number = lexer.getCurrentLine();
+        ins->column_number = lexer.getCurrentCol();
+        return std::move(ins);
     }
 }
