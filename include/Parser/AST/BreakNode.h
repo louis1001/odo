@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {

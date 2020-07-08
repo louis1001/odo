@@ -199,6 +199,8 @@ node_members = {
 }
 
 ast_header_file_template = """
+#pragma once
+
 #include "Parser/AST/Node.h"
 
 namespace Odo::Parsing {
