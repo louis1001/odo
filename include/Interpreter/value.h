@@ -50,7 +50,7 @@ namespace Odo::Interpreting {
         explicit Value(Symbol* sym, int add=0): type(sym), address(add) { }
     };
 
-    struct NormalValue: public Value {
+    struct NormalValue final: public Value {
         std::any val;
 
         ValueType kind() final { return ValueType::NormalVal; }
@@ -68,7 +68,7 @@ namespace Odo::Interpreting {
         NormalValue(Symbol *tp, std::any the_value);
     };
 
-    struct ListValue: public Value {
+    struct ListValue final: public Value {
         std::vector<Symbol> elements;
         ValueType kind() final { return ValueType::ListVal; }
         [[nodiscard]] bool is_copyable() const final { return true; }
@@ -80,7 +80,7 @@ namespace Odo::Interpreting {
         ListValue(Symbol* tp, std::vector<Symbol> sym_elements);
     };
 
-    struct FunctionValue: public Value {
+    struct FunctionValue final: public Value {
         std::vector<std::shared_ptr<Parsing::Node>> params;
         std::shared_ptr<Parsing::Node> body;
         SymbolTable* parentScope{};
@@ -93,7 +93,7 @@ namespace Odo::Interpreting {
         FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_);
     };
 
-    struct ModuleValue: public Value {
+    struct ModuleValue final: public Value {
         SymbolTable ownScope;
         ValueType kind() final { return ValueType::ModuleVal; }
 
@@ -104,7 +104,7 @@ namespace Odo::Interpreting {
         ModuleValue(Symbol* tp, const SymbolTable& scope);
     };
 
-    struct ClassValue: public Value {
+    struct ClassValue final: public Value {
         SymbolTable ownScope;
         std::shared_ptr<Parsing::Node> body;
         // What's the point of the parent scope if ownscope has it?
@@ -118,7 +118,7 @@ namespace Odo::Interpreting {
         ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
     };
 
-    struct InstanceValue: public Value {
+    struct InstanceValue final: public Value {
         std::shared_ptr<ClassValue> molde;
         SymbolTable ownScope;
 
@@ -131,7 +131,7 @@ namespace Odo::Interpreting {
         InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
     };
 
-    struct EnumValue: public Value {
+    struct EnumValue final: public Value {
         SymbolTable ownScope;
         ValueType kind() final { return ValueType::EnumVal; }
 
@@ -142,7 +142,7 @@ namespace Odo::Interpreting {
         EnumValue(Symbol* tp, const SymbolTable& scope);
     };
 
-    struct EnumVarValue: public Value {
+    struct EnumVarValue final: public Value {
         std::string name;
         ValueType kind() final { return ValueType::EnumVarVal; }
 
