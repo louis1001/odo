@@ -111,7 +111,7 @@ namespace Odo::Interpreting {
     public:
         void interpret(std::string);
         Value* eval(std::string);
-        Value* visit(Parsing::AST node);
+        Value* visit(std::shared_ptr<Parsing::Node> node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
         void set_repl_last(Value*);

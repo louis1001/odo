@@ -432,140 +432,140 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    Value* Interpreter::visit(AST node) {
-        current_line = node.line_number;
-        current_col = node.column_number;
-        switch (node.tp) {
+    Value* Interpreter::visit(std::shared_ptr<Node> node) {
+        current_line = node->line_number;
+        current_col = node->column_number;
+        switch (node->kind()) {
             // Normal Types
-            case Double:
+            case NodeType::Double:
                 return visit_Double(node.token);
-            case Int:
+            case NodeType::Int:
                 return visit_Int(node.token);
-            case Bool:
+            case NodeType::Bool:
                 return visit_Bool(node.token);
-            case Str:
+            case NodeType::Str:
                 return visit_Str(node.token);
 
             // Operations
-            case BinOp:
+            case NodeType::BinOp:
                 return visit_BinOp(node.token, node.nodes["left"], node.nodes["right"]);
                 break;
-            case UnaryOp:
+            case NodeType::UnaryOp:
                 return visit_UnaryOp(node.token, node.nodes["right"]);
                 break;
-            case NoOp:
+            case NodeType::NoOp:
                 return null;
 
-            case Index:
+            case NodeType::Index:
                 return visit_Index(node.nodes["val"], node.nodes["expr"]);
                 break;
 
             // Control Flow
-            case TernaryOp:
+            case NodeType::TernaryOp:
                 return visit_TernaryOp(node.nodes["cond"], node.nodes["trueb"], node.nodes["falseb"]);
                 break;
-            case If:
+            case NodeType::If:
                 return visit_If(node.nodes["expr"], node.nodes["trueb"], node.nodes["falseb"]);
                 break;
-            case For:
+            case NodeType::For:
                 return visit_For(node.nodes["ini"], node.nodes["cond"], node.nodes["incr"], node.nodes["body"]);
                 break;
-            case ForEach:
+            case NodeType::ForEach:
                 return visit_ForEach(node.token, node.nodes["lst"], node.nodes["body"], node.type);
                 break;
-            case FoRange:
+            case NodeType::FoRange:
                 return visit_FoRange(node.token, node.nodes["first"], node.nodes["second"], node.nodes["body"], node.type);
-            case While:
+            case NodeType::While:
                 return visit_While(node.nodes["cond"], node.nodes["body"]);
                 break;
-            case Loop:
+            case NodeType::Loop:
                 return visit_Loop(node.nodes["body"]);
                 break;
-            case Break:
+            case NodeType::Break:
                 breaking = true;
                 return null;
-            case Continue:
+            case NodeType::Continue:
                 continuing = true;
                 return null;
-            case Block:
+            case NodeType::Block:
                 return visit_Block(node.lst_AST);
 
             // Variable Handling
-            case Declaration:
+            case NodeType::Declaration:
                 return visit_VarDeclaration(node.type, node.token, node.nodes["initial"]);
-            case ListDeclaration:
+            case NodeType::ListDeclaration:
                 return visit_ListDeclaration(node.type, node.token, node.nodes["initial"]);
                 break;
-            case Variable:
+            case NodeType::Variable:
                 return visit_Variable(node.token);
                 break;
-            case Assignment:
+            case NodeType::Assignment:
                 return visit_Assignment(node.nodes["token"], node.nodes["right"]);
                 break;
 
-            case ListExpression:
+            case NodeType::ListExpression:
                 return visit_ListExpression(node.lst_AST);
                 break;
 
             // Functions
-            case FuncExpression:
+            case NodeType::FuncExpression:
                 return visit_FuncExpression(node.lst_AST, node.type, node.nodes["body"]);
                 break;
-            case FuncDecl:
+            case NodeType::FuncDecl:
                 return visit_FuncDecl(node.token, node.lst_AST, node.type, node.nodes["body"]);
                 break;
-            case FuncCall:
+            case NodeType::FuncCall:
                 return visit_FuncCall(node.nodes["fun"], node.token, node.lst_AST);
                 break;
-            case FuncBody:
+            case NodeType::FuncBody:
                 return visit_FuncBody(node.lst_AST);
                 break;
-            case Return:
+            case NodeType::Return:
                 return visit_Return(node.nodes["val"]);
                 break;
 
-            case Enum:
+            case NodeType::Enum:
                 return visit_Enum(node.token, node.lst_AST);
 
             // Classes
-            case Class:
+            case NodeType::Class:
                 return visit_Class(node.token, node.type, node.nodes["body"]);
                 break;
-            case ClassBody:
+            case NodeType::ClassBody:
                 return visit_ClassBody(node.lst_AST);
                 break;
 //          Broken or incomplete.
-            case ConstructorDecl:
+            case NodeType::ConstructorDecl:
                 return visit_ConstructorDecl(node.lst_AST, node.nodes["body"]);
-            case ConstructorCall:
+            case NodeType::ConstructorCall:
                 return visit_ConstructorCall(node.token);
-            case InstanceBody:
+            case NodeType::InstanceBody:
                 return visit_InstanceBody(node.lst_AST);
-            case ClassInitializer:
+            case NodeType::ClassInitializer:
                 return visit_ClassInitializer(node.token, node.lst_AST);
-            case StaticStatement:
+            case NodeType::StaticStatement:
                 throw Exceptions::OdoException(
                     "Static statements can only appear inside a class body.",
                     current_line,
                     current_col
                 );
-            case MemberVar:
+            case NodeType::MemberVar:
                 return visit_MemberVar(node.nodes["inst"], node.token);
                 break;
-            case StaticVar:
+            case NodeType::StaticVar:
                 return visit_StaticVar(node.nodes["inst"], node.token);
                 break;
 
-            case Module:
+            case NodeType::Module:
                 return this->visit_Module(node.token, node.lst_AST);
                 break;
-            case Import:
+            case NodeType::Import:
                 return this->visit_Import(node.token, node.type);
                 break;
 
-            case Debug:
+            case NodeType::Debug:
                 noop;
-            case Null:
+            case NodeType::Null:
                 return null;
         }
         return null;
