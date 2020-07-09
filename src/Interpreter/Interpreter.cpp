@@ -473,7 +473,7 @@ namespace Odo::Interpreting {
         // Check if both values are numerical
         if (lhs->type->name != rhs->type->name && lhs->is_numeric() && rhs->is_numeric()) {
             auto left_numeric = Value::as<NormalValue>(lhs);
-            auto right_numeric = Value::as<NormalValue>(lhs);
+            auto right_numeric = Value::as<NormalValue>(rhs);
 
             if (lhs->type->name == "int") {
                 auto new_left = create_literal((double)left_numeric->as_int());
@@ -1443,7 +1443,7 @@ namespace Odo::Interpreting {
             case Lexing::MINUS:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() - right_as_normal->as_int();
                         return create_literal(result);
@@ -1461,7 +1461,7 @@ namespace Odo::Interpreting {
                 break;
             case Lexing::MUL: {
                 auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
                 if (leftVisited->type == rightVisited->type) {
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() * right_as_normal->as_int();
@@ -1540,7 +1540,7 @@ namespace Odo::Interpreting {
             case Lexing::POW:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = powl(left_as_normal->as_int(), right_as_normal->as_int());
                         return create_literal((double)result);
@@ -1562,7 +1562,7 @@ namespace Odo::Interpreting {
 
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() == right_as_normal->as_int();
                         return create_literal(result);
@@ -1594,7 +1594,7 @@ namespace Odo::Interpreting {
 
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() != right_as_normal->as_int();
                         return create_literal(result);
@@ -1623,7 +1623,7 @@ namespace Odo::Interpreting {
             case Lexing::LT:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() < right_as_normal->as_int();
                         return create_literal(result);
@@ -1642,7 +1642,7 @@ namespace Odo::Interpreting {
             case Lexing::GT:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() > right_as_normal->as_int();
                         return create_literal(result);
@@ -1661,7 +1661,7 @@ namespace Odo::Interpreting {
             case Lexing::LET:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() <= right_as_normal->as_int();
                         return create_literal(result);
@@ -1680,7 +1680,7 @@ namespace Odo::Interpreting {
             case Lexing::GET:
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(leftVisited);
+                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == "int") {
                         auto result = left_as_normal->as_int() >= right_as_normal->as_int();
                         return create_literal(result);
