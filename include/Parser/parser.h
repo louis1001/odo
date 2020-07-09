@@ -7,7 +7,7 @@
 
 #include "lexer.hpp"
 #include "token.hpp"
-#include "AST.h"
+#include "AST/Node.h"
 
 #include <vector>
 namespace Odo::Parsing {
@@ -15,63 +15,65 @@ namespace Odo::Parsing {
         Lexing::Lexer lexer;
         Lexing::Token current_token = Lexing::Token(Lexing::EOFT, "");
 
-        AST add_dbg_info(AST);
+        std::shared_ptr<Node> add_dbg_info(std::shared_ptr<Node>);
+        unsigned int line() { return lexer.getCurrentLine(); }
+        unsigned int column() { return lexer.getCurrentCol(); }
 
         void eat(Lexing::TokenType tp);
 
-        AST block();
+        std::shared_ptr<Node> block();
 
-        AST func_body();
-        AST class_body();
+        std::shared_ptr<Node> func_body();
+        std::shared_ptr<Node> class_body();
 
-        std::vector<AST> statement_list();
+        std::vector<std::shared_ptr<Node>> statement_list();
 
         void statement_terminator();
 
         void ignore_nl();
 
-        AST statement(bool with_term = true);
+        std::shared_ptr<Node> statement(bool with_term = true);
 
-        AST module_statement();
+        std::shared_ptr<Node> module_statement();
 
-        AST enumstatement();
+        std::shared_ptr<Node> enumstatement();
 
-        AST classstatement();
-        AST newInitializer();
-        AST constructor();
+        std::shared_ptr<Node> classstatement();
+        std::shared_ptr<Node> newInitializer();
+        std::shared_ptr<Node> constructor();
 
-        AST loopstatement();
-        AST whilestatement();
-        AST forstatement();
-        AST foreachstatement();
-        AST forangestatement();
+        std::shared_ptr<Node> loopstatement();
+        std::shared_ptr<Node> whilestatement();
+        std::shared_ptr<Node> forstatement();
+        std::shared_ptr<Node> foreachstatement();
+        std::shared_ptr<Node> forangestatement();
 
-        AST ifstatement();
+        std::shared_ptr<Node> ifstatement();
 
-        AST function();
-        std::vector<AST> parameters();
+        std::shared_ptr<Node> function();
+        std::vector<std::shared_ptr<Node>> parameters();
 
-        AST declaration(const Lexing::Token&);
+        std::shared_ptr<Node> declaration(const Lexing::Token&);
 
-        AST ternary_op();
+        std::shared_ptr<Node> ternary_op();
 
-        AST or_comparison();
-        AST and_comparison();
-        AST comparison();
+        std::shared_ptr<Node> or_comparison();
+        std::shared_ptr<Node> and_comparison();
+        std::shared_ptr<Node> comparison();
 
-        AST expression();
-        AST term();
-        AST prod();
-        AST postfix();
+        std::shared_ptr<Node> expression();
+        std::shared_ptr<Node> term();
+        std::shared_ptr<Node> prod();
+        std::shared_ptr<Node> postfix();
 
-        AST funcexpression();
+        std::shared_ptr<Node> funcexpression();
 
-        AST factor();
+        std::shared_ptr<Node> factor();
     public:
 
         Parser();
-        AST program();
-        std::vector<AST> program_content();
+        std::shared_ptr<Node> program();
+        std::vector<std::shared_ptr<Node>> program_content();
         void set_text(std::string t);
     };
 }

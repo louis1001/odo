@@ -1,9 +1,10 @@
 //
-// Created by Luis Gonzalez on 3/17/20.
+// Created by Luis Gonzalez on 7/7/20.
 //
 
-#ifndef ODO_PORT_AST_H
-#define ODO_PORT_AST_H
+#ifndef ODO_NODE_H
+#define ODO_NODE_H
+
 #include <string>
 #include <vector>
 #include <map>
@@ -11,7 +12,7 @@
 #include "token.hpp"
 
 namespace Odo::Parsing {
-    enum ASTType {
+    enum class NodeType {
         Double,
         Int,
         Bool,
@@ -22,7 +23,7 @@ namespace Odo::Parsing {
         UnaryOp,
         NoOp,
 
-        Declaration,
+        VarDeclaration,
         ListDeclaration,
         Variable,
         Assignment,
@@ -65,18 +66,16 @@ namespace Odo::Parsing {
         Index
     };
 
-    struct AST {
-        ASTType tp;
-
-        Lexing::Token token = Lexing::Token(Lexing::NOTHING, "");
-        Lexing::Token type = Lexing::Token(Lexing::NOTHING, "");
-
-        std::map<std::string, AST> nodes;
-
-        std::vector<AST> lst_AST;
-
+    struct Node {
         unsigned int line_number{};
         unsigned int column_number{};
+
+        virtual NodeType kind()=0;
+        template<typename T>
+        static std::shared_ptr<T> as(const std::shared_ptr<Node>& n) {
+            return std::dynamic_pointer_cast<T>(n);
+        }
     };
 }
-#endif //ODO_PORT_AST_H
+
+#endif //ODO_NODE_H

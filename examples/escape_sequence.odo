@@ -5,9 +5,7 @@ int MAX_COUNT = 50
 
 forange i : 1, MAX_COUNT+1 {
     print("\r[", "="*i, ">", " "*(MAX_COUNT-i), "] ", i, "/", MAX_COUNT)
-    forange j : 10000 {
-        # This is gonna be slow, hopefully.
-    }
+    sleep(20)
 }
 
 println()
