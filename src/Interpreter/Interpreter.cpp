@@ -395,7 +395,7 @@ namespace Odo::Interpreting {
                     min = normal_value_first->as_int();
                 }
 
-                auto normal_value_second = Value::as<NormalValue>(vals[2]);
+                auto normal_value_second = Value::as<NormalValue>(vals[1]);
                 if (vals[1]->type->name == "double") {
                     max = normal_value_second->as_double();
                 } else if (vals[1]->type->name == "int") {
