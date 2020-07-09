@@ -1210,6 +1210,6 @@ namespace Odo::Parsing{
     std::shared_ptr<Node> Parser::add_dbg_info(std::shared_ptr<Node> ins) {
         ins->line_number = lexer.getCurrentLine();
         ins->column_number = lexer.getCurrentCol();
-        return std::move(ins);
+        return ins;
     }
 }
