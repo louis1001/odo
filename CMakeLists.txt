@@ -114,3 +114,9 @@ add_executable(odo
         src/Parser/AST/StaticVarNode.cpp
         src/Parser/AST/IndexNode.cpp
         include/Parser/AST/Forward.h)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_definitions(odo PUBLIC DEBUG_MODE=1)
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+    target_compile_definitions(odo PUBLIC DEBUG_MODE=0)
+endif()
