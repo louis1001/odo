@@ -1,5 +1,5 @@
 # Odo
-[![Generic badge](https://img.shields.io/badge/version-0.2_beta-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-0.3_beta-blue.svg)](https://shields.io/)
 
 A port to C++ of my personal programming language.
 
@@ -76,9 +76,9 @@ println(result)
 
 ## Some current problems
 
-The metaprogramming in this project is awful.
-There's a comment in `Symbol.h` that explains it a little.
+Maybe using shared_ptr everywhere isn't the best. I'll work on this, 
+maybe getting weak pointers here and there.
 
-I'm gonna refactor the whole project, specially the `Interpreter` section, and use polymorphism instead
-of the way I'm doing things now, putting every kind of member variable a value can have in every single
-value, even though they're not being used.
+I have to work on separating the interpreter from the native functions. I also want to make a
+standard library with different modules. Now that I have each kind of value by itself, I can
+make one kind of value that runs C++ code.

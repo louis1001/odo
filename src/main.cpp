@@ -28,9 +28,9 @@ int main(int argc, char* argv[]) {
        (((((((((((((((((((((
           (((((((((((((((
 
-    odo(-lang) v0.2-beta
-  Luis Gonzalez (louis1001)
-         2019-2020
+        odo(-lang) v0.3-beta
+      Luis Gonzalez (louis1001)
+             2019-2020
 
     )";
     using namespace Odo;
