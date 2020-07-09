@@ -61,6 +61,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy(ValueTable& vt) final;
 
+
         int as_int();
         double as_double();
         bool as_bool();
@@ -166,7 +167,6 @@ namespace Odo::Interpreting {
         ValueTable();
 
         void addNewValue(const std::shared_ptr<Value>&);
-
         void removeReference(Symbol& ref);
 
         void cleanUp();
