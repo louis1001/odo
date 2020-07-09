@@ -11,7 +11,6 @@ println();
 
 int size = 10;
 forange i : size{
-    debug
     forange _ : size-i{
         print("+");
     }
