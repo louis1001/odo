@@ -9,6 +9,7 @@
 #include <vector>
 #include <limits>
 #include "utils.h"
+#include <memory>
 
 #include "Lexer/token.hpp"
 namespace Odo::Interpreting {

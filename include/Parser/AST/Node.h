@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 #include "token.hpp"
 
