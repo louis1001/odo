@@ -2207,8 +2207,8 @@ namespace Odo::Interpreting {
             });
 
             auto currentClass = classVal;
-
-            auto myInstanceBody = std::make_shared<InstanceBodyNode>(Node::as<BlockNode>(currentClass->body)->statements);
+            auto node_as_class_body = Node::as<ClassBodyNode>(currentClass->body);
+            auto myInstanceBody = std::make_shared<InstanceBodyNode>(node_as_class_body->statements);
 
             auto mainScope = new SymbolTable{
                 "inherited-scope-0",
