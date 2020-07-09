@@ -738,7 +738,7 @@ namespace Odo::Interpreting {
 
         if (real_condition) {
             return visit(node->trueb);
-        } else {
+        } else if (node->falseb) {
             return visit(node->falseb);
         }
         return null;
@@ -1060,7 +1060,7 @@ namespace Odo::Interpreting {
             Symbol newVar;
             std::shared_ptr<Value> valueReturn;
 
-            if (node->initial->kind() != NodeType::NoOp) {
+            if (node->initial && node->initial->kind() != NodeType::NoOp) {
                 auto newValue = visit(node->initial);
 
                 if (newValue->is_copyable()) {
@@ -1137,7 +1137,7 @@ namespace Odo::Interpreting {
             });
         }
 
-        if (node->initial->kind() != NodeType::NoOp) {
+        if (node->initial && node->initial->kind() != NodeType::NoOp) {
             auto newValue = visit(node->initial);
 
             // Well... Given the nature of my language right now
@@ -2559,7 +2559,8 @@ namespace Odo::Interpreting {
                 case NodeType::VarDeclaration: {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
                     if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        ts.emplace_back(*ft, as_var_declaration_node->initial->kind() == NodeType::NoOp);
+                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                        ts.emplace_back(*ft, is_not_optional);
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
@@ -2574,7 +2575,8 @@ namespace Odo::Interpreting {
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
                     if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        ts.emplace_back(*ft, as_var_declaration_node->initial->kind() == NodeType::NoOp);
+                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                        ts.emplace_back(*ft, is_not_optional);
                     } else {
                         throw Exceptions::TypeException(
                                 "Unknown type " + as_var_declaration_node->var_type.value + ".",
