@@ -6,6 +6,7 @@
 #define ODO_PORT_INTERPRETER_H
 #include "Parser/parser.h"
 #include "Parser/AST/Node.h"
+#include "Parser/AST/Forward.h"
 #include "value.h"
 #include "symbol.h"
 #include "frame.h"
@@ -15,23 +16,23 @@
 
 #define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
-    typedef std::function<Value*(std::vector<Value*>)> NativeFunction;
+    typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> NativeFunction;
     class Interpreter {
         Parsing::Parser parser;
         ValueTable valueTable;
 
-        std::vector<Value *> constructorParams;
+        std::vector<std::shared_ptr<Value>> constructorParams;
 
         SymbolTable globalTable;
         SymbolTable* currentScope;
         SymbolTable replScope;
 
-        Value* null;
+        std::shared_ptr<Value> null;
         Symbol* any_type();
 
         bool breaking = false;
         bool continuing = false;
-        Value* returning;
+        std::shared_ptr<Value> returning;
         std::vector<Frame> call_stack;
 
         unsigned int current_line{0};
@@ -39,85 +40,86 @@ namespace Odo::Interpreting {
 
         std::map<std::string, NativeFunction> native_functions;
 
-        std::pair<Value*, Value*> coerce_type(Value *lhs, Value *rhs);
+        std::pair<std::shared_ptr<Value>, std::shared_ptr<Value>>
+        coerce_type(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
 
-        Value* create_literal_from_string(std::string val, const std::string& kind);
-        Value* create_literal_from_any(std::any val, const std::string& kind);
-        Value* create_literal(std::string val);
-        Value* create_literal(int val);
-        Value* create_literal(double val);
-        Value* create_literal(bool val);
+        std::shared_ptr<Value> create_literal_from_string(std::string val, const std::string& kind);
+        std::shared_ptr<Value> create_literal_from_any(const std::any& val, const std::string& kind);
+        std::shared_ptr<Value> create_literal(std::string val);
+        std::shared_ptr<Value> create_literal(int val);
+        std::shared_ptr<Value> create_literal(double val);
+        std::shared_ptr<Value> create_literal(bool val);
 
-        Value* visit_Double(const Lexing::Token& t);
-        Value* visit_Int(const Lexing::Token& t);
-        Value* visit_Bool(const Lexing::Token& t);
-        Value* visit_Str(const Lexing::Token& t);
+        std::shared_ptr<Value> visit_Double(const std::shared_ptr<Parsing::DoubleNode>&);
+        std::shared_ptr<Value> visit_Int(const std::shared_ptr<Parsing::IntNode>&);
+        std::shared_ptr<Value> visit_Bool(const std::shared_ptr<Parsing::BoolNode>&);
+        std::shared_ptr<Value> visit_Str(const std::shared_ptr<Parsing::StrNode>&);
 
-        Value* visit_Block(const std::vector<Parsing::AST>& vector);
+        std::shared_ptr<Value> visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
 
-        Value* visit_BinOp(const Lexing::Token& token, Parsing::AST &ast, Parsing::AST &ast1);
-        Value* visit_UnaryOp(const Lexing::Token& token, Parsing::AST &ast);
+        std::shared_ptr<Value> visit_BinOp(const std::shared_ptr<Parsing::BinOpNode>&);
+        std::shared_ptr<Value> visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>&);
 
-        Value* visit_TernaryOp(const Parsing::AST& cond, Parsing::AST trueb, Parsing::AST falseb);
+        std::shared_ptr<Value> visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>&);
 
 
-        Value* visit_If(const Parsing::AST& cond, Parsing::AST trueb, Parsing::AST falseb);
-        Value* visit_For(Parsing::AST ini, const Parsing::AST& cond, const Parsing::AST& incr, const Parsing::AST& body);
-        Value* visit_ForEach(const Lexing::Token& v, const Parsing::AST& lst, const Parsing::AST& body, const Lexing::Token& rev);
-        Value* visit_FoRange(const Lexing::Token& v, const Parsing::AST& first, const Parsing::AST& second, const Parsing::AST& body, const Lexing::Token& rev);
-        Value* visit_While(const Parsing::AST& cond, const Parsing::AST& body);
-        Value* visit_Loop(const Parsing::AST& body);
+        std::shared_ptr<Value> visit_If(const std::shared_ptr<Parsing::IfNode>&);
+        std::shared_ptr<Value> visit_For(const std::shared_ptr<Parsing::ForNode>&);
+        std::shared_ptr<Value> visit_ForEach(const std::shared_ptr<Parsing::ForEachNode>&);
+        std::shared_ptr<Value> visit_FoRange(const std::shared_ptr<Parsing::FoRangeNode>&);
+        std::shared_ptr<Value> visit_While(const std::shared_ptr<Parsing::WhileNode>&);
+        std::shared_ptr<Value> visit_Loop(const std::shared_ptr<Parsing::LoopNode>&);
 
-        Value* visit_VarDeclaration(const Lexing::Token& var_type, const Lexing::Token& name, const Parsing::AST& initial);
-        Value* visit_ListDeclaration(const Lexing::Token& var_type, const Lexing::Token& name, const Parsing::AST& initial);
-        Value* visit_Assignment(Parsing::AST expr, Parsing::AST val);
-        Value* visit_Variable(const Lexing::Token& token);
+        std::shared_ptr<Value> visit_VarDeclaration(const std::shared_ptr<Parsing::VarDeclarationNode>&);
+        std::shared_ptr<Value> visit_ListDeclaration(const std::shared_ptr<Parsing::ListDeclarationNode>&);
+        std::shared_ptr<Value> visit_Assignment(const std::shared_ptr<Parsing::AssignmentNode>&);
+        std::shared_ptr<Value> visit_Variable(const std::shared_ptr<Parsing::VariableNode>&);
 
-        Value* visit_Index(Parsing::AST val, const Parsing::AST& expr);
+        std::shared_ptr<Value> visit_Index(const std::shared_ptr<Parsing::IndexNode>&);
 
-        Value* visit_ListExpression(const std::vector<Parsing::AST>& elements);
+        std::shared_ptr<Value> visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
 
-        Value* visit_Module(const Lexing::Token& name, const std::vector<Parsing::AST>& statements);
-        Value *visit_Import(const Lexing::Token& path, const Lexing::Token& name);
+        std::shared_ptr<Value> visit_Module(const std::shared_ptr<Parsing::ModuleNode>&);
+        std::shared_ptr<Value> visit_Import(const std::shared_ptr<Parsing::ImportNode>&);
 
-        Value* visit_FuncExpression(const std::vector<Parsing::AST>& params, const Lexing::Token& retType, Parsing::AST body);
-        Value* visit_FuncDecl(const Lexing::Token& name, const std::vector<Parsing::AST>& params, const Lexing::Token& retType, Parsing::AST body);
-        Value* visit_FuncCall(Parsing::AST expr, const Lexing::Token& fname, std::vector<Parsing::AST> args);
-        Value* visit_FuncBody(const std::vector<Parsing::AST>& statements);
-        Value* visit_Return(Parsing::AST val);
+        std::shared_ptr<Value> visit_FuncExpression(const std::shared_ptr<Parsing::FuncExpressionNode>&);
+        std::shared_ptr<Value> visit_FuncDecl(const std::shared_ptr<Parsing::FuncDeclNode>&);
+        std::shared_ptr<Value> visit_FuncCall(const std::shared_ptr<Parsing::FuncCallNode>&);
+        std::shared_ptr<Value> visit_FuncBody(const std::shared_ptr<Parsing::FuncBodyNode>&);
+        std::shared_ptr<Value> visit_Return(const std::shared_ptr<Parsing::ReturnNode>&);
 
-        Value* visit_Enum(const Lexing::Token& name, const std::vector<Parsing::AST>& variants);
+        std::shared_ptr<Value> visit_Enum(const std::shared_ptr<Parsing::EnumNode>&);
 
-        Value* visit_Class(const Lexing::Token& name, const Lexing::Token& ty, Parsing::AST body);
-        Value* visit_ClassBody(std::vector<Parsing::AST> statements);
+        std::shared_ptr<Value> visit_Class(const std::shared_ptr<Parsing::ClassNode>&);
+        std::shared_ptr<Value> visit_ClassBody(const std::shared_ptr<Parsing::ClassBodyNode>&);
 
-        Value* visit_ConstructorDecl(const std::vector<Parsing::AST>& params, Parsing::AST body);
+        std::shared_ptr<Value> visit_ConstructorDecl(const std::shared_ptr<Parsing::ConstructorDeclNode>&);
 
-        Value* visit_ConstructorCall(const Lexing::Token& t);
+        std::shared_ptr<Value> visit_ConstructorCall(const std::shared_ptr<Parsing::ConstructorCallNode>&);
 
-        Value* visit_ClassInitializer(const Lexing::Token& name, const std::vector<Parsing::AST>& params);
+        std::shared_ptr<Value> visit_ClassInitializer(const std::shared_ptr<Parsing::ClassInitializerNode>&);
 
-        Value* visit_InstanceBody(const std::vector<Parsing::AST>& statements);
+        std::shared_ptr<Value> visit_InstanceBody(const std::shared_ptr<Parsing::InstanceBodyNode>&);
 
-        Value* visit_MemberVar(const Parsing::AST&, const Lexing::Token&);
-        Value* visit_StaticVar(const Parsing::AST&, const Lexing::Token&);
+        std::shared_ptr<Value> visit_MemberVar(const std::shared_ptr<Parsing::MemberVarNode>&);
+        std::shared_ptr<Value> visit_StaticVar(const std::shared_ptr<Parsing::StaticVarNode>&);
 
-        Value *interpret_as_module(const std::string &path, const Lexing::Token& name);
+        std::shared_ptr<Value> interpret_as_module(const std::string &path, const Lexing::Token& name);
 
-        std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<Parsing::AST>&);
+        std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
 
-        Symbol *getMemberVarSymbol(Parsing::AST mem);
+        Symbol *getMemberVarSymbol(const std::shared_ptr<Parsing::Node>& mem);
 
     public:
         void interpret(std::string);
-        Value* eval(std::string);
-        Value* visit(std::shared_ptr<Parsing::Node> node);
+        std::shared_ptr<Value> eval(std::string);
+        std::shared_ptr<Value> visit(const std::shared_ptr<Parsing::Node>& node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
-        void set_repl_last(Value*);
+        void set_repl_last(std::shared_ptr<Value> v);
 
         std::vector<Frame>& get_call_stack() { return call_stack; };
-        Value* get_null() { return null; }
+        std::shared_ptr<Value> get_null() { return null; }
     };
 }
 #endif //ODO_PORT_INTERPRETER_H
