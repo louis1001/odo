@@ -1730,7 +1730,7 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_UnaryOp(const std::shared_ptr<UnaryOpNode>& node) {
         auto result = visit(node->ast);
 
-        auto result_as_normal = Node::as<NormalValue>(node);
+        auto result_as_normal = Value::as<NormalValue>(result);
 
         switch (node->token.tp) {
             case Lexing::PLUS:
