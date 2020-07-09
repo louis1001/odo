@@ -231,7 +231,7 @@ namespace Odo::Interpreting {
     void ValueTable::addNewValue(const std::shared_ptr<Value>& val) {
         int new_index = this->last_index() + 1;
         val->address = new_index;
-        values[new_index] = val;
+        values.push_back(val);
     }
 
     void ValueTable::removeReference(Symbol& ref) {
