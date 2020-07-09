@@ -10,24 +10,29 @@
 #define YELLOW  "\033[33m"        /* Yellow */
 //#define BLUE    "\033[34m"      /* Blue */
 
-std::string logo = R"(
-      (((((((((((((((
-   (((((((((((((((((((((
- (((((((           ******
- ((((((             ******
- ((((((             **   *
- ((((((             ******
- ((((((((         *******
-   (((((((((((((((((((((
-      (((((((((((((((
+int main(int argc, char* argv[]) {
+    std::string logo =
+#if DEBUG_MODE
+"               debug"
+#else
+"              release"
+#endif
+    R"(
+          (((((((((((((((
+       (((((((((((((((((((((
+     (((((((           ******
+     ((((((             ******
+     ((((((             **   *
+     ((((((             ******
+     ((((((((         *******
+       (((((((((((((((((((((
+          (((((((((((((((
 
     odo(-lang) v0.2-beta
   Luis Gonzalez (louis1001)
          2019-2020
 
-)";
-
-int main(int argc, char* argv[]) {
+    )";
     using namespace Odo;
 
     std::string input_file;
