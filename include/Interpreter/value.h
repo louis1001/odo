@@ -45,7 +45,9 @@ namespace Odo::Interpreting {
         virtual void removeReference(Symbol&);
 
         template<typename T>
-        std::shared_ptr<T> as() { return dynamic_cast<T*>(this); }
+        static std::shared_ptr<T> as(const std::shared_ptr<Value>& v) {
+            return std::dynamic_pointer_cast<T>(v);
+        }
 
         explicit Value(Symbol* sym, int add=0): type(sym), address(add) { }
     };

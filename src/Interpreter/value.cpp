@@ -255,7 +255,7 @@ namespace Odo::Interpreting {
             if (the_value->references.empty() && !the_value->important)
             {
                 if (the_value->kind() == ValueType::ListVal) {
-                    auto actual_list = the_value->as<ListValue>();
+                    auto actual_list = Value::as<ListValue>(the_value);
                     auto symbols_list = actual_list->elements;
 
                     for (auto list_ref : symbols_list) {
@@ -266,7 +266,7 @@ namespace Odo::Interpreting {
                         removeReference(list_ref);
                     }
                 } else if (pm_it->get()->kind() == ValueType::InstanceVal) {
-                    auto actual_instance = (*pm_it)->as<InstanceValue>();
+                    auto actual_instance = Value::as<InstanceValue>(the_value);
                     auto scp = &actual_instance->ownScope;
                     auto parent = scp->getParent();
                     while (parent && starts_with(parent->getName(), "inherited-scope")) {
