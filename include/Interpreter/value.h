@@ -165,8 +165,6 @@ namespace Odo::Interpreting {
         }
         ValueTable();
 
-//        Value* addNewValue(Symbol* type, std::any val);
-//        Value* addNewValue(const Value&);
         void addNewValue(const std::shared_ptr<Value>&);
 
         void removeReference(Symbol& ref);
