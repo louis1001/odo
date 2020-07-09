@@ -125,16 +125,6 @@ namespace Odo::Interpreting {
             if (myValIter != values_in_v.end() - 1) {
                 result += ", ";
             }
-    void Value::addReference(Symbol &ref) {
-        references.insert(&ref);
-    }
-
-    void Value::removeReference(Symbol &ref) {
-        if (references.empty()) return;
-        auto indx = references.find(&ref);
-
-        if (indx != references.end()) {
-            references.erase(&ref);
         }
         result += "]";
 
