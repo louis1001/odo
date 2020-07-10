@@ -11,5 +11,9 @@ struct ImportNode final : public Node {
     NodeType kind() final { return NodeType::Import; }
 
     ImportNode(Lexing::Token path_p, Lexing::Token name_p);
+
+    static std::shared_ptr<Node> create(Lexing::Token path_p, Lexing::Token name_p){
+        return std::make_shared<ImportNode>(std::move(path_p), std::move(name_p));
+    }
 };
 }

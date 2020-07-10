@@ -10,5 +10,9 @@ struct ClassBodyNode final : public Node {
     NodeType kind() final { return NodeType::ClassBody; }
 
     explicit ClassBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+
+    static std::shared_ptr<Node> create(std::vector<std::shared_ptr<Parsing::Node>> statements_p){
+        return std::make_shared<ClassBodyNode>(std::move(statements_p));
+    }
 };
 }

@@ -10,5 +10,9 @@ struct IntNode final : public Node {
     NodeType kind() final { return NodeType::Int; }
 
     explicit IntNode(Lexing::Token token_p);
+
+    static std::shared_ptr<Node> create(Lexing::Token token_p){
+        return std::make_shared<IntNode>(std::move(token_p));
+    }
 };
 }

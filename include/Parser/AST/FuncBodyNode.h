@@ -10,5 +10,9 @@ struct FuncBodyNode final : public Node {
     NodeType kind() final { return NodeType::FuncBody; }
 
     explicit FuncBodyNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+
+    static std::shared_ptr<Node> create(std::vector<std::shared_ptr<Parsing::Node>> statements_p){
+        return std::make_shared<FuncBodyNode>(std::move(statements_p));
+    }
 };
 }

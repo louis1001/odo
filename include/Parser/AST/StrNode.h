@@ -10,5 +10,9 @@ struct StrNode final : public Node {
     NodeType kind() final { return NodeType::Str; }
 
     explicit StrNode(Lexing::Token token_p);
+
+    static std::shared_ptr<Node> create(Lexing::Token token_p){
+        return std::make_shared<StrNode>(std::move(token_p));
+    }
 };
 }

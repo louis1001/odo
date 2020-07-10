@@ -107,15 +107,15 @@ namespace Odo::Parsing{
     }
 
     std::shared_ptr<Node> Parser::block() {
-        return add_dbg_info(std::make_shared<BlockNode>(statement_list()));
+        return add_dbg_info(BlockNode::create(statement_list()));
     }
 
     std::shared_ptr<Node> Parser::func_body(){
-        return add_dbg_info(std::make_shared<FuncBodyNode>(statement_list()));
+        return add_dbg_info(FuncBodyNode::create(statement_list()));
     }
 
     std::shared_ptr<Node> Parser::class_body(){
-        return add_dbg_info(std::make_shared<ClassBodyNode>(statement_list()));
+        return add_dbg_info(ClassBodyNode::create(statement_list()));
     }
 
     std::vector<std::shared_ptr<Node>> Parser::statement_list() {
@@ -169,7 +169,7 @@ namespace Odo::Parsing{
                     eat(ID);
                 }
 
-                ex = std::make_shared<ImportNode>(path, name);
+                ex = ImportNode::create(path, name);
                 break;
             }
             case IF:
@@ -196,7 +196,7 @@ namespace Odo::Parsing{
             {
                 eat(RET);
                 auto val = ternary_op();
-                ex = std::make_shared<ReturnNode>(val);
+                ex = ReturnNode::create(val);
                 break;
             }
             case FOR:
@@ -221,23 +221,23 @@ namespace Odo::Parsing{
                 break;
             case BREAK:
                 eat(BREAK);
-                ex = std::make_shared<BreakNode>();
+                ex = BreakNode::create();
                 break;
             case CONTINUE:
                 eat(CONTINUE);
-                ex = std::make_shared<ContinueNode>();
+                ex = ContinueNode::create();
                 break;
             case STATIC:
                 eat(STATIC);
-                ex = std::make_shared<StaticStatementNode>(statement(false));
+                ex = StaticStatementNode::create(statement(false));
                 break;
             case EOFT:
             case RCUR:
             case RPAR:
-                ex = std::make_shared<NoOpNode>();
+                ex = NoOpNode::create();
                 break;
             case DEBUG:
-                ex = std::make_shared<DebugNode>();
+                ex = DebugNode::create();
                 eat(DEBUG);
                 break;
             default:
@@ -266,7 +266,7 @@ namespace Odo::Parsing{
         auto body = statement_list();
         eat(RCUR);
 
-        auto result = std::make_shared<ModuleNode>(name, body);
+        auto result = ModuleNode::create(name, body);
         result->line_number = ln;
         result->column_number = cl;
         return std::move(result);
@@ -284,7 +284,7 @@ namespace Odo::Parsing{
         std::vector<std::shared_ptr<Node>> variants;
         while (current_token.tp != RCUR) {
             ignore_nl();
-            auto variant = std::make_shared<VariableNode>(current_token);
+            auto variant = VariableNode::create(current_token);
             eat(ID);
             variant->line_number = line();
             variant->column_number = column();
@@ -298,7 +298,7 @@ namespace Odo::Parsing{
         }
         eat(RCUR);
 
-        auto result = std::make_shared<EnumNode>(name, std::move(variants));
+        auto result = EnumNode::create(name, std::move(variants));
         result->line_number = ln;
         result->column_number = cl;
         return std::move(result);
@@ -323,7 +323,7 @@ namespace Odo::Parsing{
         auto body = class_body();
         eat(RCUR);
 
-        auto result = std::make_shared<ClassNode>(name, inherits, body);
+        auto result = ClassNode::create(name, inherits, body);
         result->line_number = ln;
         result->column_number = cl;
 
@@ -351,7 +351,7 @@ namespace Odo::Parsing{
             eat(RPAR);
         }
 
-        auto result = std::make_shared<ClassInitializerNode>(name, argList);
+        auto result = ClassInitializerNode::create(name, argList);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -369,7 +369,7 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        auto result = std::make_shared<ConstructorDeclNode>(params, bl);
+        auto result = ConstructorDeclNode::create(params, bl);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -389,7 +389,7 @@ namespace Odo::Parsing{
             body = statement();
         }
 
-        auto result = std::make_shared<LoopNode>(body);
+        auto result = LoopNode::create(body);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -412,7 +412,7 @@ namespace Odo::Parsing{
             body = statement();
         }
 
-        auto result = std::make_shared<WhileNode>(comp, body);
+        auto result = WhileNode::create(comp, body);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -443,7 +443,7 @@ namespace Odo::Parsing{
             body = statement();
         }
 
-        auto result = std::make_shared<ForNode>(initializer, compar, inc, body);
+        auto result = ForNode::create(initializer, compar, inc, body);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -489,7 +489,7 @@ namespace Odo::Parsing{
 
         body = statement(false);
 
-        auto result = std::make_shared<ForEachNode>(std::move(var), std::move(lst_expression), body, std::move(reverse_token));
+        auto result = ForEachNode::create(std::move(var), std::move(lst_expression), body, std::move(reverse_token));
 
         result->line_number = ln;
         result->column_number = cl;
@@ -544,7 +544,7 @@ namespace Odo::Parsing{
 
         body = statement(false);
 
-        auto result = std::make_shared<FoRangeNode>(var, first_expression, second_expression, body, reverse_token);
+        auto result = FoRangeNode::create(var, first_expression, second_expression, body, reverse_token);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -578,7 +578,7 @@ namespace Odo::Parsing{
                     elseBlock = ifstatement();
                 }
 
-                auto result = std::make_shared<IfNode>(exp, trueBlock, elseBlock);
+                auto result = IfNode::create(exp, trueBlock, elseBlock);
 
                 result->line_number = ln;
                 result->column_number = cl;
@@ -586,14 +586,14 @@ namespace Odo::Parsing{
                 return result;
             }
 
-            auto result = std::make_shared<IfNode>(exp, trueBlock, nullptr);
+            auto result = IfNode::create(exp, trueBlock, nullptr);
 
             result->line_number = ln;
             result->column_number = cl;
 
             return result;
         } else {
-            auto result = std::make_shared<IfNode>(exp, statement(), nullptr);
+            auto result = IfNode::create(exp, statement(), nullptr);
 
             result->line_number = ln;
             result->column_number = cl;
@@ -625,7 +625,7 @@ namespace Odo::Parsing{
         auto bl = func_body();
         eat(RCUR);
 
-        auto result = std::make_shared<FuncDeclNode>(name, params, retType, bl);
+        auto result = FuncDeclNode::create(name, params, retType, bl);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -677,7 +677,7 @@ namespace Odo::Parsing{
                 assignment = ternary_op();
             }
 
-            auto result = std::make_shared<ListDeclarationNode>(token, varName, assignment);
+            auto result = ListDeclarationNode::create(token, varName, assignment);
 
             result->line_number = ln;
             result->column_number = cl;
@@ -690,7 +690,7 @@ namespace Odo::Parsing{
             assignment = ternary_op();
         }
 
-        auto result = std::make_shared<VarDeclarationNode>(token, varName, assignment);
+        auto result = VarDeclarationNode::create(token, varName, assignment);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -712,7 +712,7 @@ namespace Odo::Parsing{
             eat(COLON);
             auto falseSection = or_comparison();
 
-            auto result = std::make_shared<TernaryOpNode>(comp, trueSection, falseSection);
+            auto result = TernaryOpNode::create(comp, trueSection, falseSection);
             result->line_number = ln;
             result->column_number = cl;
 
@@ -734,7 +734,7 @@ namespace Odo::Parsing{
             auto or_tk = current_token;
             eat(OR);
 
-            auto result = std::make_shared<BinOpNode>(or_tk, node, and_comparison());
+            auto result = BinOpNode::create(or_tk, node, and_comparison());
 
             result->line_number = ln;
             result->column_number = cl;
@@ -757,7 +757,7 @@ namespace Odo::Parsing{
             auto and_tk = current_token;
             eat(AND);
 
-            auto result = std::make_shared<BinOpNode>(and_tk, node, comparison());
+            auto result = BinOpNode::create(and_tk, node, comparison());
             result->line_number = ln;
             result->column_number = cl;
 
@@ -778,7 +778,7 @@ namespace Odo::Parsing{
         while (contains_type(compType, current_token.tp)) {
             auto c_token = current_token;
             eat(current_token.tp);
-            auto result = std::make_shared<BinOpNode>(c_token, exp, expression());
+            auto result = BinOpNode::create(c_token, exp, expression());
 
             result->line_number = ln;
             result->column_number = cl;
@@ -803,7 +803,7 @@ namespace Odo::Parsing{
 
             eat(current_token.tp);
 
-            auto result = std::make_shared<BinOpNode>(c_token, node, term());
+            auto result = BinOpNode::create(c_token, node, term());
 
             result->line_number = ln;
             result->column_number = cl;
@@ -830,7 +830,7 @@ namespace Odo::Parsing{
 
             eat(current_token.tp);
 
-            auto result = std::make_shared<BinOpNode>(c_token, node, prod());
+            auto result = BinOpNode::create(c_token, node, prod());
 
             result->line_number = ln;
             result->column_number = cl;
@@ -854,7 +854,7 @@ namespace Odo::Parsing{
             auto c_token = current_token;
 
             eat(POW);
-            auto result = std::make_shared<BinOpNode>(c_token, node, postfix());
+            auto result = BinOpNode::create(c_token, node, postfix());
 
             result->line_number = ln;
             result->column_number = cl;
@@ -897,7 +897,7 @@ namespace Odo::Parsing{
                         eat(MINUSP);
                     }
                     auto one = Token(INT, "1");
-                    auto operation = std::make_shared<BinOpNode>(binOP, node, std::make_shared<IntNode>(one));
+                    auto operation = BinOpNode::create(binOP, node, IntNode::create(one));
 
                     operation->line_number = ln;
                     operation->column_number = cl;
@@ -905,7 +905,7 @@ namespace Odo::Parsing{
                     ln = line();
                     cl = column();
 
-                    result = std::make_shared<AssignmentNode>(node, operation);
+                    result = AssignmentNode::create(node, operation);
 
                     result->line_number = ln;
                     result->column_number = cl;
@@ -937,7 +937,7 @@ namespace Odo::Parsing{
                     }
                     eat(current_token.tp);
 
-                    auto operation = std::make_shared<BinOpNode>(binOP, node, expression());
+                    auto operation = BinOpNode::create(binOP, node, expression());
 
                     operation->line_number = ln;
                     operation->column_number = cl;
@@ -945,7 +945,7 @@ namespace Odo::Parsing{
                     ln = line();
                     cl = column();
 
-                    result = std::make_shared<AssignmentNode>(node, operation);
+                    result = AssignmentNode::create(node, operation);
 
                     result->line_number = ln;
                     result->column_number = cl;
@@ -959,7 +959,7 @@ namespace Odo::Parsing{
                 case DOT:
                 {
                     eat(DOT);
-                    result = std::make_shared<MemberVarNode>(node, current_token);
+                    result = MemberVarNode::create(node, current_token);
 
                     eat(ID);
 
@@ -974,7 +974,7 @@ namespace Odo::Parsing{
                 case DCOLON:
                 {
                     eat(DCOLON);
-                    result = std::make_shared<StaticVarNode>(node, current_token);
+                    result = StaticVarNode::create(node, current_token);
 
                     eat(ID);
 
@@ -1009,7 +1009,7 @@ namespace Odo::Parsing{
                         name = Node::as<VariableNode>(node)->token;
                     }
 
-                    result = std::make_shared<FuncCallNode>(node, name, argList);
+                    result = FuncCallNode::create(node, name, argList);
 
                     result->line_number = ln;
                     result->column_number = cl;
@@ -1023,7 +1023,7 @@ namespace Odo::Parsing{
                 case LBRA:
                     eat(LBRA);
 
-                    result = std::make_shared<IndexNode>(node, ternary_op());
+                    result = IndexNode::create(node, ternary_op());
 
                     result->line_number = ln;
                     result->column_number = cl;
@@ -1037,7 +1037,7 @@ namespace Odo::Parsing{
                 case ASS:
                     eat(ASS);
 
-                    result = std::make_shared<AssignmentNode>(node, ternary_op());
+                    result = AssignmentNode::create(node, ternary_op());
 
                     result->line_number = ln;
                     result->column_number = cl;
@@ -1073,20 +1073,20 @@ namespace Odo::Parsing{
             eat(RCUR);
         } else {
             auto val = ternary_op();
-            auto ex = std::make_shared<ReturnNode>(val);
+            auto ex = ReturnNode::create(val);
             ex->line_number = ln;
             ex->column_number = cl;
 
             std::vector<std::shared_ptr<Node>> bod_list{ex};
 
-            std::shared_ptr<Node> fbod = std::make_shared<FuncBodyNode>(bod_list);
+            std::shared_ptr<Node> fbod = FuncBodyNode::create(bod_list);
             fbod->line_number = ln;
             fbod->column_number = cl;
 
             body = fbod;
         }
 
-        auto result = std::make_shared<FuncExpressionNode>(params, Token(NOTHING, ""), body);
+        auto result = FuncExpressionNode::create(params, Token(NOTHING, ""), body);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -1099,25 +1099,25 @@ namespace Odo::Parsing{
         switch (current_token.tp) {
             case REAL:
             {
-                auto double_literal = std::make_shared<DoubleNode>(current_token);
+                auto double_literal = DoubleNode::create(current_token);
                 eat(REAL);
                 return double_literal;
             }
             case INT:
             {
-                auto int_literal = std::make_shared<IntNode>(current_token);
+                auto int_literal = IntNode::create(current_token);
                 eat(INT);
                 return int_literal;
             }
             case STR:
             {
-                auto str_literal = std::make_shared<StrNode>(current_token);
+                auto str_literal = StrNode::create(current_token);
                 eat(STR);
                 return str_literal;
             }
             case BOOL:
             {
-                auto bool_literal = std::make_shared<BoolNode>(current_token);
+                auto bool_literal = BoolNode::create(current_token);
                 eat(BOOL);
                 return bool_literal;
             }
@@ -1145,7 +1145,7 @@ namespace Odo::Parsing{
             {
                 auto op = current_token;
                 eat(current_token.tp);
-                auto result = std::make_shared<UnaryOpNode>(op, postfix());
+                auto result = UnaryOpNode::create(op, postfix());
                 return result;
             }
             case NEW:
@@ -1156,7 +1156,7 @@ namespace Odo::Parsing{
                 auto idToken = current_token;
                 eat(ID);
 
-                auto result = std::make_shared<VariableNode>(idToken);
+                auto result = VariableNode::create(idToken);
                 if (current_token.tp == ID) {
                     return declaration(idToken);
                 }
@@ -1180,12 +1180,12 @@ namespace Odo::Parsing{
                 }
 
                 eat(RBRA);
-                auto list_expr = std::make_shared<ListExpressionNode>(contents);
+                auto list_expr = ListExpressionNode::create(contents);
                 return list_expr;
             }
             case NULLT:
             {
-                auto null_ret = std::make_shared<NullNode>();
+                auto null_ret = NullNode::create();
                 eat(NULLT);
                 return null_ret;
             }
@@ -1196,7 +1196,7 @@ namespace Odo::Parsing{
                 break;
         }
 
-        return std::make_shared<NoOpNode>();
+        return NoOpNode::create();
     }
 
     Parser::Parser(): lexer(Lexer()) {}

@@ -10,5 +10,9 @@ struct StaticStatementNode final : public Node {
     NodeType kind() final { return NodeType::StaticStatement; }
 
     explicit StaticStatementNode(std::shared_ptr<Node> statement_p);
+
+    static std::shared_ptr<Node> create(std::shared_ptr<Node> statement_p){
+        return std::make_shared<StaticStatementNode>(std::move(statement_p));
+    }
 };
 }

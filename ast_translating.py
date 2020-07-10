@@ -209,6 +209,10 @@ struct <node-name> final : public Node {
     NodeType kind() final { return NodeType::<node-type>; }
 
     <explicit-spec><node-constructor><header-constr-termn>
+
+    static std::shared_ptr<Node> create(<constructor-params>){
+        return std::make_shared<<node-name>>(<constructor-param-names>);
+    }
 };
 }
 """
@@ -225,7 +229,12 @@ namespace Odo::Parsing {
 
 """
 
+
 constructor_template = "<node-name>(<constructor-params>)"
+header_creator_body = """
+{
+    return std::make_shared<<node-name>>();
+}"""
 
 def translate(st, table):
     result = st
@@ -243,6 +252,7 @@ src_files = []
 for node_type_name in ast_node_names:
     translation_dict = {"node-type":node_type_name}
 
+    header_creator_body = ";"
     node_name = node_type_name + "Node"
     translation_dict["node-name"] = node_name
 
@@ -253,6 +263,8 @@ for node_type_name in ast_node_names:
     node_member_definitions = ""
     constructor_init = ""
     constructor_params = ""
+
+    translation_dict["constructor-param-names"] = ""
 
     translation_dict["explicit-spec"] = ""
     if has_impl:
@@ -266,9 +278,12 @@ for node_type_name in ast_node_names:
             param_parts = mem.split(" ")
 
             mem_name = param_parts[1]
+
+            translation_dict["constructor-param-names"] += "std::move(" + mem_name + "_p)"
             constructor_init += " " + mem_name + "(std::move(" + mem_name + "_p)" + ")"
             if i != len(members)-1:
                 constructor_params += ", "
+                translation_dict["constructor-param-names"] += ", "
                 constructor_init += "\n" + indentation + ","
 
     translation_dict["constructor-params"] = constructor_params

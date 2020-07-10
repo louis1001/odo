@@ -11,5 +11,9 @@ struct UnaryOpNode final : public Node {
     NodeType kind() final { return NodeType::UnaryOp; }
 
     UnaryOpNode(Lexing::Token token_p, std::shared_ptr<Parsing::Node> ast_p);
+
+    static std::shared_ptr<Node> create(Lexing::Token token_p, std::shared_ptr<Parsing::Node> ast_p){
+        return std::make_shared<UnaryOpNode>(std::move(token_p), std::move(ast_p));
+    }
 };
 }

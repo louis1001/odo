@@ -10,5 +10,9 @@ struct VariableNode final : public Node {
     NodeType kind() final { return NodeType::Variable; }
 
     explicit VariableNode(Lexing::Token token_p);
+
+    static std::shared_ptr<Node> create(Lexing::Token token_p){
+        return std::make_shared<VariableNode>(std::move(token_p));
+    }
 };
 }

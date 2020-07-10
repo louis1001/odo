@@ -11,5 +11,9 @@ struct StaticVarNode final : public Node {
     NodeType kind() final { return NodeType::StaticVar; }
 
     StaticVarNode(std::shared_ptr<Parsing::Node> inst_p, Lexing::Token name_p);
+
+    static std::shared_ptr<Node> create(std::shared_ptr<Parsing::Node> inst_p, Lexing::Token name_p){
+        return std::make_shared<StaticVarNode>(std::move(inst_p), std::move(name_p));
+    }
 };
 }

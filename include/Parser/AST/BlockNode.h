@@ -10,5 +10,9 @@ struct BlockNode final : public Node {
     NodeType kind() final { return NodeType::Block; }
 
     explicit BlockNode(std::vector<std::shared_ptr<Parsing::Node>> statements_p);
+
+    static std::shared_ptr<Node> create(std::vector<std::shared_ptr<Parsing::Node>> statements_p){
+        return std::make_shared<BlockNode>(std::move(statements_p));
+    }
 };
 }
