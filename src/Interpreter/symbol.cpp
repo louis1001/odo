@@ -37,25 +37,27 @@ namespace Odo::Interpreting {
     }
 
     Symbol* SymbolTable::addSymbol(const Symbol& sym) {
-        auto foundS = symbols.find(sym.name);
+        std::string new_sym_name = sym.name;
+        auto foundS = symbols.find(new_sym_name);
 
         if (foundS != symbols.end()) {
-            throw Exceptions::NameException("Redefinition of symbol " + sym.name);
+            throw Exceptions::NameException("Redefinition of symbol " + new_sym_name);
         }
 
         if (sym.tp != nullptr) {
             if (!sym.tp->isType) {
-                throw Exceptions::TypeException("Symbol '" + sym.name + "' is not a type.");
+                throw Exceptions::TypeException("Symbol '" + new_sym_name + "' is not a type.");
             }
         }
 
-        symbols[sym.name] = sym;
+        symbols[new_sym_name] = sym;
 
-        return &symbols[sym.name];
+        return &symbols.find(new_sym_name)->second;
     }
 
     Symbol* SymbolTable::addListType(Symbol* tp) {
-        auto foundAsListType = symbols.find(tp->name+"[]");
+        std::string new_sym_name = tp->name+"[]";
+        auto foundAsListType = symbols.find(new_sym_name);
         if (foundAsListType != symbols.end())
             return &foundAsListType->second;
 
@@ -67,14 +69,14 @@ namespace Odo::Interpreting {
             }
         }
 
-        symbols[tp->name+"[]"] = Symbol{
+        symbols[new_sym_name] = Symbol{
             .tp=tp,
-            .name=tp->name+"[]",
+            .name=new_sym_name,
             .isType=true,
             .kind=SymbolType::ListType,
         };
 
-        return &symbols[tp->name + "[]"];
+        return &symbols.find(new_sym_name)->second;
     }
 
     bool SymbolTable::symbolExists(const std::string& name) {
@@ -107,7 +109,7 @@ namespace Odo::Interpreting {
             .kind=SymbolType::FunctionType
         };
 
-        return &symbols[funcName];
+        return &symbols.find(funcName)->second;
     }
 
     void SymbolTable::debugChain() {
