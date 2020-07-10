@@ -26,11 +26,8 @@ namespace Odo::Interpreting {
 
     NormalValue::NormalValue(Symbol *tp, std::any the_value) : Value(tp), val(std::move(the_value)) {}
 
-    std::shared_ptr<Value> NormalValue::copy(ValueTable &vt) {
+    std::shared_ptr<Value> NormalValue::copy() {
         auto copied_value = std::make_shared<NormalValue>(type, val);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
@@ -90,7 +87,7 @@ namespace Odo::Interpreting {
         : Value(tp)
         , elements(std::move(sym_elements)) {}
 
-    std::shared_ptr<Value> ListValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> ListValue::copy() {
         // Copy elements first.
 
         auto val_els = as_list_value();
@@ -98,7 +95,7 @@ namespace Odo::Interpreting {
         for (const auto& value_in_val : val_els) {
             auto list_el = value_in_val;
             if (value_in_val->is_copyable()) {
-                list_el = list_el->copy(vt);
+                list_el = list_el->copy();
             }
 
             symbols_copied.push_back({value_in_val->type, "list_element", list_el});
@@ -109,9 +106,6 @@ namespace Odo::Interpreting {
         }
 
         auto copied_value = std::make_shared<ListValue>(type, std::move(symbols_copied));
-
-        // Add value to the table
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
@@ -148,12 +142,9 @@ namespace Odo::Interpreting {
         , body(std::move(body_))
         , parentScope(scope_) {}
 
-    std::shared_ptr<Value> FunctionValue::copy(ValueTable &vt) {
+    std::shared_ptr<Value> FunctionValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<FunctionValue>(type, params, body, parentScope);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
@@ -162,12 +153,9 @@ namespace Odo::Interpreting {
         : Value(tp)
         , ownScope(scope) {}
 
-    std::shared_ptr<Value> ModuleValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> ModuleValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<ModuleValue>(type, ownScope);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
@@ -178,12 +166,9 @@ namespace Odo::Interpreting {
         , body(std::move(body_))
         , parentScope(parent_) {}
 
-    std::shared_ptr<Value> ClassValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> ClassValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<ClassValue>(type, ownScope, parentScope, body);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
@@ -193,44 +178,33 @@ namespace Odo::Interpreting {
         , molde(std::move(molde_))
         , ownScope(scope) {}
 
-    std::shared_ptr<Value> InstanceValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> InstanceValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<InstanceValue>(type, molde, ownScope);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
 
     EnumValue::EnumValue(Symbol* tp, const SymbolTable& scope): Value(tp), ownScope(scope) {}
 
-    std::shared_ptr<Value> EnumValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> EnumValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<EnumValue>(type, ownScope);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
 
     EnumVarValue::EnumVarValue(Symbol* tp, std::string name_): Value(tp), name(std::move(name_)) {}
 
-    std::shared_ptr<Value> EnumVarValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> EnumVarValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<EnumVarValue>(type, name);
-
-        // Add the new value to the value table.
-        vt.addNewValue(copied_value);
 
         return copied_value;
     }
 
-    std::shared_ptr<Value> NativeFunctionValue::copy(ValueTable& vt) {
+    std::shared_ptr<Value> NativeFunctionValue::copy() {
         auto copied_value = std::make_shared<NativeFunctionValue>(type, fn);
-
-        vt.addNewValue(copied_value);
         return copied_value;
     }
 
@@ -239,71 +213,4 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> NativeFunctionValue::visit(Interpreter& in, std::vector<std::shared_ptr<Value>> params) const {
         return fn(in, std::move(params));
     }
-
-    ValueTable::ValueTable() = default;
-
-    void ValueTable::addNewValue(const std::shared_ptr<Value>& val) {
-        int new_index = this->last_index() + 1;
-        val->address = new_index;
-        values.push_back(val);
-    }
-
-    void ValueTable::removeReference(Symbol& ref) {
-        for (const auto& p : values) {
-            if (p->references.empty()) continue;
-            auto indx = p->references.find(&ref);
-
-            if (indx != p->references.end()) {
-                // This is too expensive, apparently. I need to investigate.
-                // Also, don't make as many cleanups...
-                p->references.erase(indx);
-            }
-        }
-    }
-
-    void ValueTable::cleanUp() {
-        auto pm_it = values.begin();
-        while(pm_it != values.end())
-        {
-            auto the_value = *pm_it;
-            if (the_value->references.empty() && !the_value->important)
-            {
-                if (the_value->kind() == ValueType::ListVal) {
-                    auto actual_list = Value::as<ListValue>(the_value);
-                    auto symbols_list = actual_list->elements;
-
-                    for (auto list_ref : symbols_list) {
-                        if (list_ref.value) {
-                            list_ref.value ->removeReference(list_ref);
-                        }
-
-                        removeReference(list_ref);
-                    }
-                } else if (pm_it->get()->kind() == ValueType::InstanceVal) {
-                    auto actual_instance = Value::as<InstanceValue>(the_value);
-                    auto scp = &actual_instance->ownScope;
-                    auto parent = scp->getParent();
-                    while (parent && starts_with(parent->getName(), "inherited-scope")) {
-                        scp = parent->getParent();
-                        delete parent;
-                        parent = scp;
-                    }
-                }
-                pm_it = values.erase(pm_it);
-            }
-            else
-            {
-                ++pm_it;
-            }
-        }
-    }
-
-    void ValueTable::cleanUp(SymbolTable &symTable) {
-        for (auto& ref : symTable.symbols) {
-            removeReference(ref.second);
-        }
-
-        cleanUp();
-    }
-
 }

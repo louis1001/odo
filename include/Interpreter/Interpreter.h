@@ -19,7 +19,6 @@ namespace Odo::Interpreting {
     typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> NativeFunction;
     class Interpreter {
         Parsing::Parser parser;
-        ValueTable valueTable;
 
         std::vector<std::shared_ptr<Value>> constructorParams;
 

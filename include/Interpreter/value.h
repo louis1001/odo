@@ -15,7 +15,6 @@
 
 #include "symbol.h"
 namespace Odo::Interpreting {
-    class ValueTable;
 
     enum class ValueType {
         NormalVal,
@@ -36,7 +35,7 @@ namespace Odo::Interpreting {
         std::set<Symbol*> references;
 
         virtual ValueType kind()=0;
-        virtual std::shared_ptr<Value> copy(ValueTable&)=0;
+        virtual std::shared_ptr<Value> copy()=0;
         [[nodiscard]] virtual bool is_numeric() const { return false; }
         [[nodiscard]] virtual bool is_copyable() const { return false; }
 
@@ -60,8 +59,7 @@ namespace Odo::Interpreting {
         [[nodiscard]] bool is_numeric() const final { return type->name == "int" || type->name == "double"; }
         [[nodiscard]] bool is_copyable() const final { return type->name != "NullType"; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
-
+        std::shared_ptr<Value> copy() final;
 
         int as_int();
         double as_double();
@@ -77,7 +75,7 @@ namespace Odo::Interpreting {
         ValueType kind() final { return ValueType::ListVal; }
         [[nodiscard]] bool is_copyable() const final { return true; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final;
         std::vector<std::shared_ptr<Value>> as_list_value();
@@ -90,7 +88,7 @@ namespace Odo::Interpreting {
         SymbolTable* parentScope{};
         ValueType kind() final { return ValueType::FunctionVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<function> at: " + std::to_string(address); }
 
@@ -101,7 +99,7 @@ namespace Odo::Interpreting {
         SymbolTable ownScope;
         ValueType kind() final { return ValueType::ModuleVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<module> at: " + std::to_string(address); }
 
@@ -115,7 +113,7 @@ namespace Odo::Interpreting {
         SymbolTable* parentScope;
         ValueType kind() final { return ValueType::ClassVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<class> at: " + std::to_string(address); }
 
@@ -128,7 +126,7 @@ namespace Odo::Interpreting {
 
         ValueType kind() final { return ValueType::InstanceVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<instance> at: " + std::to_string(address); }
 
@@ -139,7 +137,7 @@ namespace Odo::Interpreting {
         SymbolTable ownScope;
         ValueType kind() final { return ValueType::EnumVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<enum> at: " + std::to_string(address); }
 
@@ -150,7 +148,7 @@ namespace Odo::Interpreting {
         std::string name;
         ValueType kind() final { return ValueType::EnumVarVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return name; }
 
@@ -163,28 +161,12 @@ namespace Odo::Interpreting {
         native_function fn;
         ValueType kind() final { return ValueType::NativeFunctionVal; }
 
-        std::shared_ptr<Value> copy(ValueTable& vt) final;
+        std::shared_ptr<Value> copy() final;
 
         std::shared_ptr<Value> visit(Interpreter&, std::vector<std::shared_ptr<Value>>) const;
 
         NativeFunctionValue(Symbol*, native_function);
     };
 
-    class ValueTable {
-        std::vector<std::shared_ptr<Value>> values;
-
-    public:
-        int last_index() {
-            if (values.empty()) return -1;
-            return (--values.end())->get()->address;
-        }
-        ValueTable();
-
-        void addNewValue(const std::shared_ptr<Value>&);
-        void removeReference(Symbol& ref);
-
-        void cleanUp();
-        void cleanUp(SymbolTable &symTable);
-    };
 }
 #endif //ODO_PORT_VALUE_H

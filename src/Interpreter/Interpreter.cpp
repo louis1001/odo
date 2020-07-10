@@ -84,10 +84,7 @@ namespace Odo::Interpreting {
 
         replScope = SymbolTable("repl", {}, &globalTable);
 
-        valueTable = ValueTable();
-
         null = std::make_shared<NormalValue>(globalTable.findSymbol("NullType"), "null");
-        valueTable.addNewValue(null);
 
         auto nullSym = globalTable.addSymbol({
             .tp = &globalTable.symbols["NullType"],
@@ -641,15 +638,11 @@ namespace Odo::Interpreting {
 
         auto normal_value = std::make_shared<NormalValue>(globalTable.findSymbol(kind), newValue);
 
-        valueTable.addNewValue(normal_value);
-
         return normal_value;
     }
 
     std::shared_ptr<Value> Interpreter::create_literal_from_any(const std::any& val, const std::string &kind) {
         auto the_value = std::make_shared<NormalValue>(globalTable.findSymbol(kind), val);
-        valueTable.addNewValue(the_value);
-
         return std::move(the_value);
     }
 
@@ -699,7 +692,6 @@ namespace Odo::Interpreting {
 
         result->important = true;
         currentScope = blockScope.getParent();
-        valueTable.cleanUp(blockScope);
         result->important = false;
 
         return result;
@@ -786,7 +778,6 @@ namespace Odo::Interpreting {
         continuing = false;
 
         currentScope = forScope.getParent();
-        valueTable.cleanUp(forScope);
 
         return null;
     }
@@ -895,7 +886,6 @@ namespace Odo::Interpreting {
         }
 
         currentScope = forScope.getParent();
-        valueTable.cleanUp(forScope);
 
         return null;
 
@@ -978,7 +968,6 @@ namespace Odo::Interpreting {
         }
         declared_iter->value->removeReference(*declared_iter);
         currentScope = forScope.getParent();
-        valueTable.cleanUp(forScope);
 
         return null;
     }
@@ -1015,7 +1004,6 @@ namespace Odo::Interpreting {
         }
 
         currentScope = whileScope.getParent();
-        valueTable.cleanUp(whileScope);
 
         return null;
     }
@@ -1064,7 +1052,7 @@ namespace Odo::Interpreting {
                 auto newValue = visit(node->initial);
 
                 if (newValue->is_copyable()) {
-                    newValue = newValue->copy(valueTable);
+                    newValue = newValue->copy();
                 }
 
                 if (type_->name == "any") {
@@ -1175,11 +1163,11 @@ namespace Odo::Interpreting {
 
                 theValue->removeReference(*varSym);
                 if (newValue->is_copyable()) {
-                    newValue = newValue->copy(valueTable);
+                    newValue = newValue->copy();
                 }
             } else {
                 if (newValue->is_copyable()) {
-                    newValue = newValue->copy(valueTable);
+                    newValue = newValue->copy();
                 }
 
                 if (varSym->tp->name == "any") {
@@ -1311,7 +1299,7 @@ namespace Odo::Interpreting {
             std::shared_ptr<Value> actual_value;
 
             if (visited_element->is_copyable()) {
-                actual_value = visited_element->copy(valueTable);
+                actual_value = visited_element->copy();
             } else {
                 actual_value = visited_element;
             }
@@ -1334,7 +1322,6 @@ namespace Odo::Interpreting {
         }
 
         auto new_list_value = std::make_shared<ListValue>(list_type, std::move(list_syms));
-        valueTable.addNewValue(new_list_value);
 
         return new_list_value;
     }
@@ -1365,7 +1352,7 @@ namespace Odo::Interpreting {
                             auto val = el.value;
 
                             if (val->is_copyable()) {
-                                val = val->copy(valueTable);
+                                val = val->copy();
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
@@ -1376,7 +1363,7 @@ namespace Odo::Interpreting {
                             auto val = el.value;
 
                             if (val->is_copyable()) {
-                                val = val->copy(valueTable);
+                                val = val->copy();
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
@@ -1385,7 +1372,6 @@ namespace Odo::Interpreting {
                         }
 
                         new_list = std::make_shared<ListValue>(leftVisited->type, std::move(new_elements));
-                        valueTable.addNewValue(new_list);
 
                         return new_list;
                     } else {
@@ -1395,7 +1381,7 @@ namespace Odo::Interpreting {
                             auto val = el.value;
 
                             if (val->is_copyable()) {
-                                val = val->copy(valueTable);
+                                val = val->copy();
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
@@ -1405,7 +1391,7 @@ namespace Odo::Interpreting {
 
                         auto val = rightVisited;
                         if (val->is_copyable()) {
-                            val = val->copy(valueTable);
+                            val = val->copy();
                         }
 
                         Symbol new_symbol = {val->type, "list_element", val};
@@ -1416,7 +1402,6 @@ namespace Odo::Interpreting {
                                 globalTable.addListType(val->type),
                                 std::move(new_elements)
                         );
-                        valueTable.addNewValue(new_list);
                         return new_list;
                     }
                 } else if (leftVisited->type->name == "string") {
@@ -1479,7 +1464,7 @@ namespace Odo::Interpreting {
                             auto val = el.value;
 
                             if (val->is_copyable()) {
-                                val = val->copy(valueTable);
+                                val = val->copy();
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
@@ -1489,7 +1474,6 @@ namespace Odo::Interpreting {
                     }
 
                     auto new_list = std::make_shared<ListValue>(leftVisited->type, std::move(new_elements));
-                    valueTable.addNewValue(new_list);
 
                     return new_list;
                 } else if (leftVisited->type->name == "string" && rightVisited->type->name == "int") {
@@ -1770,7 +1754,6 @@ namespace Odo::Interpreting {
         };
 
         auto moduleValue = std::make_shared<ModuleValue>(null->type, std::move(module_scope));
-        valueTable.addNewValue(moduleValue);
         moduleValue->important = true;
 
         auto temp = currentScope;
@@ -1810,7 +1793,6 @@ namespace Odo::Interpreting {
         }
 
         auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
-        valueTable.addNewValue(funcValue);
 
         return funcValue;
     }
@@ -1841,7 +1823,6 @@ namespace Odo::Interpreting {
         }
 
         auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
-        valueTable.addNewValue(funcValue);
 
         auto funcSymbol = currentScope->addSymbol({
             .tp=typeOfFunc,
@@ -1908,7 +1889,7 @@ namespace Odo::Interpreting {
                         {
                             auto newValue = visit(node->args[i]);
                             if (newValue->is_copyable()) {
-                                newValue = newValue->copy(valueTable);
+                                newValue = newValue->copy();
                             }
                             initValues.emplace_back(Node::as<VarDeclarationNode>(par)->name, newValue);
                             break;
@@ -1951,7 +1932,6 @@ namespace Odo::Interpreting {
 
             auto result = visit(body_as_ast);
             currentScope = calleeScope;
-            valueTable.cleanUp(funcScope);
 
             result->important = false;
             call_stack.pop_back();
@@ -1975,7 +1955,6 @@ namespace Odo::Interpreting {
         }
 
         currentScope = temp;
-        valueTable.cleanUp(bodyScope);
 
         auto ret = returning;
         returning = nullptr;
@@ -2011,7 +1990,6 @@ namespace Odo::Interpreting {
             auto variant_name = Node::as<VariableNode>(variant)->token.value;
 
             auto variant_value = std::make_shared<EnumVarValue>(enumInTable, variant_name);
-            valueTable.addNewValue(variant_value);
 
             auto in_scope = enum_variant_scope.addSymbol({
                 enumInTable,
@@ -2023,7 +2001,6 @@ namespace Odo::Interpreting {
         }
 
         auto newValue = std::make_shared<EnumValue>(null->type, std::move(enum_variant_scope));
-        valueTable.addNewValue(newValue);
         newValue->addReference(*enumInTable);
         enumInTable->value = newValue;
 
@@ -2056,7 +2033,6 @@ namespace Odo::Interpreting {
 
         SymbolTable classScope{"class-" + node->name.value + "-scope", {}, currentScope};
         auto newClassMolde = std::make_shared<ClassValue>(inTable, classScope, currentScope, node->body);
-        valueTable.addNewValue(newClassMolde);
 
         auto prevScope = currentScope;
         currentScope = &newClassMolde->ownScope;
@@ -2093,7 +2069,6 @@ namespace Odo::Interpreting {
         }
 
         auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
-        valueTable.addNewValue(funcValue);
 
         auto newFunctionSymbol = currentScope->addSymbol({typeOfFunc, "constructor", funcValue});
         funcValue->addReference(*newFunctionSymbol);
@@ -2143,7 +2118,7 @@ namespace Odo::Interpreting {
                     if (tok.tp != Lexing::NOTHING) {
                         auto newValue = constructorParams[i];
                         if (newValue->is_copyable()) {
-                            newValue = newValue->copy(valueTable);
+                            newValue = newValue->copy();
                         }
                         initValues.emplace_back(tok, newValue);
                     }
@@ -2167,7 +2142,6 @@ namespace Odo::Interpreting {
             }
 
             visit(as_function_value->body);
-            valueTable.cleanUp(funcScope);
             currentScope = calleeScope;
             call_stack.pop_back();
         } else {
@@ -2191,7 +2165,6 @@ namespace Odo::Interpreting {
             SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
 
             auto newInstance = std::make_shared<InstanceValue>(classInit, classVal, std::move(instanceScope));
-            valueTable.addNewValue(newInstance);
             newInstance->important = true;
 
             std::vector<std::shared_ptr<Value>> newParams;
