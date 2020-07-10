@@ -8,6 +8,7 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
+#include <Interpreter/Interpreter.h>
 
 namespace Odo::Interpreting {
     void Value::addReference(Symbol& sym) {
@@ -224,6 +225,19 @@ namespace Odo::Interpreting {
         vt.addNewValue(copied_value);
 
         return copied_value;
+    }
+
+    std::shared_ptr<Value> NativeFunctionValue::copy(ValueTable& vt) {
+        auto copied_value = std::make_shared<NativeFunctionValue>(type, fn);
+
+        vt.addNewValue(copied_value);
+        return copied_value;
+    }
+
+    NativeFunctionValue::NativeFunctionValue(Symbol* tp, native_function fn_): Value(tp), fn(std::move(fn_)) {}
+
+    std::shared_ptr<Value> NativeFunctionValue::visit(Interpreter& in, std::vector<std::shared_ptr<Value>> params) const {
+        return fn(in, std::move(params));
     }
 
     ValueTable::ValueTable() = default;

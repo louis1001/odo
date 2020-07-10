@@ -25,7 +25,8 @@ namespace Odo::Interpreting {
         ClassVal,
         InstanceVal,
         EnumVal,
-        EnumVarVal
+        EnumVarVal,
+        NativeFunctionVal
     };
 
     struct Value {
@@ -154,6 +155,19 @@ namespace Odo::Interpreting {
         std::string to_string() final { return name; }
 
         EnumVarValue(Symbol* tp, std::string name_);
+    };
+
+    class Interpreter;
+    typedef std::function<std::shared_ptr<Value>(Interpreter&, std::vector<std::shared_ptr<Value>>)> native_function;
+    struct NativeFunctionValue final: public Value {
+        native_function fn;
+        ValueType kind() final { return ValueType::NativeFunctionVal; }
+
+        std::shared_ptr<Value> copy(ValueTable& vt) final;
+
+        std::shared_ptr<Value> visit(Interpreter&, std::vector<std::shared_ptr<Value>>) const;
+
+        NativeFunctionValue(Symbol*, native_function);
     };
 
     class ValueTable {

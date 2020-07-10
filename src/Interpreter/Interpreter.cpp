@@ -1888,8 +1888,10 @@ namespace Odo::Interpreting {
             }
         }
 
-        if (auto fVal = visit(node->expr);
-            fVal->kind() == ValueType::FunctionVal) {
+        auto fVal = visit(node->expr);
+        if (fVal->kind() == ValueType::NativeFunctionVal) {
+            return Value::as<NativeFunctionValue>(fVal)->visit(*this, {});
+        } else if (fVal->kind() == ValueType::FunctionVal) {
             auto as_function_value = Value::as<FunctionValue>(fVal);
 
             auto funcScope = SymbolTable("func-scope", {}, as_function_value->parentScope);
