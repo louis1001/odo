@@ -269,7 +269,7 @@ namespace Odo::Parsing{
         auto result = ModuleNode::create(name, body);
         result->line_number = ln;
         result->column_number = cl;
-        return std::move(result);
+        return result;
     }
 
     std::shared_ptr<Node> Parser::enumstatement() {
@@ -301,7 +301,7 @@ namespace Odo::Parsing{
         auto result = EnumNode::create(name, std::move(variants));
         result->line_number = ln;
         result->column_number = cl;
-        return std::move(result);
+        return result;
     }
 
     std::shared_ptr<Node> Parser::classstatement() {
