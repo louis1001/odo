@@ -931,25 +931,30 @@ namespace Odo::Interpreting {
         }
 
         bool go_backwards = node->rev.tp != Lexing::NOTHING;
+        bool use_iterator = node->var.tp != Lexing::NOTHING;
 
-        auto iterator_decl = std::make_shared<VarDeclarationNode>(
-            Lexing::Token(Lexing::TokenType::ID, "int"),
-            node->var,
-            std::make_shared<NoOpNode>()
-        );
-        visit(iterator_decl);
+        Symbol* declared_iter {nullptr};
+        std::shared_ptr<NormalValue> iter_as_normal;
+        if (use_iterator) {
+            std::shared_ptr<Node> iterator_decl = std::make_shared<VarDeclarationNode>(
+                    Lexing::Token(Lexing::TokenType::ID, "int"),
+                    node->var,
+                    std::make_shared<NoOpNode>()
+            );
+            visit(iterator_decl);
+            declared_iter = currentScope->findSymbol(node->var.value);
+            declared_iter->value = create_literal(0);
+            declared_iter->value->addReference(*declared_iter);
 
-        auto declared_iter = currentScope->findSymbol(node->var.value);
-        declared_iter->value = create_literal(0);
-        declared_iter->value->addReference(*declared_iter);
-
-        auto iter_as_normal = Value::as<NormalValue>(declared_iter->value);
+            iter_as_normal = Value::as<NormalValue>(declared_iter->value);
+        }
 
         for(int i = min_in_range; i < max_in_range; i++){
             auto actual_value = i;
             if (go_backwards) actual_value = min_in_range + max_in_range-1-i;
 
-            iter_as_normal->val = actual_value;
+            if (use_iterator)
+                iter_as_normal->val = actual_value;
 
             visit(node->body);
             if (continuing) {
@@ -966,7 +971,9 @@ namespace Odo::Interpreting {
                 break;
             }
         }
-        declared_iter->value->removeReference(*declared_iter);
+
+        if (use_iterator)
+            declared_iter->value->removeReference(*declared_iter);
         currentScope = forScope.getParent();
 
         return null;

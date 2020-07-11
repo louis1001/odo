@@ -508,10 +508,11 @@ namespace Odo::Parsing{
             ignore_nl();
         }
 
-        auto var = current_token;
-        if (has_paren)
-            ignore_nl();
-        eat(ID);
+        Token var(NOTHING, "");
+        if (current_token.tp == ID) {
+            var = current_token;
+            eat(ID);
+        }
         ignore_nl();
 
         Lexing::Token reverse_token(NOTHING, "");
