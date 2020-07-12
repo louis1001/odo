@@ -969,8 +969,6 @@ namespace Odo::Interpreting {
             }
         }
 
-        if (use_iterator)
-
         currentScope = forScope.getParent();
 
         return null;
