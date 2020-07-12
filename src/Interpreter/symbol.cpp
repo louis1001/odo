@@ -10,7 +10,7 @@
 namespace Odo::Interpreting {
     SymbolTable::SymbolTable() = default;
 
-    SymbolTable::SymbolTable(std::string name_, std::map<std::string, Symbol> types_, SymbolTable *parent_) {
+    SymbolTable::SymbolTable(std::string name_, std::unordered_map<std::string, Symbol> types_, SymbolTable *parent_) {
         scopeName = std::move(name_);
         symbols = std::move(types_);
         parent = parent_;

@@ -5,7 +5,7 @@
 #ifndef ODO_PORT_SYMBOL_H
 #define ODO_PORT_SYMBOL_H
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <limits>
 #include "utils.h"
@@ -68,9 +68,9 @@ namespace Odo::Interpreting {
 
     public:
         SymbolTable();
-        SymbolTable(std::string, std::map<std::string, Symbol> types, SymbolTable *parent= nullptr);
+        SymbolTable(std::string, std::unordered_map<std::string, Symbol> types, SymbolTable *parent= nullptr);
 
-        std::map<std::string, Symbol> symbols;
+        std::unordered_map<std::string, Symbol> symbols;
 
         Symbol* findSymbol(const std::string&, bool and_in_parents=true);
         Symbol* addSymbol(const Symbol&);
