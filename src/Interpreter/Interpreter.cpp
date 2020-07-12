@@ -86,12 +86,11 @@ namespace Odo::Interpreting {
 
         null = std::make_shared<NormalValue>(globalTable.findSymbol("NullType"), "null");
 
-        auto nullSym = globalTable.addSymbol({
+        globalTable.addSymbol({
             .tp = &globalTable.symbols["NullType"],
             .name = "null",
             .value = null
         });
-        null->addReference(*nullSym);
 
         replScope.symbols["_"] = {.tp=any_sym, .name="_", .value=null, .isType=false, .kind=SymbolType::VarSymbol};
 
@@ -846,7 +845,6 @@ namespace Odo::Interpreting {
 
             auto declared_iter = currentScope->findSymbol(node->var.value);
             declared_iter->value = create_literal(std::string(1, '\0'));
-            declared_iter->value->addReference(*declared_iter);
 
             auto iter_as_normal = Value::as<NormalValue>(declared_iter->value);
 
@@ -876,7 +874,7 @@ namespace Odo::Interpreting {
                     break;
                 }
             }
-            declared_iter->value->removeReference(*declared_iter);
+
         } else {
             throw Exceptions::ValueException(
                     "foreach statement can only be used with list or string values.",
@@ -944,7 +942,6 @@ namespace Odo::Interpreting {
             visit(iterator_decl);
             declared_iter = currentScope->findSymbol(node->var.value);
             declared_iter->value = create_literal(0);
-            declared_iter->value->addReference(*declared_iter);
 
             iter_as_normal = Value::as<NormalValue>(declared_iter->value);
         }
@@ -973,7 +970,7 @@ namespace Odo::Interpreting {
         }
 
         if (use_iterator)
-            declared_iter->value->removeReference(*declared_iter);
+
         currentScope = forScope.getParent();
 
         return null;
@@ -1088,9 +1085,8 @@ namespace Odo::Interpreting {
                 valueReturn = null;
             }
 
-            auto in_sym_table = currentScope->addSymbol(newVar);
+            currentScope->addSymbol(newVar);
             if (valueReturn != null) {
-                valueReturn->addReference(*in_sym_table);
             }
             return valueReturn;
         }
@@ -1146,7 +1142,6 @@ namespace Odo::Interpreting {
                 newValue
             });
 
-            newValue->addReference(*newVar);
             valueReturn = newValue;
 
             return valueReturn;
@@ -1168,7 +1163,7 @@ namespace Odo::Interpreting {
             if (varSym->value) {
                 auto theValue = varSym->value;
 
-                theValue->removeReference(*varSym);
+
                 if (newValue->is_copyable()) {
                     newValue = newValue->copy();
                 }
@@ -1189,7 +1184,6 @@ namespace Odo::Interpreting {
             }
 
             varSym->value = newValue;
-            newValue->addReference(*varSym);
         } else {
             throw Exceptions::NameException(
                     "Assignment to unknwon variable.",
@@ -1317,7 +1311,6 @@ namespace Odo::Interpreting {
                 actual_value
             };
 
-            actual_value->addReference(el_symbol);
             list_syms.push_back(el_symbol);
         }
 
@@ -1363,7 +1356,6 @@ namespace Odo::Interpreting {
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
-                            val->addReference(new_symbol);
                             new_elements.push_back(new_symbol);
                         }
                         for (const auto &el : right_as_list->elements) {
@@ -1374,7 +1366,6 @@ namespace Odo::Interpreting {
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
-                            val->addReference(new_symbol);
                             new_elements.push_back(new_symbol);
                         }
 
@@ -1392,7 +1383,6 @@ namespace Odo::Interpreting {
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
-                            val->addReference(new_symbol);
                             new_elements.push_back(new_symbol);
                         }
 
@@ -1402,7 +1392,6 @@ namespace Odo::Interpreting {
                         }
 
                         Symbol new_symbol = {val->type, "list_element", val};
-                        val->addReference(new_symbol);
                         new_elements.push_back(new_symbol);
 
                         new_list = std::make_shared<ListValue>(
@@ -1475,7 +1464,6 @@ namespace Odo::Interpreting {
                             }
 
                             Symbol new_symbol = {el.tp, el.name, val};
-                            val->addReference(new_symbol);
                             new_elements.push_back(new_symbol);
                         }
                     }
@@ -1772,8 +1760,7 @@ namespace Odo::Interpreting {
         currentScope = temp;
         moduleValue->important = false;
 
-        auto module_sym = currentScope->addSymbol({nullptr, node->name.value, moduleValue});
-        moduleValue->addReference(*module_sym);
+        currentScope->addSymbol({nullptr, node->name.value, moduleValue});
 
         return moduleValue;
     }
@@ -1831,14 +1818,13 @@ namespace Odo::Interpreting {
 
         auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
 
-        auto funcSymbol = currentScope->addSymbol({
+        currentScope->addSymbol({
             .tp=typeOfFunc,
             .name=node->name.value,
             .value=funcValue,
             .kind=SymbolType::FunctionSymbol
         });
 
-        funcValue->addReference(*funcSymbol);
 
         return null;
     }
@@ -1918,10 +1904,11 @@ namespace Odo::Interpreting {
             currentScope = &funcScope;
 
             std::string function_name = "<anonimous>";
-            if (!fVal->references.empty()) {
-                auto ref = *fVal->references.begin();
-                function_name = ref->name;
-            }
+            // TODO: Name For Functions
+//            if (!fVal->references.empty()) {
+//                auto ref = *fVal->references.begin();
+//                function_name = ref->name;
+//            }
 
             call_stack.push_back({function_name, current_line, current_col});
 
@@ -1931,7 +1918,6 @@ namespace Odo::Interpreting {
                 if (i < initValues.size()) {
                     auto newVar = currentScope->findSymbol(initValues[i].first.value);
                     newVar->value = initValues[i].second;
-                    initValues[i].second->addReference(*newVar);
                 }
             }
 
@@ -1998,17 +1984,15 @@ namespace Odo::Interpreting {
 
             auto variant_value = std::make_shared<EnumVarValue>(enumInTable, variant_name);
 
-            auto in_scope = enum_variant_scope.addSymbol({
+            enum_variant_scope.addSymbol({
                 enumInTable,
                 variant_name,
                 variant_value
             });
 
-            variant_value->addReference(*in_scope);
         }
 
         auto newValue = std::make_shared<EnumValue>(null->type, std::move(enum_variant_scope));
-        newValue->addReference(*enumInTable);
         enumInTable->value = newValue;
 
         return null;
@@ -2048,7 +2032,6 @@ namespace Odo::Interpreting {
         currentScope = prevScope;
 
         inTable->value = newClassMolde;
-        newClassMolde->addReference(*inTable);
 
         return null;
     }
@@ -2077,8 +2060,7 @@ namespace Odo::Interpreting {
 
         auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
 
-        auto newFunctionSymbol = currentScope->addSymbol({typeOfFunc, "constructor", funcValue});
-        funcValue->addReference(*newFunctionSymbol);
+        currentScope->addSymbol({typeOfFunc, "constructor", funcValue});
 
         return null;
     }
@@ -2144,7 +2126,6 @@ namespace Odo::Interpreting {
                 if (i < initValues.size()) {
                     auto newVar = currentScope->findSymbol(initValues[i].first.value);
                     newVar->value = initValues[i].second;
-                    initValues[i].second->addReference(*newVar);
                 }
             }
 

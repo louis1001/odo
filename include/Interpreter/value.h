@@ -32,7 +32,6 @@ namespace Odo::Interpreting {
     struct Value {
         Symbol* type {nullptr};
         bool important{false};
-        std::set<Symbol*> references;
 
         virtual ValueType kind()=0;
         virtual std::shared_ptr<Value> copy()=0;
@@ -46,9 +45,6 @@ namespace Odo::Interpreting {
         }
 
         virtual std::string to_string() { return "<value> at: " + address_as_str(); }
-
-        virtual void addReference(Symbol&);
-        virtual void removeReference(Symbol&);
 
         template<typename T>
         static std::shared_ptr<T> as(const std::shared_ptr<Value>& v) {

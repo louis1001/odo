@@ -11,18 +11,6 @@
 #include <Interpreter/Interpreter.h>
 
 namespace Odo::Interpreting {
-    void Value::addReference(Symbol& sym) {
-        references.insert(&sym);
-    }
-
-    void Value::removeReference(Symbol& sym) {
-        if (references.empty()) return;
-        auto indx = references.find(&sym);
-
-        if (indx != references.end()) {
-            references.erase(&sym);
-        }
-    }
 
     NormalValue::NormalValue(Symbol *tp, std::any the_value) : Value(tp), val(std::move(the_value)) {}
 
@@ -101,7 +89,6 @@ namespace Odo::Interpreting {
             symbols_copied.push_back({value_in_val->type, "list_element", list_el});
 
             auto& new_sym = *(symbols_copied.end()-1);
-            list_el->addReference(new_sym);
             new_sym.value = list_el;
         }
 
