@@ -71,9 +71,17 @@ namespace Odo::Interpreting {
         return result;
     }
 
+    std::shared_ptr<NormalValue> NormalValue::create(Symbol *tp, std::any the_value) {
+        return std::make_shared<NormalValue>(tp, the_value);
+    }
+
     ListValue::ListValue(Symbol* tp, std::vector<Symbol> sym_elements)
         : Value(tp)
         , elements(std::move(sym_elements)) {}
+
+    std::shared_ptr<ListValue> ListValue::create(Symbol* tp, std::vector<Symbol> sym_elements) {
+        return std::make_shared<ListValue>(tp, sym_elements);
+    }
 
     std::shared_ptr<Value> ListValue::copy() {
         // Copy elements first.
@@ -130,6 +138,11 @@ namespace Odo::Interpreting {
         , parentScope(scope_)
         , name(std::move(name_)) {}
 
+
+    std::shared_ptr<FunctionValue> FunctionValue::create(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name) {
+        return std::make_shared<FunctionValue>(tp, params_, body_, scope_, name="<anonymous>");
+    }
+
     std::shared_ptr<Value> FunctionValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<FunctionValue>(type, params, body, parentScope, name);
@@ -140,6 +153,11 @@ namespace Odo::Interpreting {
     ModuleValue::ModuleValue(Symbol* tp, const SymbolTable& scope)
         : Value(tp)
         , ownScope(scope) {}
+
+
+    std::shared_ptr<ModuleValue> ModuleValue::create(Symbol* tp, const SymbolTable& scope) {
+        return std::make_shared<ModuleValue>(tp, scope);
+    }
 
     std::shared_ptr<Value> ModuleValue::copy() {
         // This shouldn't be called ever...
@@ -154,6 +172,10 @@ namespace Odo::Interpreting {
         , body(std::move(body_))
         , parentScope(parent_) {}
 
+    std::shared_ptr<ClassValue> ClassValue::create(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_) {
+        return std::make_shared<ClassValue>(tp, scope, parent_, body_);
+    }
+
     std::shared_ptr<Value> ClassValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<ClassValue>(type, ownScope, parentScope, body);
@@ -166,6 +188,10 @@ namespace Odo::Interpreting {
         , molde(std::move(molde_))
         , ownScope(scope) {}
 
+    std::shared_ptr<InstanceValue> InstanceValue::create(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope) {
+        return std::make_shared<InstanceValue>(tp, molde_, scope);
+    }
+
     std::shared_ptr<Value> InstanceValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<InstanceValue>(type, molde, ownScope);
@@ -175,6 +201,10 @@ namespace Odo::Interpreting {
 
     EnumValue::EnumValue(Symbol* tp, const SymbolTable& scope): Value(tp), ownScope(scope) {}
 
+    std::shared_ptr<EnumValue> EnumValue::create(Symbol* tp, const SymbolTable& scope) {
+        return std::make_shared<EnumValue>(tp, scope);
+    }
+
     std::shared_ptr<Value> EnumValue::copy() {
         // This shouldn't be called ever...
         auto copied_value = std::make_shared<EnumValue>(type, ownScope);
@@ -183,6 +213,10 @@ namespace Odo::Interpreting {
     }
 
     EnumVarValue::EnumVarValue(Symbol* tp, std::string name_): Value(tp), name(std::move(name_)) {}
+
+    std::shared_ptr<EnumVarValue> EnumVarValue::create(Symbol* tp, std::string name_) {
+        return std::make_shared<EnumVarValue>(tp, name_);
+    }
 
     std::shared_ptr<Value> EnumVarValue::copy() {
         // This shouldn't be called ever...
@@ -197,6 +231,10 @@ namespace Odo::Interpreting {
     }
 
     NativeFunctionValue::NativeFunctionValue(Symbol* tp, native_function fn_): Value(tp), fn(std::move(fn_)) {}
+
+    std::shared_ptr<NativeFunctionValue> NativeFunctionValue::create(Symbol* tp, native_function fn_) {
+        return std::make_shared<NativeFunctionValue>(tp, fn_);
+    }
 
     std::shared_ptr<Value> NativeFunctionValue::visit(Interpreter& in, std::vector<std::shared_ptr<Value>> params) const {
         return fn(in, std::move(params));

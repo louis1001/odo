@@ -70,6 +70,8 @@ namespace Odo::Interpreting {
 
         std::string to_string() final;
         NormalValue(Symbol *tp, std::any the_value);
+
+        static std::shared_ptr<NormalValue> create(Symbol *tp, std::any the_value);
     };
 
     struct ListValue final: public Value {
@@ -82,6 +84,8 @@ namespace Odo::Interpreting {
         std::string to_string() final;
         std::vector<std::shared_ptr<Value>> as_list_value();
         ListValue(Symbol* tp, std::vector<Symbol> sym_elements);
+
+        static std::shared_ptr<ListValue> create(Symbol* tp, std::vector<Symbol> sym_elements);
     };
 
     struct FunctionValue final: public Value {
@@ -96,6 +100,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return "<function> at: " + address_as_str(); }
 
         FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name="<anonymous>");
+
+        static std::shared_ptr<FunctionValue> create(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name="<anonymous>");
     };
 
     struct ModuleValue final: public Value {
@@ -107,6 +113,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return "<module> at: " + address_as_str(); }
 
         ModuleValue(Symbol* tp, const SymbolTable& scope);
+
+        static std::shared_ptr<ModuleValue> create(Symbol* tp, const SymbolTable& scope);
     };
 
     struct ClassValue final: public Value {
@@ -121,6 +129,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return "<class> at: " + address_as_str(); }
 
         ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
+
+        static std::shared_ptr<ClassValue> create(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
     };
 
     struct InstanceValue final: public Value {
@@ -134,6 +144,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return "<instance> at: " + address_as_str(); }
 
         InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
+
+        static std::shared_ptr<InstanceValue> create(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
     };
 
     struct EnumValue final: public Value {
@@ -145,6 +157,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return "<enum> at: " + address_as_str(); }
 
         EnumValue(Symbol* tp, const SymbolTable& scope);
+
+        static std::shared_ptr<EnumValue> create(Symbol* tp, const SymbolTable& scope);
     };
 
     struct EnumVarValue final: public Value {
@@ -156,6 +170,8 @@ namespace Odo::Interpreting {
         std::string to_string() final { return name; }
 
         EnumVarValue(Symbol* tp, std::string name_);
+
+        static std::shared_ptr<EnumVarValue> create(Symbol* tp, std::string name_);
     };
 
     class Interpreter;
@@ -169,6 +185,8 @@ namespace Odo::Interpreting {
         std::shared_ptr<Value> visit(Interpreter&, std::vector<std::shared_ptr<Value>>) const;
 
         NativeFunctionValue(Symbol*, native_function);
+
+        static std::shared_ptr<NativeFunctionValue> create(Symbol*, native_function);
     };
 
 }
