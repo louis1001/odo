@@ -88,13 +88,14 @@ namespace Odo::Interpreting {
         std::vector<std::shared_ptr<Parsing::Node>> params;
         std::shared_ptr<Parsing::Node> body;
         SymbolTable* parentScope{};
+        std::string name;
         ValueType kind() final { return ValueType::FunctionVal; }
 
         std::shared_ptr<Value> copy() final;
 
         std::string to_string() final { return "<function> at: " + address_as_str(); }
 
-        FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_);
+        FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name="<anonymous>");
     };
 
     struct ModuleValue final: public Value {

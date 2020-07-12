@@ -1816,7 +1816,7 @@ namespace Odo::Interpreting {
             typeOfFunc = globalTable.addFuncType(returnType, paramTypes);
         }
 
-        auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope);
+        auto funcValue = std::make_shared<FunctionValue>(typeOfFunc, node->params, node->body, currentScope, node->name.value);
 
         currentScope->addSymbol({
             .tp=typeOfFunc,
@@ -1903,14 +1903,7 @@ namespace Odo::Interpreting {
 
             currentScope = &funcScope;
 
-            std::string function_name = "<anonimous>";
-            // TODO: Name For Functions
-//            if (!fVal->references.empty()) {
-//                auto ref = *fVal->references.begin();
-//                function_name = ref->name;
-//            }
-
-            call_stack.push_back({function_name, current_line, current_col});
+            call_stack.push_back({as_function_value->name, current_line, current_col});
 
             for (int i = 0; i < newDecls.size(); i++) {
                 visit(newDecls[i]);

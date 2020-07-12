@@ -123,15 +123,16 @@ namespace Odo::Interpreting {
         return results;
     }
 
-    FunctionValue::FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_)
+    FunctionValue::FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name_)
         : Value(tp)
         , params(std::move(params_))
         , body(std::move(body_))
-        , parentScope(scope_) {}
+        , parentScope(scope_)
+        , name(std::move(name_)) {}
 
     std::shared_ptr<Value> FunctionValue::copy() {
         // This shouldn't be called ever...
-        auto copied_value = std::make_shared<FunctionValue>(type, params, body, parentScope);
+        auto copied_value = std::make_shared<FunctionValue>(type, params, body, parentScope, name);
 
         return copied_value;
     }
