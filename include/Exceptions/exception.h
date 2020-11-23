@@ -35,7 +35,7 @@ namespace Odo::Exceptions {
                     std::to_string(column_number) + ")\n\t" + message;
             return ss;
         }
-        virtual bool should_show_traceback() const { return true; }
+        [[nodiscard]] virtual bool should_show_traceback() const { return true; }
     };
 
     class IOException: public Exception {
@@ -62,7 +62,7 @@ namespace Odo::Exceptions {
 
     public:
         using OdoException::OdoException;
-        bool should_show_traceback() const override { return false; }
+        [[nodiscard]] bool should_show_traceback() const override { return false; }
     };
 
     class TypeException: public OdoException {
