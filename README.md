@@ -1,7 +1,7 @@
 # Odo
 [![Generic badge](https://img.shields.io/badge/version-0.3_beta-blue.svg)](https://shields.io/)
 
-A port to C++ of my personal programming language.
+My personal programming language. Written in C++.
 
 ---
 <sup>The README is a work in progress.</sup>
@@ -10,7 +10,7 @@ A port to C++ of my personal programming language.
 
 This is my first attempt at making a usable, personalized interpreted programming language.
 *First* as in, the specs. This is the 2nd time I port this language, the first edition was written
-in `Swift`.
+in `Swift`. At this point, the C++ version has become the main branch of the project.
 
 This project is me practicing C++ in real-world, decently sized applications, and applying some
 knowledge about designing programming languages. Most of this techniques I learnt from
