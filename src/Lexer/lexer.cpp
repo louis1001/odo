@@ -8,7 +8,7 @@
 
 namespace Odo::Lexing {
     Lexer::Lexer(std::string txt): text(std::move(txt)) {
-        current_pos = -1;
+        current_pos = static_cast<unsigned int>(-1);
         current_char = NULLCHR;
         current_line = 1;
         line_start = (int)current_pos;
@@ -382,7 +382,7 @@ namespace Odo::Lexing {
     }
 
     void Lexer::reset() {
-        current_pos = -1;
+        current_pos = static_cast<unsigned int>(-1);
         current_line = 1;
         line_start = (int)current_pos;
         advance();

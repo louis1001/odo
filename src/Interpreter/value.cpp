@@ -41,7 +41,7 @@ namespace Odo::Interpreting {
         if (type->name == "double") {
             auto this_as_double = as_double();
 
-            int floored = floor(this_as_double);
+            int floored = static_cast<int>(floor(this_as_double));
             if (this_as_double - floored < 1e-15) {
                 result = std::to_string(floored) + ".0";
             } else {
