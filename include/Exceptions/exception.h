@@ -8,14 +8,14 @@
 #ifndef ODO_PORT_EXCEPTION_H
 #define ODO_PORT_EXCEPTION_H
 namespace Odo::Exceptions {
-    class Exception: std::exception {
+    class Exception: public std::exception {
     public:
         [[nodiscard]] virtual std::string msg() const noexcept {
             return "OdoError";
         }
     };
 
-    class OdoException: Exception {
+    class OdoException: public Exception {
         unsigned int line_number{};
         unsigned int column_number{};
 
