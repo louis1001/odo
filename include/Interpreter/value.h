@@ -13,6 +13,7 @@
 #include <string>
 #include <variant>
 #include <Parser/AST/Node.h>
+#include <functional>
 
 #include "symbol.h"
 namespace Odo::Interpreting {

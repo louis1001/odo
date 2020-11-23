@@ -3,6 +3,7 @@
 //
 
 #include "utils.h"
+#include <ctime>
 
 namespace Odo {
     std::default_random_engine generator(clock());

@@ -1837,14 +1837,12 @@ namespace Odo::Interpreting {
             if (found_in_natives != native_functions.end()) {
                 auto num_args = node->args.size();
                 std::vector<std::shared_ptr<Value>> arguments_visited;
-                arguments_visited.reserve(num_args);
 
                 std::vector<bool> was_important{};
-                was_important.reserve(num_args);
                 for(int i = 0; i < num_args; i++){
                     auto& arg = node->args[i];
                     auto v = visit(arg);
-                    was_important[i] = v->important;
+                    was_important.push_back(v->important);
                     v->important = true;
                     arguments_visited.push_back(std::move(v));
                 }
