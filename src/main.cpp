@@ -14,7 +14,9 @@
 int main(int argc, char* argv[]) {
     std::string logo =
 #if DEBUG_MODE
-"               debug"
+"               debug\n"
+"            (" __DATE__ "\n"
+"              " __TIME__ ")"
 #else
 "              release"
 #endif
