@@ -335,7 +335,7 @@ namespace Odo::Interpreting {
                 }
 
                 int rounding = v2->as_int();
-                int decimal = pow(10, rounding);
+                int decimal = static_cast<int>(pow(10, rounding));
                 double result = round(v*decimal)/decimal;
                 return create_literal(result);
             }
@@ -905,7 +905,7 @@ namespace Odo::Interpreting {
         if (first_visited->type->name == "int")
             max_in_range = Value::as<NormalValue>(first_visited)->as_int();
         else if (first_visited->type->name == "double")
-            max_in_range = floor(Value::as<NormalValue>(first_visited)->as_double());
+            max_in_range = static_cast<int>(floor(Value::as<NormalValue>(first_visited)->as_double()));
 
         int min_in_range = 0;
 
@@ -924,7 +924,7 @@ namespace Odo::Interpreting {
             if (second_visited->type->name == "int")
                 max_in_range = Value::as<NormalValue>(second_visited)->as_int();
             else if (second_visited->type->name == "double")
-                max_in_range = floor(Value::as<NormalValue>(second_visited)->as_double());
+                max_in_range = static_cast<int>(floor(Value::as<NormalValue>(second_visited)->as_double()));
         }
 
         bool go_backwards = node->rev.tp != Lexing::NOTHING;
