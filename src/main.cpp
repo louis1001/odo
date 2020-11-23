@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
             code = Odo::io::read_file(input_file);
         } catch (Odo::Exceptions::IOException& e) {
             std::cout << std::endl;
-            std::cerr << e.what() << "\n" << std::flush;
+            std::cerr << e.msg() << "\n" << std::flush;
             exit(1);
         }
 
@@ -63,15 +63,15 @@ int main(int argc, char* argv[]) {
             inter.interpret(code);
         } catch(Odo::Exceptions::OdoException& e) {
             std::cout << std::endl << RED;
+            auto& calls = inter.get_call_stack();
             if (e.should_show_traceback()) {
-                auto& calls = inter.get_call_stack();
                 for (const auto& frame : calls) {
                     std::cout << "line " << frame.line_number << ", column " << frame.column_number << " in " << frame.name << "\n";
                 }
-                calls.clear();
             }
+            calls.clear();
 
-            std::cerr << e.what() << RESET << std::flush;
+            std::cerr << e.msg() << RESET << std::flush;
             exit(1);
         }
     // Else
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
                     calls.clear();
                 }
 
-                std::string msg = e.what();
+                std::string msg = e.msg();
                 std::cout << msg << RESET << std::endl;
             }
         }

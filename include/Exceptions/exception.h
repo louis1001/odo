@@ -10,7 +10,7 @@
 namespace Odo::Exceptions {
     class Exception: std::exception {
     public:
-        [[nodiscard]] virtual const char* what() const noexcept {
+        [[nodiscard]] virtual std::string msg() const noexcept {
             return "OdoError";
         }
     };
@@ -29,11 +29,11 @@ namespace Odo::Exceptions {
             column_number = col_n;
         }
 
-        [[nodiscard]] const char* what() const noexcept final {
+        [[nodiscard]] std::string msg() const noexcept final {
             std::string ss;
             ss += exception_name() + " (line " + std::to_string(line_number) + ", column " +
                     std::to_string(column_number) + ")\n\t" + message;
-            return ss.c_str();
+            return ss;
         }
         virtual bool should_show_traceback() const { return true; }
     };
@@ -46,8 +46,8 @@ namespace Odo::Exceptions {
             path = _path;
         }
 
-        [[nodiscard]] const char* what() const noexcept final {
-            return (std::string("IOError\n\tCannot open file '") + path + "'").c_str();
+        [[nodiscard]] std::string msg() const noexcept final {
+            return std::string("IOError\n\tCannot open file '") + path + "'";
         };
     };
 
