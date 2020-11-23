@@ -315,7 +315,7 @@ namespace Odo::Interpreting {
                     v = v1->as_int();
                 } else {
                     throw Exceptions::ValueException(
-                        "trunc function can only be called with numeric values and an optional int+",
+                        "round function can only be called with numeric values and an optional int+",
                         current_line,
                         current_col
                     );
@@ -328,7 +328,7 @@ namespace Odo::Interpreting {
                 auto v2 = Value::as<NormalValue>(vals[1]);
                 if (!v2 || v2->type->name != "int") {
                     throw Exceptions::ValueException(
-                        "trunc function can only be called with a numeric value and an optional int-",
+                        "round function can only be called with a numeric value and an optional int-",
                         current_line,
                         current_col
                     );
