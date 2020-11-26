@@ -66,7 +66,7 @@ statement = single_statement, statement_terminator;
 func_params = "(", [var_declaration, {",", var_declaration}], ")";
 call_arguments = "(", comma_expression_list, ")";
 
-var_declaration = identifier, identifier, ["[]"], ["=", ternary_op];
+var_declaration = identifier, identifier, [("(", call_arguments, ")") | (["[]"], ["=", ternary_op])];
 
 closure = "{", statement_list,  "}";
 

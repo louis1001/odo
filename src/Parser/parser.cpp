@@ -672,6 +672,8 @@ namespace Odo::Parsing{
 
         std::shared_ptr<Node> assignment{nullptr};
 
+        bool using_direct_init = false;
+
         if (current_token.tp == LBRA) {
             auto tp = token;
             eat(LBRA);
@@ -694,9 +696,19 @@ namespace Odo::Parsing{
             result->column_number = cl;
 
             return result;
+        } else if (current_token.tp == LPAR) {
+            using_direct_init = true;
+            eat(LPAR);
+            auto pars = call_args();
+            eat(RPAR);
+            assignment = ClassInitializerNode::create(token, pars);
         }
 
         if (current_token.tp == ASS) {
+            if (using_direct_init) {
+                std::string err_msg = "Invalid use of direct initialization. You also have asignment in the statement.";
+                throw Exceptions::OdoException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
+            }
             eat(ASS);
             assignment = ternary_op();
         }
