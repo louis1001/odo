@@ -340,13 +340,7 @@ namespace Odo::Parsing{
         if (current_token.tp == LPAR) {
             eat(LPAR);
 
-            while (current_token.tp != RPAR) {
-                argList.push_back(ternary_op());
-
-                if (current_token.tp != RPAR) {
-                    eat(COMMA);
-                }
-            }
+            argList = call_args();
 
             eat(RPAR);
         }
@@ -651,6 +645,22 @@ namespace Odo::Parsing{
         }
 
         return params;
+    }
+
+    std::vector<std::shared_ptr<Node>> Parser::call_args() {
+        std::vector<std::shared_ptr<Node>> argList;
+
+        while (current_token.tp != RPAR) {
+            argList.push_back(ternary_op());
+
+            ignore_nl();
+            if (current_token.tp != RPAR) {
+                eat(COMMA);
+            }
+            ignore_nl();
+        }
+
+        return argList;
     }
 
     std::shared_ptr<Node> Parser::declaration(const Token& token) {
@@ -992,17 +1002,7 @@ namespace Odo::Parsing{
                 {
                     eat(LPAR);
 
-                    std::vector<std::shared_ptr<Node>> argList;
-
-                    while (current_token.tp != RPAR) {
-                        argList.push_back(ternary_op());
-
-                        ignore_nl();
-                        if (current_token.tp != RPAR) {
-                            eat(COMMA);
-                        }
-                        ignore_nl();
-                    }
+                    auto argList = call_args();
 
                     eat(RPAR);
                     Token name(NOTHING, "");
