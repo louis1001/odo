@@ -2135,8 +2135,8 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_ClassInitializer(const std::shared_ptr<ClassInitializerNode>& node) {
-        if (auto classInit = currentScope->findSymbol(node->name.value)) {
-            auto classVal = Value::as<ClassValue>(classInit->value);
+        if (auto classInit = currentScope->findSymbol(node->name.value);
+            auto classVal = Value::as<ClassValue>(classInit->value)) {
 
             SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
 
