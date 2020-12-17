@@ -14,6 +14,7 @@
 #include <variant>
 #include <Parser/AST/Node.h>
 #include <functional>
+#include "Translations/lang.h"
 
 #include "symbol.h"
 namespace Odo::Interpreting {
@@ -45,7 +46,7 @@ namespace Odo::Interpreting {
             return ss.str();
         }
 
-        virtual std::string to_string() { return "<value> at: " + address_as_str(); }
+        virtual std::string to_string() { return VALUE_AT_MSG + address_as_str(); }
 
         template<typename T>
         static std::shared_ptr<T> as(const std::shared_ptr<Value>& v) {
@@ -59,8 +60,8 @@ namespace Odo::Interpreting {
         std::any val;
 
         ValueType kind() final { return ValueType::NormalVal; }
-        [[nodiscard]] bool is_numeric() const final { return type->name == "int" || type->name == "double"; }
-        [[nodiscard]] bool is_copyable() const final { return type->name != "NullType"; }
+        [[nodiscard]] bool is_numeric() const final { return type->name == INT_TP || type->name == DOUBLE_TP; }
+        [[nodiscard]] bool is_copyable() const final { return type->name != NULL_TP; }
 
         std::shared_ptr<Value> copy() final;
 
@@ -98,7 +99,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy() final;
 
-        std::string to_string() final { return "<function> at: " + address_as_str(); }
+        std::string to_string() final { return FUNC_AT_MSG + address_as_str(); }
 
         FunctionValue(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name="<anonymous>");
 
@@ -111,7 +112,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy() final;
 
-        std::string to_string() final { return "<module> at: " + address_as_str(); }
+        std::string to_string() final { return MODULE_AT_MSG + address_as_str(); }
 
         ModuleValue(Symbol* tp, const SymbolTable& scope);
 
@@ -127,7 +128,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy() final;
 
-        std::string to_string() final { return "<class> at: " + address_as_str(); }
+        std::string to_string() final { return CLASS_AT_MSG + address_as_str(); }
 
         ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
 
@@ -142,7 +143,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy() final;
 
-        std::string to_string() final { return "<instance> at: " + address_as_str(); }
+        std::string to_string() final { return INSTANCE_AT_MSG + address_as_str(); }
 
         InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
 
@@ -155,7 +156,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> copy() final;
 
-        std::string to_string() final { return "<enum> at: " + address_as_str(); }
+        std::string to_string() final { return ENUM_AT_MSG + address_as_str(); }
 
         EnumValue(Symbol* tp, const SymbolTable& scope);
 

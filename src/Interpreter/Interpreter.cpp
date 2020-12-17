@@ -59,37 +59,37 @@
 // #define DEBUG_FUNCTIONS
 
 #define NOT_IMPLEMENTED(...) \
-    throw Exceptions::OdoException("Using function not yet implemented: " + std::string(#__VA_ARGS__), current_line, current_col)
+    throw Exceptions::OdoException(NOT_IMPL_EXCP + std::string(#__VA_ARGS__), current_line, current_col)
 
 namespace Odo::Interpreting {
     using namespace Parsing;
 
     Interpreter::Interpreter(Parser p): parser(std::move(p)) {
-        auto any_symbol = Symbol{.name="any", .isType=true, .kind=SymbolType::PrimitiveType};
+        auto any_symbol = Symbol{.name=ANY_TP, .isType=true, .kind=SymbolType::PrimitiveType};
 
         std::unordered_map<std::string, Symbol> buildInTypes = {
-            {"any", any_symbol}
+            {ANY_TP, any_symbol}
         };
         globalTable = SymbolTable("global", buildInTypes);
 
-        auto any_sym = &globalTable.symbols["any"];
+        auto any_sym = &globalTable.symbols[ANY_TP];
 
-        globalTable.symbols["int"] = {.tp=any_sym, .name="int", .isType=true, .kind=SymbolType::PrimitiveType};
-        globalTable.symbols["double"] = {.tp=any_sym, .name="double", .isType=true, .kind=SymbolType::PrimitiveType};
-        globalTable.symbols["string"] = {.tp=any_sym, .name="string", .isType=true, .kind=SymbolType::PrimitiveType};
-        globalTable.symbols["bool"] = {.tp=any_sym, .name="bool", .isType=true, .kind=SymbolType::PrimitiveType};
-        globalTable.symbols["pointer"] = {.tp=any_sym, .name="pointer", .isType=true, .kind=SymbolType::PrimitiveType};
-        globalTable.symbols["NullType"] = {.tp=any_sym, .name="NullType", .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[INT_TP] = {.tp=any_sym, .name=INT_TP, .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[DOUBLE_TP] = {.tp=any_sym, .name=DOUBLE_TP, .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[STRING_TP] = {.tp=any_sym, .name=STRING_TP, .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[BOOL_TP] = {.tp=any_sym, .name=BOOL_TP, .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[POINTER_TP] = {.tp=any_sym, .name=POINTER_TP, .isType=true, .kind=SymbolType::PrimitiveType};
+        globalTable.symbols[NULL_TP] = {.tp=any_sym, .name=NULL_TP, .isType=true, .kind=SymbolType::PrimitiveType};
 
         currentScope = &globalTable;
 
         replScope = SymbolTable("repl", {}, &globalTable);
 
-        null = NormalValue::create(globalTable.findSymbol("NullType"), "null");
+        null = NormalValue::create(globalTable.findSymbol(NULL_TP), NULL_TK);
 
         globalTable.addSymbol({
-            .tp = &globalTable.symbols["NullType"],
-            .name = "null",
+            .tp = &globalTable.symbols[NULL_TP],
+            .name = NULL_TK,
             .value = null
         });
 
@@ -105,7 +105,7 @@ namespace Odo::Interpreting {
         });
 #endif
 
-        add_native_function("print", [&](auto values) {
+        add_native_function(PRINT_FN, [&](auto values) {
             for (const auto& v : values) {
                 if (v)
                     std::cout << v->to_string();
@@ -115,7 +115,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("println", [&](auto values) {
+        add_native_function(PRINTLN_FN, [&](auto values) {
             for (const auto& v : values) {
                 if (v)
                     std::cout << v->to_string();
@@ -124,7 +124,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("move_cursor", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(MOVE_CRSR_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 auto nv = Value::as<NormalValue>(vals[0]);
                 if (nv) {
@@ -135,8 +135,8 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("factorial", [&](std::vector<std::shared_ptr<Value>> v){
-            if (!v.empty() && v[0]->type->name == "int") {
+        add_native_function(FACTR_FN, [&](std::vector<std::shared_ptr<Value>> v){
+            if (!v.empty() && v[0]->type->name == INT_TP) {
                 int arg1 = Value::as<NormalValue>(v[0])->as_int();
                 int result = 1;
                 for(int i = 1; i <= arg1; i++) {
@@ -145,16 +145,16 @@ namespace Odo::Interpreting {
                 return create_literal(result);
             }
             throw Exceptions::FunctionCallException(
-                "factorial function requires a single int argument.",
+                FACTR_REQ_INT_EXCP,
                 current_line,
                 current_col
             );
         });
 
-        add_native_function("length", [&](std::vector<std::shared_ptr<Value>> v){
+        add_native_function(LENGTH_FN, [&](std::vector<std::shared_ptr<Value>> v){
             if (!v.empty()) {
                 auto arg = v[0];
-                if (arg->type->name == "string") {
+                if (arg->type->name == STRING_TP) {
                     size_t len = Value::as<NormalValue>(arg)->as_string().size();
                     return create_literal((int)len);
                 } else if (arg->kind() == ValueType::ListVal) {
@@ -163,13 +163,13 @@ namespace Odo::Interpreting {
                 }
             }
             throw Exceptions::FunctionCallException(
-                "length function requires a single argument of type string or list.",
+                LENGTH_REQ_ARGS_EXCP,
                 current_line,
                 current_col
             );
         });
 
-        add_native_function("fromAsciiCode", [&](std::vector<std::shared_ptr<Value>> vals){
+        add_native_function(FROM_ASCII_FN, [&](std::vector<std::shared_ptr<Value>> vals){
             if (!vals.empty()) {
                 int val = Value::as<NormalValue>(vals[0])->as_int();
 
@@ -179,7 +179,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("toAsciiCode", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(TO_ASCII_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 char val = Value::as<NormalValue>(vals[0])->as_string()[0];
 
@@ -189,7 +189,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("pow", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(POW_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (vals.size() >= 2) {
                 bool result_as_int = true;
                 double a = 0, b = 0;
@@ -197,17 +197,17 @@ namespace Odo::Interpreting {
                 auto normal_val_first = Value::as<NormalValue>(vals[0]);
                 auto normal_val_second = Value::as<NormalValue>(vals[1]);
 
-                if (normal_val_first && vals[0]->type->name == "double") {
+                if (normal_val_first && vals[0]->type->name == DOUBLE_TP) {
                     a = normal_val_first->as_double();
                     result_as_int = false;
-                } else if (normal_val_first && vals[0]->type->name == "int") {
+                } else if (normal_val_first && vals[0]->type->name == INT_TP) {
                     a = normal_val_first->as_int();
                 }
 
-                if (normal_val_second->type->name == "double") {
+                if (normal_val_second->type->name == DOUBLE_TP) {
                     b = normal_val_second->as_double();
                     result_as_int = false;
-                } else if (normal_val_second->type->name == "int") {
+                } else if (normal_val_second->type->name == INT_TP) {
                     b = normal_val_second->as_int();
                 }
 
@@ -220,15 +220,15 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("sqrt", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(SQRT_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
                 auto normal_value = Value::as<NormalValue>(vals[0]);
 
-                if (normal_value && normal_value->type->name == "double") {
+                if (normal_value && normal_value->type->name == DOUBLE_TP) {
                     a = normal_value->as_double();
-                } else if (normal_value && normal_value->type->name == "int") {
+                } else if (normal_value && normal_value->type->name == INT_TP) {
                     a = normal_value->as_int();
                 }
 
@@ -236,15 +236,15 @@ namespace Odo::Interpreting {
             }
             return null;
         });
-        add_native_function("sin", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(SIN_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
                 auto normal_value = Value::as<NormalValue>(vals[0]);
 
-                if (normal_value && normal_value->type->name == "double") {
+                if (normal_value && normal_value->type->name == DOUBLE_TP) {
                     a = normal_value->as_double();
-                } else if (normal_value && normal_value->type->name == "int") {
+                } else if (normal_value && normal_value->type->name == INT_TP) {
                     a = normal_value->as_int();
                 }
 
@@ -252,15 +252,15 @@ namespace Odo::Interpreting {
             }
             return null;
         });
-        add_native_function("cos", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(COS_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
                 auto normal_value = Value::as<NormalValue>(vals[0]);
 
-                if (normal_value && normal_value->type->name == "double") {
+                if (normal_value && normal_value->type->name == DOUBLE_TP) {
                     a = normal_value->as_double();
-                } else if (normal_value && normal_value->type->name == "int") {
+                } else if (normal_value && normal_value->type->name == INT_TP) {
                     a = normal_value->as_int();
                 }
 
@@ -269,17 +269,17 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("floor", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(FLOOR_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (vals.size() == 1) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
 
                 double v = 0;
-                if (v1 && v1->type->name == "double") {
+                if (v1 && v1->type->name == DOUBLE_TP) {
                     v = v1->as_double();
-                } else if (v1 && v1->type->name == "int") {
+                } else if (v1 && v1->type->name == INT_TP) {
                     v = v1->as_int();
                 } else {
-                    throw Exceptions::ValueException("floor function can only be called with numeric values");
+                    throw Exceptions::ValueException(FLOOR_ONLY_NUM_EXCP);
                 }
 
                 return create_literal(static_cast<int>(floor(v)));
@@ -288,16 +288,16 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("trunc", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(TRUNC_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (vals.size() == 1) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
                 double v = 0;
-                if (v1 && v1->type->name == "double") {
+                if (v1 && v1->type->name == DOUBLE_TP) {
                     v = v1->as_double();
-                } else if (v1 && v1->type->name == "int") {
+                } else if (v1 && v1->type->name == INT_TP) {
                     v = v1->as_int();
                 } else {
-                    throw Exceptions::ValueException("trunc function can only be called with numeric values");
+                    throw Exceptions::ValueException(TRUNC_ONLY_NUM_EXCP);
                 }
 
                 return create_literal(static_cast<int>(trunc(v)));
@@ -306,17 +306,17 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("round", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(ROUND_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (!vals.empty()) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
                 double v = 0;
-                if (v1 && v1->type->name == "double") {
+                if (v1 && v1->type->name == DOUBLE_TP) {
                     v = v1->as_double();
-                } else if (v1 && v1->type->name == "int") {
+                } else if (v1 && v1->type->name == INT_TP) {
                     v = v1->as_int();
                 } else {
                     throw Exceptions::ValueException(
-                        "round function can only be called with numeric values and an optional int+",
+                        ROUND_ONLY_NUM_EXCP,
                         current_line,
                         current_col
                     );
@@ -327,9 +327,9 @@ namespace Odo::Interpreting {
                 }
 
                 auto v2 = Value::as<NormalValue>(vals[1]);
-                if (!v2 || v2->type->name != "int") {
+                if (!v2 || v2->type->name != INT_TP) {
                     throw Exceptions::ValueException(
-                        "round function can only be called with a numeric value and an optional int-",
+                        ROUND_ONLY_NUM_EXCP,
                         current_line,
                         current_col
                     );
@@ -344,7 +344,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("read", [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
             std::string result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -354,7 +354,7 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function("read_int", [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_INT_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
             int result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -364,7 +364,7 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function("read_double", [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_DOUBLE_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
             double result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -374,28 +374,28 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function("rand", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(RAND_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             double min = 0.0;
             double max = 1.0;
             if (vals.size() == 1) {
                 auto normal_value_first = Value::as<NormalValue>(vals[0]);
-                if (vals[0]->type->name == "double") {
+                if (vals[0]->type->name == DOUBLE_TP) {
                     max = normal_value_first->as_double();
-                } else if (vals[0]->type->name == "int") {
+                } else if (vals[0]->type->name == INT_TP) {
                     max = normal_value_first->as_int();
                 }
             } else if (vals.size() >= 2) {
                 auto normal_value_first = Value::as<NormalValue>(vals[0]);
-                if (vals[0]->type->name == "double") {
+                if (vals[0]->type->name == DOUBLE_TP) {
                     min =normal_value_first->as_double();
-                } else if (vals[0]->type->name == "int") {
+                } else if (vals[0]->type->name == INT_TP) {
                     min = normal_value_first->as_int();
                 }
 
                 auto normal_value_second = Value::as<NormalValue>(vals[1]);
-                if (vals[1]->type->name == "double") {
+                if (vals[1]->type->name == DOUBLE_TP) {
                     max = normal_value_second->as_double();
-                } else if (vals[1]->type->name == "int") {
+                } else if (vals[1]->type->name == INT_TP) {
                     max = normal_value_second->as_int();
                 }
             }
@@ -403,7 +403,7 @@ namespace Odo::Interpreting {
             return create_literal(rand_double(min, max));
         });
 
-        add_native_function("randInt", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(RAND_INT_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             int min = 0;
             int max = INT32_MAX;
             if (vals.size() == 1) {
@@ -416,7 +416,7 @@ namespace Odo::Interpreting {
             return create_literal(rand_int(min, max));
         });
 
-        add_native_function("pop", [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(POP_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
             if (vals.size() == 1) {
                 auto& lst = vals[0];
                 if (lst->kind() == ValueType::ListVal) {
@@ -434,7 +434,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("typeof", [&](const auto& vals) {
+        add_native_function(TYPEOF_FN, [&](const auto& vals) {
             if (vals.size() == 1) {
                 auto v = vals[0];
                 if (v) return create_literal(v->type->name);
@@ -443,11 +443,11 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function("clear", [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
+        add_native_function(CLEAR_FN, [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
 
-        add_native_function("wait", [&](auto){ std::cin.get(); return null; });
+        add_native_function(WAIT_FN, [&](auto){ std::cin.get(); return null; });
 
-        add_native_function("sleep", [&](std::vector<std::shared_ptr<Value>> vals){
+        add_native_function(SLEEP_FN, [&](std::vector<std::shared_ptr<Value>> vals){
             if (!vals.empty()) {
                 auto delay_time = Value::as<NormalValue>(vals[0])->as_int();
 
@@ -458,7 +458,7 @@ namespace Odo::Interpreting {
     }
 
     Symbol* Interpreter::any_type() {
-        return &globalTable.symbols["any"];
+        return &globalTable.symbols[ANY_TP];
     }
 
     std::pair<std::shared_ptr<Value>, std::shared_ptr<Value>>
@@ -472,13 +472,13 @@ namespace Odo::Interpreting {
             auto left_numeric = Value::as<NormalValue>(lhs);
             auto right_numeric = Value::as<NormalValue>(rhs);
 
-            if (lhs->type->name == "int") {
+            if (lhs->type->name == INT_TP) {
                 auto new_left = create_literal((double)left_numeric->as_int());
 
                 result.first = std::move(new_left);
             }
 
-            if (rhs->type->name == "int") {
+            if (rhs->type->name == INT_TP) {
                 auto new_left = create_literal((double)right_numeric->as_int());
 
                 result.second = std::move(new_left);
@@ -581,7 +581,7 @@ namespace Odo::Interpreting {
                 return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
             case NodeType::StaticStatement:
                 throw Exceptions::OdoException(
-                    "Static statements can only appear inside a class body.",
+                    STATIC_ONLY_CLASS_EXCP,
                     current_line,
                     current_col
                 );
@@ -614,17 +614,17 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
         std::any newValue;
-        if (kind == "double") {
+        if (kind == DOUBLE_TP) {
             newValue = strtod(val.c_str(), nullptr);
-        } else if (kind == "int") {
+        } else if (kind == INT_TP) {
             int a = (int) strtol(val.c_str(), nullptr, 10);
             newValue = a;
-        } else if (kind == "string") {
+        } else if (kind == STRING_TP) {
             newValue = val;
-        } else if (kind == "bool") {
+        } else if (kind == BOOL_TP) {
             if (val != TRUE_TK && val != FALSE_TK){
                 throw Exceptions::ValueException(
-                    "Invalid value for bool expression.",
+                    INVALID_BOOL_EXCP,
                     current_line,
                     current_col
                 );
@@ -646,35 +646,35 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::create_literal(std::string val) {
-        return create_literal_from_any(val, "string");
+        return create_literal_from_any(val, STRING_TP);
     }
 
     std::shared_ptr<Value> Interpreter::create_literal(int val) {
-        return create_literal_from_any(val, "int");
+        return create_literal_from_any(val, INT_TP);
     }
 
     std::shared_ptr<Value> Interpreter::create_literal(double val) {
-        return create_literal_from_any(val, "double");
+        return create_literal_from_any(val, DOUBLE_TP);
     }
 
     std::shared_ptr<Value> Interpreter::create_literal(bool val) {
-        return create_literal_from_any(val, "bool");
+        return create_literal_from_any(val, BOOL_TP);
     }
 
     std::shared_ptr<Value> Interpreter::visit_Double(const std::shared_ptr<DoubleNode>& node) {
-        return create_literal_from_string(node->token.value, "double");
+        return create_literal_from_string(node->token.value, DOUBLE_TP);
     }
 
     std::shared_ptr<Value> Interpreter::visit_Int(const std::shared_ptr<IntNode>& node) {
-        return create_literal_from_string(node->token.value, "int");
+        return create_literal_from_string(node->token.value, INT_TP);
     }
 
     std::shared_ptr<Value> Interpreter::visit_Bool(const std::shared_ptr<BoolNode>& node) {
-        return create_literal_from_string(node->token.value, "bool");
+        return create_literal_from_string(node->token.value, BOOL_TP);
     }
 
     std::shared_ptr<Value> Interpreter::visit_Str(const std::shared_ptr<StrNode>& node) {
-        return create_literal_from_string(node->token.value, "string");
+        return create_literal_from_string(node->token.value, STRING_TP);
     }
 
     std::shared_ptr<Value> Interpreter::visit_Block(const std::shared_ptr<BlockNode>& node) {
@@ -698,9 +698,9 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::visit_TernaryOp(const std::shared_ptr<TernaryOpNode>& node) {
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != "bool") {
+        if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    "Condition of ternary expression must be boolean.",
+                    COND_TERN_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -718,9 +718,9 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::visit_If(const std::shared_ptr<IfNode>& node) {
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != "bool") {
+        if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    "Condition of if statement must be boolean.",
+                    COND_IF_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -742,9 +742,9 @@ namespace Odo::Interpreting {
         visit(node->ini);
 
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != "bool") {
+        if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    "Condition expression of for statement must be boolean.",
+                    COND_FOR_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -835,9 +835,9 @@ namespace Odo::Interpreting {
                 }
             }
             lst_value->important = false;
-        } else if (lst_value->type->name == "string") {
+        } else if (lst_value->type->name == STRING_TP) {
             auto iterator_decl = std::make_shared<VarDeclarationNode>(
-                Lexing::Token(Lexing::TokenType::ID, "string"),
+                Lexing::Token(Lexing::TokenType::ID, STRING_TP),
                 node->var,
                 std::make_shared<NoOpNode>()
             );
@@ -877,7 +877,7 @@ namespace Odo::Interpreting {
 
         } else {
             throw Exceptions::ValueException(
-                    "foreach statement can only be used with list or string values.",
+                    FOREACH_ONLY_LIST_STR_EXCP,
                     current_line,
                     current_col
             );
@@ -897,15 +897,15 @@ namespace Odo::Interpreting {
         auto first_visited = visit(node->first);
         if (!first_visited->is_numeric()) {
             throw Exceptions::ValueException(
-                "Values defining the range of forange statement have to be numerical",
+                VAL_RANGE_NUM_EXCP,
                 current_line,
                 current_col
             );
         }
 
-        if (first_visited->type->name == "int")
+        if (first_visited->type->name == INT_TP)
             max_in_range = Value::as<NormalValue>(first_visited)->as_int();
-        else if (first_visited->type->name == "double")
+        else if (first_visited->type->name == DOUBLE_TP)
             max_in_range = static_cast<int>(floor(Value::as<NormalValue>(first_visited)->as_double()));
 
         int min_in_range = 0;
@@ -916,15 +916,15 @@ namespace Odo::Interpreting {
             auto second_visited = visit(node->second);
             if (!second_visited->is_numeric()) {
                 throw Exceptions::ValueException(
-                    "Values defining the range of forange statement have to be numerical",
+                    VAL_RANGE_NUM_EXCP,
                     current_line,
                     current_col
                 );
             }
 
-            if (second_visited->type->name == "int")
+            if (second_visited->type->name == INT_TP)
                 max_in_range = Value::as<NormalValue>(second_visited)->as_int();
-            else if (second_visited->type->name == "double")
+            else if (second_visited->type->name == DOUBLE_TP)
                 max_in_range = static_cast<int>(floor(Value::as<NormalValue>(second_visited)->as_double()));
         }
 
@@ -935,7 +935,7 @@ namespace Odo::Interpreting {
         std::shared_ptr<NormalValue> iter_as_normal;
         if (use_iterator) {
             std::shared_ptr<Node> iterator_decl = std::make_shared<VarDeclarationNode>(
-                    Lexing::Token(Lexing::TokenType::ID, "int"),
+                    Lexing::Token(Lexing::TokenType::ID, INT_TP),
                     node->var,
                     std::make_shared<NoOpNode>()
             );
@@ -979,9 +979,9 @@ namespace Odo::Interpreting {
         currentScope = &whileScope;
 
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != "bool") {
+        if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    "Condition expression of for statement must be boolean.",
+                    COND_WHILE_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -1032,7 +1032,7 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_VarDeclaration(const std::shared_ptr<VarDeclarationNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                    "Variable called '" + node->name.value + "' already exists",
+                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                     current_line,
                     current_col
             );
@@ -1041,7 +1041,7 @@ namespace Odo::Interpreting {
 
             if (type_ == nullptr) {
                 throw Exceptions::NameException(
-                        "Unknown type '" + node->var_type.value + "'.",
+                        UNKWN_TYPE_EXCP + node->var_type.value + "'.",
                         current_line,
                         current_col
                 );
@@ -1057,12 +1057,12 @@ namespace Odo::Interpreting {
                     newValue = newValue->copy();
                 }
 
-                if (type_->name == "any") {
+                if (type_->name == ANY_TP) {
                     type_ = newValue->type;
                 } else {
-                    if (type_->name == "int" && newValue->type->name == "double") {
+                    if (type_->name == INT_TP && newValue->type->name == DOUBLE_TP) {
                         newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
-                    } else if (type_->name == "double" && newValue->type->name == "int") {
+                    } else if (type_->name == DOUBLE_TP && newValue->type->name == INT_TP) {
                         newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
                     }
                 }
@@ -1094,7 +1094,7 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                    "Variable called '" + node->name.value + "' already exists",
+                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                     current_line,
                     current_col
             );
@@ -1103,7 +1103,7 @@ namespace Odo::Interpreting {
         auto base_type = currentScope->findSymbol(node->var_type.value);
         if (!(base_type && base_type->isType)) {
             throw Exceptions::TypeException(
-                    "Invalid type '" + node->var_type.value + "'.",
+                    INVALID_TYPE_EXCP + node->var_type.value + "'.",
                     current_line,
                     current_col
             );
@@ -1170,12 +1170,12 @@ namespace Odo::Interpreting {
                     newValue = newValue->copy();
                 }
 
-                if (varSym->tp->name == "any") {
+                if (varSym->tp->name == ANY_TP) {
                     varSym->tp = newValue->type;
                 } else {
-                    if (varSym->tp->name == "int" && newValue->type->name == "double") {
+                    if (varSym->tp->name == INT_TP && newValue->type->name == DOUBLE_TP) {
                         newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
-                    } else if (varSym->tp->name == "double" && newValue->type->name == "int") {
+                    } else if (varSym->tp->name == DOUBLE_TP && newValue->type->name == INT_TP) {
                         newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
                     }
                 }
@@ -1184,7 +1184,7 @@ namespace Odo::Interpreting {
             varSym->value = newValue;
         } else {
             throw Exceptions::NameException(
-                    "Assignment to unknwon variable.",
+                    ASS_TO_UNKWN_VAR_EXCP,
                     current_line,
                     current_col
             );
@@ -1203,7 +1203,7 @@ namespace Odo::Interpreting {
             }
         } else {
             throw Exceptions::NameException(
-                    "Variable named '" + node->token.value + "' not defined.",
+                    VAR_CALLED_EXCP + node->token.value + NOT_DEFINED_EXCP,
                     current_line,
                     current_col
             );
@@ -1213,30 +1213,30 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
         auto visited_val = visit(node->val);
 
-        if (visited_val->type->name == "string") {
+        if (visited_val->type->name == STRING_TP) {
             auto str = Value::as<NormalValue>(visited_val)->as_string();
 
             auto visited_indx = visit(node->expr);
-            if (visited_indx->type->name == "int") {
+            if (visited_indx->type->name == INT_TP) {
                 auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
 
                 if (int_indx >= 0 && int_indx < str.size()) {
                     std::string result(1, str[int_indx]);
-                    return create_literal_from_string(result, "string");
+                    return create_literal_from_string(result, STRING_TP);
                 } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
                     size_t actual_indx = str.size() - int_indx;
                     std::string result(1, str[actual_indx]);
-                    return create_literal_from_string(result, "string");
+                    return create_literal_from_string(result, STRING_TP);
                 } else {
                     throw Exceptions::ValueException(
-                            "Indexing a string out of bounds.",
+                            INDX_STR_OB_EXCP,
                             current_line,
                             current_col
                     );
                 }
             } else {
                 throw Exceptions::TypeException(
-                        "Strings can only be indexed with integer values.",
+                        STR_ONLY_INDX_NUM_EXCP,
                         current_line,
                         current_col
                 );
@@ -1244,7 +1244,7 @@ namespace Odo::Interpreting {
         } else if (visited_val->kind() == ValueType::ListVal){
             auto list_value = Value::as<ListValue>(visited_val)->as_list_value();
             auto visited_indx = visit(node->expr);
-            if (visited_indx->type->name == "int") {
+            if (visited_indx->type->name == INT_TP) {
                 auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
 
                 if (int_indx >= 0 && int_indx < list_value.size()) {
@@ -1254,21 +1254,21 @@ namespace Odo::Interpreting {
                     return list_value[actual_indx];
                 } else {
                     throw Exceptions::ValueException(
-                            "Indexing a list out of bounds.",
+                            INDX_LST_OB_EXCP,
                             current_line,
                             current_col
                     );
                 }
             } else {
                 throw Exceptions::TypeException(
-                        "Lists can only be indexed with integer values.",
+                        LST_ONLY_INDX_NUM_EXCP,
                         current_line,
                         current_col
                 );
             }
         } else {
             throw Exceptions::ValueException(
-                    "Index operator is only valid for strings and lists values.",
+                    INDX_ONLY_LST_STR_EXCP,
                     current_line,
                     current_col
             );
@@ -1398,21 +1398,21 @@ namespace Odo::Interpreting {
                         );
                         return new_list;
                     }
-                } else if (leftVisited->type->name == "string") {
+                } else if (leftVisited->type->name == STRING_TP) {
                     return create_literal(left_as_normal->as_string() + rightVisited->to_string());
-                } else if (rightVisited->type->name == "string") {
+                } else if (rightVisited->type->name == STRING_TP) {
                     return create_literal(leftVisited->to_string() + right_as_normal->as_string());
                 } else if (leftVisited->type == rightVisited->type) {
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() + right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() + right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Addition operation can only be used with values of the same type.",
+                            ADD_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1423,16 +1423,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() - right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() - right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Numeric substraction can only be used with values of the same type.",
+                            SUB_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1442,14 +1442,14 @@ namespace Odo::Interpreting {
                 auto left_as_normal = Value::as<NormalValue>(leftVisited);
                 auto right_as_normal = Value::as<NormalValue>(rightVisited);
                 if (leftVisited->type == rightVisited->type) {
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() * right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() * right_as_normal->as_double();
                         return create_literal(result);
                     }
-                } else if (leftVisited->kind() == ValueType::ListVal && rightVisited->type->name == "int") {
+                } else if (leftVisited->kind() == ValueType::ListVal && rightVisited->type->name == INT_TP) {
                     int right_as_int = right_as_normal->as_int();
                     std::vector<Symbol> new_elements;
 
@@ -1469,7 +1469,7 @@ namespace Odo::Interpreting {
                     auto new_list = ListValue::create(leftVisited->type, std::move(new_elements));
 
                     return new_list;
-                } else if (leftVisited->type->name == "string" && rightVisited->type->name == "int") {
+                } else if (leftVisited->type->name == STRING_TP && rightVisited->type->name == INT_TP) {
                     std::string left_as_string = left_as_normal->as_string();
                     int right_as_int = right_as_normal->as_int();
                     std::string new_string;
@@ -1482,7 +1482,7 @@ namespace Odo::Interpreting {
                     return new_val;
                 } else {
                     throw Exceptions::TypeException(
-                            "Multiplication operation can only be used with values of the same type.",
+                            MUL_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1490,12 +1490,12 @@ namespace Odo::Interpreting {
                 break;
             }
             case Lexing::DIV: {
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == "double") {
+                if (leftVisited->type == rightVisited->type && leftVisited->type->name == DOUBLE_TP) {
                     auto result = Value::as<NormalValue>(leftVisited)->as_double() / Value::as<NormalValue>(rightVisited)->as_double();
                     return create_literal(result);
                 } else {
                     throw Exceptions::TypeException(
-                            "Division operation can only be used with values of type double.",
+                            DIV_ONLY_DOB_EXCP,
                             current_line,
                             current_col
                     );
@@ -1503,12 +1503,12 @@ namespace Odo::Interpreting {
                 break;
             }
             case Lexing::MOD:
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == "int") {
+                if (leftVisited->type == rightVisited->type && leftVisited->type->name == INT_TP) {
                     auto result = Value::as<NormalValue>(leftVisited)->as_int() % Value::as<NormalValue>(rightVisited)->as_int();
                     return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
-                            "Modulo operation can only be used with values of type int.",
+                            MOD_ONLY_INT_EXCP,
                             current_line,
                             current_col
                     );
@@ -1518,16 +1518,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = powl(left_as_normal->as_int(), right_as_normal->as_int());
                         return create_literal((double)result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = powl(left_as_normal->as_double(), right_as_normal->as_double());
                         return create_literal((double)result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Power operation can only be used with values of the same type.",
+                            POW_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1540,16 +1540,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() == right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() == right_as_normal->as_double();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "bool") {
+                    } else if (leftVisited->type->name == BOOL_TP) {
                         auto result = left_as_normal->as_bool() == right_as_normal->as_bool();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "string") {
+                    } else if (leftVisited->type->name == STRING_TP) {
                         auto result = left_as_normal->as_string() == right_as_normal->as_string();
                         return create_literal(result);
                     } else {
@@ -1559,7 +1559,7 @@ namespace Odo::Interpreting {
                     return create_literal(false);
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1572,16 +1572,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() != right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() != right_as_normal->as_double();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "bool") {
+                    } else if (leftVisited->type->name == BOOL_TP) {
                         auto result = left_as_normal->as_bool() != right_as_normal->as_bool();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "string") {
+                    } else if (leftVisited->type->name == STRING_TP) {
                         auto result = left_as_normal->as_string() != right_as_normal->as_string();
                         return create_literal(result);
                     } else {
@@ -1591,7 +1591,7 @@ namespace Odo::Interpreting {
                     return create_literal(true);
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1601,16 +1601,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() < right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() < right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1620,16 +1620,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() > right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() > right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1639,16 +1639,16 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() <= right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() <= right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
@@ -1658,40 +1658,40 @@ namespace Odo::Interpreting {
                 if (leftVisited->type == rightVisited->type) {
                     auto left_as_normal = Value::as<NormalValue>(leftVisited);
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == "int") {
+                    if (leftVisited->type->name == INT_TP) {
                         auto result = left_as_normal->as_int() >= right_as_normal->as_int();
                         return create_literal(result);
-                    } else if (leftVisited->type->name == "double") {
+                    } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = left_as_normal->as_double() >= right_as_normal->as_double();
                         return create_literal(result);
                     }
                 } else {
                     throw Exceptions::TypeException(
-                            "Comparison operation can only be used with values of same type.",
+                            COM_ONLY_SAME_TP_EXCP,
                             current_line,
                             current_col
                     );
                 }
                 break;
             case Lexing::AND:
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == "bool") {
+                if (leftVisited->type == rightVisited->type && leftVisited->type->name == BOOL_TP) {
                     auto result = Value::as<NormalValue>(leftVisited)->as_bool() && Value::as<NormalValue>(rightVisited)->as_bool();
                     return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
-                            "Logical operator can only be used with values of type bool.",
+                            LOG_ONLY_BOOL_EXCP,
                             current_line,
                             current_col
                     );
                 }
                 break;
             case Lexing::OR:
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == "bool") {
+                if (leftVisited->type == rightVisited->type && leftVisited->type->name == BOOL_TP) {
                     auto result = Value::as<NormalValue>(leftVisited)->as_bool() || Value::as<NormalValue>(rightVisited)->as_bool();
                     return create_literal(result);
                 }else {
                     throw Exceptions::TypeException(
-                            "Logical operator can only be used with values of type bool.",
+                            LOG_ONLY_BOOL_EXCP,
                             current_line,
                             current_col
                     );
@@ -1713,14 +1713,14 @@ namespace Odo::Interpreting {
             case Lexing::PLUS:
                 break;
             case Lexing::MINUS:
-                if (result->type->name == "int") {
+                if (result->type->name == INT_TP) {
                     auto actual_value = result_as_normal->as_int();
 
                     result_as_normal->val = actual_value * -1;
                     return result;
                 }
 
-                if (result->type->name == "double") {
+                if (result->type->name == DOUBLE_TP) {
                     auto actual_value = result_as_normal->as_double();
 
                     result_as_normal->val = actual_value * -1;
@@ -1728,7 +1728,7 @@ namespace Odo::Interpreting {
                 }
 
                 throw Exceptions::TypeException(
-                        "Unary operator can be used with int or double values.",
+                        UNA_ONLY_NUM_EXCP,
                         current_line,
                         current_col
                 );
@@ -1793,7 +1793,7 @@ namespace Odo::Interpreting {
 
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                    "Variable called '" + node->name.value + "' already exists",
+                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                     current_line,
                     current_col
             );
@@ -1829,7 +1829,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::visit_FuncCall(const std::shared_ptr<FuncCallNode>& node) {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
-            throw Exceptions::RecursionException("Callback depth exceeded.", current_line, current_col);
+            throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
 
         if (node->fname.tp != Lexing::NOTHING){
@@ -1920,7 +1920,7 @@ namespace Odo::Interpreting {
             return result;
         }
 
-        throw Exceptions::ValueException("Value is not a function.", current_line, current_col);
+        throw Exceptions::ValueException(VAL_NOT_FUNC_EXCP, current_line, current_col);
     }
 
     std::shared_ptr<Value> Interpreter::visit_FuncBody(const std::shared_ptr<FuncBodyNode>& node) {
@@ -1952,7 +1952,7 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_Enum(const std::shared_ptr<EnumNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                    "Variable called '" + node->name.value + "' already exists",
+                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                     current_line,
                     current_col
             );
@@ -1994,7 +1994,7 @@ namespace Odo::Interpreting {
             auto sym = currentScope->findSymbol(node->ty.value);
             if (!sym || !sym->isType) {
                 throw Exceptions::TypeException(
-                        "Class must inherit from a type. " + node->name.value + " is invalid.",
+                        CLASS_MUST_INH_TYPE_EXCP + node->name.value + IS_INVALID_EXCP,
                         current_line,
                         current_col
                 );
@@ -2056,7 +2056,7 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::visit_ConstructorCall(const std::shared_ptr<ConstructorCallNode>& node) {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
-            throw Exceptions::RecursionException("Callback depth exceeded.", current_line, current_col);
+            throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
 
         auto constr = currentScope->findSymbol(node->t.value);
@@ -2124,7 +2124,7 @@ namespace Odo::Interpreting {
         } else {
             // Error.
             throw Exceptions::ValueException(
-                    "Invalid constructor",
+                    INVALID_CONS_EXCP,
                 current_line,
                 current_col
             );
@@ -2155,7 +2155,7 @@ namespace Odo::Interpreting {
 
             auto thisSym = currentScope->addSymbol({
                classInit,
-               "this",
+               THIS_VAR,
                newInstance
             });
 
@@ -2165,7 +2165,7 @@ namespace Odo::Interpreting {
 
             auto mainScope = new SymbolTable{
                 "inherited-scope-0",
-                {{"this", *thisSym}},
+                {{THIS_VAR, *thisSym}},
                 classVal->parentScope
             };
             std::vector<std::shared_ptr<Node>> inheritedBody = {std::move(myInstanceBody)};
@@ -2182,7 +2182,7 @@ namespace Odo::Interpreting {
                 // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
                 auto inherScope =new SymbolTable{
                     "inherited-scope-" + std::to_string(level++),
-                    {{"this", *thisSym}},
+                    {{THIS_VAR, *thisSym}},
                     inheritedScopes[0]
                 };
 
@@ -2213,7 +2213,7 @@ namespace Odo::Interpreting {
             return newInstance;
         } else {
             throw Exceptions::NameException(
-                node->name.value + " is not a valid constructor.",
+                node->name.value + NOT_VALID_CONS_EXCP,
                 current_line,
                 current_col
             );
@@ -2234,7 +2234,7 @@ namespace Odo::Interpreting {
 
         if (!instance || instance->kind() != ValueType::InstanceVal) {
             throw Exceptions::ValueException(
-                "Invalid instance for Member Variable operator.",
+                INVALID_INS_MEM_OP_EXCP,
                 current_line,
                 current_col
             );
@@ -2247,7 +2247,7 @@ namespace Odo::Interpreting {
             if (foundSymbol->value) return foundSymbol->value;
         } else {
             throw Exceptions::NameException(
-                "No member variable named '" + node->name.value + "' in the Instance.",
+                   NO_MEM_CALLED_EXCP + node->name.value + IN_THE_INST_EXCP,
                 current_line,
                 current_col
             );
@@ -2270,7 +2270,7 @@ namespace Odo::Interpreting {
                 return null;
             } else {
                 throw Exceptions::NameException(
-                    "No static variable named '" + node->name.value + "' in Instance.",
+                    NO_STATIC_CALLED_EXCP + node->name.value + IN_THE_INST_EXCP,
                     current_line,
                     current_col
                 );
@@ -2284,7 +2284,7 @@ namespace Odo::Interpreting {
                 return null;
             } else {
                 throw Exceptions::NameException(
-                    "No static variable named '" + node->name.value + "' in class.",
+                    NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
                     current_line,
                     current_col
                 );
@@ -2298,9 +2298,9 @@ namespace Odo::Interpreting {
                 return null;
             } else {
                 throw Exceptions::NameException(
-                    "No variable named '" + node->name.value + "' in module.",
-                    current_line,
-                    current_col
+                        NO_VAR_NAMED_EXCP + node->name.value + IN_MODULE_EXCP,
+                        current_line,
+                        current_col
                 );
             }
         } else if (instance->kind() == ValueType::EnumVal) {
@@ -2312,14 +2312,14 @@ namespace Odo::Interpreting {
                 return null;
             } else {
                 throw Exceptions::NameException(
-                    "'" + node->name.value + "' is not a variant in enum.",
+                    "'" + node->name.value + NOT_VARIANT_IN_ENUM_EXCP,
                     current_line,
                     current_col
                 );
             }
         } else {
             throw Exceptions::ValueException(
-                "Cannot read static variable from this value.",
+                CANNOT_READ_STATIC_EXCP,
                 current_line,
                 current_col
             );
@@ -2344,7 +2344,7 @@ namespace Odo::Interpreting {
                     auto theValue = leftHandSym->value;
                     if (theValue->kind() != ValueType::InstanceVal) {
                         throw Exceptions::ValueException(
-                            "'" + leftHandSym->name + "' is not a valid instance.",
+                            "'" + leftHandSym->name + NOT_VALID_INST_EXCP,
                             current_line,
                             current_col
                         );
@@ -2373,14 +2373,14 @@ namespace Odo::Interpreting {
                         varSym = classVal->ownScope.findSymbol(as_static_var->name.value);
                     } else {
                         throw Exceptions::NameException(
-                                "Invalid Static Variable Operator (::).",
+                                INVALID_STATIC_OP_EXCP,
                                 current_line,
                                 current_col
                         );
                     }
                 } else {
                     throw Exceptions::NameException(
-                            "Unknown value in Static Variable Operator (::).",
+                            UNKWN_VAL_IN_STATIC_EXCP,
                             current_line,
                             current_col
                     );
@@ -2395,20 +2395,20 @@ namespace Odo::Interpreting {
 
                 if (visited_source->kind() == ValueType::ListVal) {
                     auto visited_indx = visit(as_index_node->expr);
-                    if (visited_indx->type->name == "int") {
+                    if (visited_indx->type->name == INT_TP) {
                         auto& as_list = Value::as<ListValue>(visited_source)->elements;
                         auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
                         return &as_list[as_int];
                     } else {
                         throw Exceptions::TypeException(
-                            "Lists can only be indexed with integer values.",
+                            LST_ONLY_INDX_NUM_EXCP,
                             current_line,
                             current_col
                         );
                     }
                 } else {
                     throw Exceptions::ValueException(
-                            "Assignment to invalid indexing. You can only assign to list indices.",
+                            ASS_TO_INVALID_INDX_EXCP,
                             current_line,
                             current_col
                     );
@@ -2473,7 +2473,7 @@ namespace Odo::Interpreting {
 
         if (currentScope->findSymbol(filename)) {
             throw Exceptions::NameException(
-                "Symbol called " + filename + " already exists in this scope",
+                SYM_CALLED_EXCP + filename + ALR_EXISTS_IN_SCOPE_EXCP,
                 current_line,
                 current_col
             );
@@ -2483,7 +2483,7 @@ namespace Odo::Interpreting {
         try {
             code = io::read_file(full_path);
         } catch (Exceptions::IOException&) {
-            std::string msg = "Cannot import module '" + full_path + "'.";
+            std::string msg = CANNOT_IMPORT_MODULE_EXCP + full_path + "'.";
             throw Exceptions::FileException(msg, current_line, current_col);
         }
         Parsing::Parser pr;
@@ -2518,7 +2518,7 @@ namespace Odo::Interpreting {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
                         throw Exceptions::TypeException(
-                                "Unknown type " + as_var_declaration_node->var_type.value + ".",
+                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -2532,7 +2532,7 @@ namespace Odo::Interpreting {
                         ts.emplace_back(*ft, is_not_optional);
                     } else {
                         throw Exceptions::TypeException(
-                                "Unknown type " + as_var_declaration_node->var_type.value + ".",
+                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -2542,7 +2542,7 @@ namespace Odo::Interpreting {
                 default:
                     // Error! Expected variable declaration inside function parenthesis.
                     throw Exceptions::SyntaxException(
-                            "Expected parameter declaration in function parenthesis",
+                            EXPCT_DECL_IN_PAR_EXCP,
                             par->line_number,
                             par->column_number
                     );

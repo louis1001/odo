@@ -117,7 +117,23 @@ add_executable(odo
         src/Parser/AST/MemberVarNode.cpp
         src/Parser/AST/StaticVarNode.cpp
         src/Parser/AST/IndexNode.cpp
-        include/Parser/AST/Forward.h include/Translations/lexer_en.h include/Translations/lexer_es.h include/Translations/lang.h include/Translations/parser_en.h include/Translations/parser_es.h include/Translations/exception_en.h include/Translations/exception_es.h)
+
+        include/Parser/AST/Forward.h
+        include/Translations/lexer_en.h
+        include/Translations/lexer_es.h
+        include/Translations/lang.h
+        include/Translations/parser_en.h
+        include/Translations/parser_es.h
+        include/Translations/exception_en.h
+        include/Translations/exception_es.h
+        include/Translations/Interpreter_en.h
+        include/Translations/Interpreter_es.h
+        include/Translations/value_en.h
+        include/Translations/main_en.h
+        include/Translations/value_es.h
+        include/Translations/main_es.h
+        include/Translations/symbol_en.h
+        include/Translations/symbol_es.h)
 
 target_compile_definitions(odo PUBLIC LANG_USE_ES=0)
 

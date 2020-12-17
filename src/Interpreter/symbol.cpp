@@ -4,6 +4,7 @@
 
 #include "Interpreter/symbol.h"
 #include "Exceptions/exception.h"
+#include "Translations/lang.h"
 #include <utility>
 #include <iostream>
 
@@ -41,12 +42,12 @@ namespace Odo::Interpreting {
         auto foundS = symbols.find(new_sym_name);
 
         if (foundS != symbols.end()) {
-            throw Exceptions::NameException("Redefinition of symbol " + new_sym_name);
+            throw Exceptions::NameException(REDEF_SYM_EXCP + new_sym_name);
         }
 
         if (sym.tp != nullptr) {
             if (!sym.tp->isType) {
-                throw Exceptions::TypeException("Symbol '" + new_sym_name + "' is not a type.");
+                throw Exceptions::TypeException(SYM_TXT_EXCP + new_sym_name + NOT_TYPE_EXCP);
             }
         }
 
@@ -65,7 +66,7 @@ namespace Odo::Interpreting {
 
         if (foundS != symbols.end()) {
             if (!foundS->second.isType) {
-                throw Exceptions::TypeException("Symbol '" + foundS->second.name + "' is not a type.");
+                throw Exceptions::TypeException(SYM_TXT_EXCP + foundS->second.name + NOT_TYPE_EXCP);
             }
         }
 
@@ -95,7 +96,7 @@ namespace Odo::Interpreting {
 
             if (foundS != symbols.end()) {
                 if (!foundS->second.isType) {
-                    throw Exceptions::TypeException("Symbol '" + foundS->second.name + "' is not a type.");
+                    throw Exceptions::TypeException(SYM_TXT_EXCP + foundS->second.name + NOT_TYPE_EXCP);
                 }
             }
         }
@@ -113,8 +114,8 @@ namespace Odo::Interpreting {
     }
 
     void SymbolTable::debugChain() {
-        std::cout << "Table level " << level << ": " << scopeName <<
-            " | with " << symbols.size() << " symbols\n";
+        std::cout << TABLE_LEV_MSG << level << ": " << scopeName <<
+            " | " WITH_MSG << symbols.size() << SYMS_MSG;
         if (parent) {
             std::cout << "\t|\n\tv\n";
             parent->debugChain();

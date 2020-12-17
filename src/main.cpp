@@ -4,6 +4,8 @@
 
 #include "Interpreter/Interpreter.h"
 
+#include"Translations/lang.h"
+
 // This is temporary. I'll research how to bring it back.
 #define RESET   ""//"\033[0m"
 #define RED     ""//"\033[31m"      /* Red */
@@ -16,9 +18,14 @@ int main(int argc, char* argv[]) {
 #if DEBUG_MODE
 "               debug\n"
 "            (" __DATE__ "\n"
-"              " __TIME__ ")"
+"              " __TIME__ ")\n"
 #else
-"              release"
+"              release\n"
+#endif
+#if LANG_USE_ES
+"               espanol\n"
+#else
+"               english\n"
 #endif
     R"(
           (((((((((((((((
@@ -68,7 +75,7 @@ int main(int argc, char* argv[]) {
             auto& calls = inter.get_call_stack();
             if (e.should_show_traceback()) {
                 for (const auto& frame : calls) {
-                    std::cout << "line " << frame.line_number << ", column " << frame.column_number << " in " << frame.name << "\n";
+                    std::cout << MSG_LINE_TXT " " << frame.line_number << ", " MSG_COL_TXT " " << frame.column_number << IN_TXT << frame.name << "\n";
                 }
             }
             calls.clear();
@@ -80,12 +87,12 @@ int main(int argc, char* argv[]) {
     } else {
         bool continuing = true;
 
-        inter.add_native_function("exit", [&](auto vals){
+        inter.add_native_function(EXIT_FN, [&](auto vals){
             continuing = false;
             return inter.get_null();
         });
 
-        inter.add_native_function("about", [&](auto) {
+        inter.add_native_function(ABOUT_FN, [&](auto) {
             std::cout << logo << std::endl;
             return inter.get_null();
         });
@@ -117,7 +124,7 @@ int main(int argc, char* argv[]) {
                 if (e.should_show_traceback()) {
                     auto& calls = inter.get_call_stack();
                     for (const auto& frame : calls) {
-                        std::cout << "line " << frame.line_number << ", column " << frame.column_number << " in " << frame.name << "\n";
+                        std::cout << MSG_LINE_TXT " " << frame.line_number << ", " MSG_COL_TXT  " " << frame.column_number << " " IN_TXT " " << frame.name << "\n";
                     }
                     calls.clear();
                 }
@@ -126,7 +133,7 @@ int main(int argc, char* argv[]) {
                 std::cout << msg << RESET << std::endl;
             }
         }
-        std::cout << "Bye! :)\n";
+        std::cout << BYE_MSG "! :)\n";
     }
     return 0;
 }

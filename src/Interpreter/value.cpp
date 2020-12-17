@@ -39,7 +39,7 @@ namespace Odo::Interpreting {
 
     std::string NormalValue::to_string() {
         std::string result;
-        if (type->name == "double") {
+        if (type->name == DOUBLE_TP) {
             auto this_as_double = as_double();
 
             int floored = static_cast<int>(floor(this_as_double));
@@ -55,18 +55,18 @@ namespace Odo::Interpreting {
                     result += ".0";
                 }
             }
-        } else if (type->name == "int"){
+        } else if (type->name == INT_TP){
             auto this_as_int = as_int();
             result = std::to_string(this_as_int);
-        } else if (type->name == "string"){
+        } else if (type->name == STRING_TP){
             result = as_string();
-        } else if (type->name == "bool"){
+        } else if (type->name == BOOL_TP){
             auto this_as_bool = as_bool();
             result = this_as_bool ? TRUE_TK : FALSE_TK;
-        } else if (type->name == "NullType"){
-            result = "null";
+        } else if (type->name == NULL_TP){
+            result = NULL_TK;
         } else {
-            result = "< corrupted :o >";
+            result = CORRUPTED_MSG;
         }
 
         return result;
@@ -111,7 +111,7 @@ namespace Odo::Interpreting {
         auto values_in_v = as_list_value();
         for (auto myValIter = values_in_v.begin(); myValIter < values_in_v.end(); myValIter++) {
             auto myVal = *myValIter;
-            result += myVal ? myVal->to_string() : "<corrupted>";
+            result += myVal ? myVal->to_string() : CORRUPTED_MSG;
 
             if (myValIter != values_in_v.end() - 1) {
                 result += ", ";
@@ -141,7 +141,7 @@ namespace Odo::Interpreting {
 
 
     std::shared_ptr<FunctionValue> FunctionValue::create(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name) {
-        return std::make_shared<FunctionValue>(tp, params_, body_, scope_, name="<anonymous>");
+        return std::make_shared<FunctionValue>(tp, params_, body_, scope_, name=ANONYMUS_MSG);
     }
 
     std::shared_ptr<Value> FunctionValue::copy() {

@@ -6,13 +6,21 @@
 #define ODO_LANG_H
 
 #if LANG_USE_ES
-#include "Translations/lexer_es.h"
-#include "Translations/parser_es.h"
-#include "Translations/exception_es.h"
+    #include "Translations/lexer_es.h"
+    #include "Translations/parser_es.h"
+    #include "Translations/exception_es.h"
+    #include "Translations/Interpreter_es.h"
+    #include "Translations/value_es.h"
+    #include "Translations/main_es.h"
+    #include "Translations/symbol_es.h"
 #else
-#include "Translations/lexer_en.h"
-#include "Translations/parser_en.h"
-#include "Translations/exception_en.h"
+    #include "Translations/lexer_en.h"
+    #include "Translations/parser_en.h"
+    #include "Translations/exception_en.h"
+    #include "Translations/Interpreter_en.h"
+    #include "Translations/value_en.h"
+    #include "Translations/main_en.h"
+    #include "Translations/symbol_en.h"
 #endif
 
 #endif //ODO_LANG_H
