@@ -35,7 +35,7 @@ namespace Odo {
             myclock::time_point beginning = myclock::now();
             auto time_since = beginning.time_since_epoch();
             auto in_millis = std::chrono::duration_cast<std::chrono::nanoseconds>(time_since).count();
-            generator = std::default_random_engine(in_millis);
+            generator = std::default_random_engine((unsigned int)in_millis);
             has_init_generator = true;
         }
         std::uniform_int_distribution<int> distribution(min, max-1);
@@ -47,7 +47,7 @@ namespace Odo {
             myclock::time_point beginning = myclock::now();
             auto time_since = beginning.time_since_epoch();
             auto in_millis = std::chrono::duration_cast<std::chrono::nanoseconds>(time_since).count();
-            generator = std::default_random_engine(in_millis);
+            generator = std::default_random_engine((unsigned int)in_millis);
             has_init_generator = true;
         }
         std::uniform_real_distribution<double> distribution(min, max);
