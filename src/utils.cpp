@@ -3,11 +3,11 @@
 //
 
 #include "utils.h"
-#include <time.h>
+#include <chrono>
 
 namespace Odo {
-    time_t timer;
     bool has_init_generator = false;
+    typedef std::chrono::high_resolution_clock myclock;
     std::default_random_engine generator;
 
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t) {
@@ -32,14 +32,24 @@ namespace Odo {
 
     int rand_int(int min, int max) {
         if (!has_init_generator) {
-            time(&timer);
-            generator = std::default_random_engine(static_cast<unsigned int>(timer));
+            myclock::time_point beginning = myclock::now();
+            auto time_since = beginning.time_since_epoch();
+            auto in_millis = std::chrono::duration_cast<std::chrono::nanoseconds>(time_since).count();
+            generator = std::default_random_engine(in_millis);
+            has_init_generator = true;
         }
         std::uniform_int_distribution<int> distribution(min, max-1);
         return distribution(generator);
     }
 
     double rand_double(double min, double max) {
+        if (!has_init_generator) {
+            myclock::time_point beginning = myclock::now();
+            auto time_since = beginning.time_since_epoch();
+            auto in_millis = std::chrono::duration_cast<std::chrono::nanoseconds>(time_since).count();
+            generator = std::default_random_engine(in_millis);
+            has_init_generator = true;
+        }
         std::uniform_real_distribution<double> distribution(min, max);
         return distribution(generator);
     }
