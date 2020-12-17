@@ -3,10 +3,12 @@
 //
 
 #include "utils.h"
-#include <ctime>
+#include <time.h>
 
 namespace Odo {
-    std::default_random_engine generator(clock());
+    time_t timer;
+    bool has_init_generator = false;
+    std::default_random_engine generator;
 
     bool contains_type(std::vector<Lexing::TokenType> arr, Lexing::TokenType t) {
         return std::find(arr.begin(), arr.end(), t) != arr.end();
@@ -29,6 +31,10 @@ namespace Odo {
     }
 
     int rand_int(int min, int max) {
+        if (!has_init_generator) {
+            time(&timer);
+            generator = std::default_random_engine(static_cast<unsigned int>(timer));
+        }
         std::uniform_int_distribution<int> distribution(min, max-1);
         return distribution(generator);
     }
