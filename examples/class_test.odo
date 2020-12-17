@@ -37,7 +37,7 @@ func printX(Vector v){
     println(v.x)
 }
 
-Vector a = new Vector(1, 2)
+Vector a(1, 2)
 print("a.x: ")
 printX(a)
 
@@ -46,7 +46,7 @@ print("some.x: ")
 println(some.x)
 
 
-Printer pri = new Printer(a)
+Printer pri(a)
 print("pri.x: ")
 pri.printX()
 

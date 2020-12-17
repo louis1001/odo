@@ -146,7 +146,7 @@ func tokenize(string text) {
 
     int current_pos = 0
 
-    Lexer lx = new Lexer(text)
+    Lexer lx(text)
 
     Token current_token = lx.get_next_token()
     while current_token.type != TokenType::Eof {

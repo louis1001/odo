@@ -152,8 +152,8 @@ class Maze {
         int canvas_height = height*2+1
         int canvas_width = width*2+1
 
-        string path_spaces = "•"
-        string wall_char = "■"
+        string path_spaces = " "
+        string wall_char = "0"
 
         string b[][] = [[wall_char]*canvas_width]*canvas_height
 
@@ -192,9 +192,9 @@ class Maze {
     }
 }
 
-int w = 7
-int h = 7
+int w = 40
+int h = 40
 
-Maze main = new Maze(w, h)
+Maze main(w, h)
 main.generate()
 main.print_maze()
