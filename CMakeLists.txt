@@ -117,7 +117,9 @@ add_executable(odo
         src/Parser/AST/MemberVarNode.cpp
         src/Parser/AST/StaticVarNode.cpp
         src/Parser/AST/IndexNode.cpp
-        include/Parser/AST/Forward.h)
+        include/Parser/AST/Forward.h include/Translations/lexer_en.h include/Translations/lexer_es.h include/Translations/lang.h include/Translations/parser_en.h include/Translations/parser_es.h include/Translations/exception_en.h include/Translations/exception_es.h)
+
+target_compile_definitions(odo PUBLIC LANG_USE_ES=0)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(odo PUBLIC DEBUG_MODE=1)

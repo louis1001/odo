@@ -7,6 +7,7 @@
 #include "IO/io.h"
 #include "utils.h"
 
+#include "Translations/lang.h"
 
 #include "Parser/AST/DoubleNode.h"
 #include "Parser/AST/IntNode.h"
@@ -621,14 +622,14 @@ namespace Odo::Interpreting {
         } else if (kind == "string") {
             newValue = val;
         } else if (kind == "bool") {
-            if (val != "true" && val != "false"){
+            if (val != TRUE_TK && val != FALSE_TK){
                 throw Exceptions::ValueException(
                     "Invalid value for bool expression.",
                     current_line,
                     current_col
                 );
             }
-            newValue = val == "true";
+            newValue = val == TRUE_TK;
         } else {
             return null;
         }

@@ -4,6 +4,7 @@
 
 #include <utility>
 
+#include "Translations/lang.h"
 #define NULLCHR '\0'
 
 namespace Odo::Lexing {
@@ -16,29 +17,29 @@ namespace Odo::Lexing {
     }
 
     const std::map<std::string, Token> Lexer::reservedKeywords = {
-            {"true", Token(BOOL, "true")},
-            {"false", Token(BOOL, "false")},
-            {"if", Token(IF, "if")},
-            {"else", Token(ELSE, "else")},
-            {"func", Token(FUNC, "func")},
-            {"return", Token(RET, "return")},
-            {"for", Token(FOR, "for")},
-            {"foreach", Token(FOREACH, "foreach")},
-            {"forange", Token(FORANGE, "forange")},
-            {"while", Token(WHILE, "while")},
-            {"loop", Token(LOOP, "loop")},
-            {"break", Token(BREAK, "break")},
-            {"continue", Token(CONTINUE, "continue")},
-            {"module", Token(MODULE, "module")},
-            {"import", Token(IMPORT, "import")},
-            {"as", Token(AS, "as")},
-            {"enum", Token(ENUM, "enum")},
-            {"class", Token(CLASS, "class")},
-            {"new", Token(NEW, "new")},
-            {"static", Token(STATIC, "static")},
-            {"init", Token(INIT, "init")},
-            {"null", Token(NULLT, "null")},
-            {"debug", Token(DEBUG, "debug")},
+            {TRUE_TK, Token(BOOL, TRUE_TK)},
+            {FALSE_TK, Token(BOOL, FALSE_TK)},
+            {IF_TK, Token(IF, IF_TK)},
+            {ELSE_TK, Token(ELSE, ELSE_TK)},
+            {FUNC_TK, Token(FUNC, FUNC_TK)},
+            {RETURN_TK, Token(RET, RETURN_TK)},
+            {FOR_TK, Token(FOR, FOR_TK)},
+            {FOREACH_TK, Token(FOREACH, FOREACH_TK)},
+            {FORANGE_TK, Token(FORANGE, FORANGE_TK)},
+            {WHILE_TK, Token(WHILE, WHILE_TK)},
+            {LOOP_TK, Token(LOOP, LOOP_TK)},
+            {BREAK_TK, Token(BREAK, BREAK_TK)},
+            {CONTINUE_TK, Token(CONTINUE, CONTINUE_TK)},
+            {MODULE_TK, Token(MODULE, MODULE_TK)},
+            {IMPORT_TK, Token(IMPORT, IMPORT_TK)},
+            {AS_TK, Token(AS, AS_TK)},
+            {ENUM_TK, Token(ENUM, ENUM_TK)},
+            {CLASS_TK, Token(CLASS, CLASS_TK)},
+            {NEW_TK, Token(NEW, NEW_TK)},
+            {STATIC_TK, Token(STATIC, STATIC_TK)},
+            {INIT_TK, Token(INIT, INIT_TK)},
+            {NULL_TK, Token(NULLT, NULL_TK)},
+            {DEBUG_TK, Token(DEBUG, DEBUG_TK)},
     };
 
     void Lexer::advance() {
@@ -82,7 +83,7 @@ namespace Odo::Lexing {
 
             advance();
             if (current_char == NULLCHR){
-                std::string err_msg = "Missing end of comment: */";
+                std::string err_msg = END_COMMENT_EXCP;
                 throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
             }
         }
@@ -174,7 +175,7 @@ namespace Odo::Lexing {
 
         while (current_char != delimiter){
             if (current_char == NULLCHR){
-                std::string err_msg = "Missing end of string: " + std::string(1, delimiter);
+                std::string err_msg = END_STRING_EXCP + std::string(1, delimiter);
                 throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
             }
             if (current_char == '\\') {
@@ -372,7 +373,7 @@ namespace Odo::Lexing {
             }
         }
 
-        std::string err_msg = "Unknown character '" + std::string(1, current_char) + "'";
+        std::string err_msg = UNKWN_CHAR_EXCP + std::string(1, current_char) + "'";
         throw Exceptions::SyntaxException(err_msg, current_line, getCurrentCol());
 
     }

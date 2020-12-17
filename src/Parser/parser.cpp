@@ -10,6 +10,8 @@
 #include "utils.h"
 #include "Exceptions/exception.h"
 
+#include "Translations/lang.h"
+
 #include "Parser/AST/DoubleNode.h"
 #include "Parser/AST/IntNode.h"
 #include "Parser/AST/BoolNode.h"
@@ -58,7 +60,7 @@ namespace Odo::Parsing{
         if (current_token.tp == tp) {
             current_token = lexer.getNextToken();
         } else {
-            std::string err_msg = "Unexpected token '";
+            std::string err_msg = UNEXPECTED_TK_EXCP;
             err_msg += current_token.value;
             err_msg += "'";
             throw Exceptions::SyntaxException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
@@ -706,7 +708,7 @@ namespace Odo::Parsing{
 
         if (current_token.tp == ASS) {
             if (using_direct_init) {
-                std::string err_msg = "Invalid use of direct initialization. You also have asignment in the statement.";
+                std::string err_msg = INVALID_DIRECT_EXCP;
                 throw Exceptions::OdoException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
             }
             eat(ASS);
@@ -1140,7 +1142,7 @@ namespace Odo::Parsing{
                 auto c = ternary_op();
                 auto result = std::make_shared<BinOpNode>(
                     Token(EQU, "=="),
-                    std::make_shared<BoolNode>(Token(BOOL, "false")),
+                    std::make_shared<BoolNode>(Token(BOOL, FALSE_TK)),
                     c
                 );
 

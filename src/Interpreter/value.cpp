@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <Interpreter/Interpreter.h>
+#include "Translations/lang.h"
 
 namespace Odo::Interpreting {
 
@@ -61,7 +62,7 @@ namespace Odo::Interpreting {
             result = as_string();
         } else if (type->name == "bool"){
             auto this_as_bool = as_bool();
-            result = this_as_bool ? "true" : "false";
+            result = this_as_bool ? TRUE_TK : FALSE_TK;
         } else if (type->name == "NullType"){
             result = "null";
         } else {
