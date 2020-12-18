@@ -2197,7 +2197,7 @@ namespace Odo::Interpreting {
                 auto upperValue = currentClass->type->tp->value;
 
                 currentClass = Value::as<ClassValue>(upperValue);
-                auto inherBody = std::make_shared<InstanceBodyNode>(Node::as<BlockNode>(currentClass->body)->statements);
+                auto inherBody = std::make_shared<InstanceBodyNode>(Node::as<ClassBodyNode>(currentClass->body)->statements);
 
                 // This process would break here because setting the parent takes the address of a local object.
                 // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
