@@ -423,10 +423,9 @@ namespace Odo::Interpreting {
                     std::vector<Symbol>& syms = Value::as<ListValue>(lst)->elements;
 
                     if (!syms.empty()) {
-                        auto* v = &*syms.end()-1;
+                        Symbol& result = syms.back();
                         syms.pop_back();
-
-                        return (v && v->value) ? v->value : null;
+                        return result.value ? result.value : null;
                     }
                 }
             }
