@@ -424,6 +424,7 @@ namespace Odo::Interpreting {
 
                     if (!syms.empty()) {
                         Symbol& result = syms.back();
+                        returning = result.value;
                         syms.pop_back();
                         return result.value ? result.value : null;
                     }
@@ -1849,6 +1850,7 @@ namespace Odo::Interpreting {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
             throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
+        if (returning != null) returning = null;
 
         if (node->fname.tp != Lexing::NOTHING){
             auto found_in_natives = native_functions.find(node->fname.value);
