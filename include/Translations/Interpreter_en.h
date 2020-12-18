@@ -39,6 +39,7 @@
 #define RAND_FN "rand"
 #define RAND_INT_FN "randInt"
 #define POP_FN "pop"
+#define PUSH_FN "push"
 #define TYPEOF_FN "typeof"
 #define CLEAR_FN "clear"
 #define WAIT_FN "wait"

@@ -433,6 +433,25 @@ namespace Odo::Interpreting {
             return null;
         });
 
+        add_native_function(PUSH_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+            if (vals.size() == 2) {
+                auto& lst = vals[0];
+                if (lst->kind() == ValueType::ListVal) {
+                    auto to_push = vals[1];
+                    std::vector<Symbol>& syms = Value::as<ListValue>(lst)->elements;
+
+                    auto actual_value = to_push;
+                    if (to_push->is_copyable()) actual_value = actual_value->copy();
+                    Symbol newSym { actual_value->type, "list_element", actual_value };
+
+                    syms.push_back(newSym);
+                    return actual_value;
+                }
+            }
+
+            return null;
+        });
+
         add_native_function(TYPEOF_FN, [&](const auto& vals) {
             if (vals.size() == 1) {
                 auto v = vals[0];
