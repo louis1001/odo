@@ -96,6 +96,7 @@ namespace Odo::Interpreting {
         replScope.symbols["_"] = {.tp=any_sym, .name="_", .value=null, .isType=false, .kind=SymbolType::VarSymbol};
 
         returning = nullptr;
+        returning_native = nullptr;
 
 #ifdef DEBUG_FUNCTIONS
         add_native_function("valueAt", [&](auto values) {
@@ -424,7 +425,7 @@ namespace Odo::Interpreting {
 
                     if (!syms.empty()) {
                         Symbol& result = syms.back();
-                        returning = result.value;
+                        returning_native = result.value;
                         syms.pop_back();
                         return result.value ? result.value : null;
                     }
@@ -1850,7 +1851,7 @@ namespace Odo::Interpreting {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
             throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
-        if (returning != null) returning = null;
+        if (returning_native) returning_native = nullptr;
 
         if (node->fname.tp != Lexing::NOTHING){
             auto found_in_natives = native_functions.find(node->fname.value);

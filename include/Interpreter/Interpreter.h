@@ -32,6 +32,7 @@ namespace Odo::Interpreting {
         bool breaking = false;
         bool continuing = false;
         std::shared_ptr<Value> returning;
+        std::shared_ptr<Value> returning_native;
         std::vector<Frame> call_stack;
 
         unsigned int current_line{0};
