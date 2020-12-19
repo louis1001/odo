@@ -1,139 +1,32 @@
-
-# Ejemplos de PSeInt
-#   1- suma
-
-func suma() {
-    ent A = leer_ent("Ingrese el primer numero: ")
-    ent B = leer_ent("Ingrese el segundo numero: ")
-
-    ent C = A+B
-    imprimirln("El resultado es: ", C)
-}
-
-#   2- Mayores
-
-func mayores() {
-    ent datos[] = []
-
-    ent n = leer_ent("Ingrese la cantidad de datos (de 2 a 200)")
-
-    parango i: n {
-        datos += leer_ent("Ingrese el dato " + (i+1) + ": ")
+class Father{
+    string name
+    static int numLegs = 2
+    init() {
+        name = "Whatever"
     }
 
-    ent may1 = datos[0]
-    ent may2 = datos[1]
-
-    si datos[1] > datos[0] {
-        may1 = datos[1]
-        may2 = datos[0]
+    func sayHi() {
+        println("Hello! My name is ", name)
     }
 
-    parango i: 2, n {
-        si datos[i] > may1 {
-            may2 = may1
-            may1 = datos[i]
-        } obien {
-            si datos[i] > may2 {
-                may2 = datos[i]
-            }
-        }
-    }
-
-    imprimirln("El mayor es: ", may1)
-    imprimirln("El segundo mayor es: ", may2)
-}
-
-
-#   3- Coloquial
-
-func coloquial() {
-    ent a
-    ent b
-
-    imprimir("Ingrese 3 numeros (los dos primeros deben ser enteros):\n")
-    a = leer_ent()
-    b = leer_ent()
-    doble c = leer_doble()
-
-    leer("Pulse una tecla para continuar")
-    limpiar()
-
-    si a%2 == 0 {
-        imprimirln(a, " es par")
-    } obien {
-        imprimirln(a, " es impar")
-    }
-
-    imprimir("Los divisores de ", b, " son: ")
-    parango i: 1, b-1 {
-        si b%i == 0 {
-            imprimir(i, " ")
-        }
-    }
-    imprimirln(b)
-
-    si c == round(c) {
-        imprimirln(round(c), " es entero")
-    } obien {
-        imprimirln(c, " es real")
+    static func lo_que_sea() {
+        println("Algo que es estatico")
     }
 }
 
-
-#   4- SubProcesos
-
-func prueba_funciones() {
-    func saludar() {
-        imprimirln("Hola, mundo")
-    }
-
-    func calcular_doble(ent num) {
-        devolver num*2
-    }
-
-    func triplicar(ent num) {
-        devolver num*3
-    }
-
-    imprimirln("Llamar a la funcion saludar:")
-    saludar()
-
-    doble x = leer_doble("Ingrese un valor numerico para x: ")
-
-    imprimirln("Llamada a la funcion CalcularDoble (pasaje por valor)")
-    imprimirln("El doble de ", x, " es ", calcular_doble(x))
-    imprimirln("El valor original de x es ", x)
-
-    imprimirln("Llamada a la funcion triplicar (no hay referencias aun)")
-    x = triplicar(x)
-    imprimirln("El nuevo valor de x es ", x)
-}
-
-
-#   5- AdivinaNumero
-
-func adivina_numero() {
-    ent intentos = 10
-    ent num_secreto = azarEnt(1, 100)
-
-    ent num_ingresado = leer_ent("Adivine el numero (de 1 a 100):")
-
-    mientras num_secreto != num_ingresado && intentos > 1 {
-        si num_secreto > num_ingresado {
-            imprimirln("Muy bajo")
-        } obien {
-            imprimirln("Muy alto")
-        }
-
-        intentos--
-
-        num_ingresado = leer_ent("Le quedan " + intentos + " intentos: ")
-    }
-
-    si num_secreto == num_ingresado {
-        imprimirln("\nExacto! Usted adivino en ", 11-intentos, " intentos.")
-    } obien {
-        imprimirln("El numero era: ", num_secreto)
+class Child : Father{
+    init(string _name) {
+        name = _name
     }
 }
+
+println("hey")
+
+/*println(Father::numLegs)
+Child a = new Child("Luis")
+println(a)
+a.sayHi()
+*/
+debug
+println(Child::numLegs)
+Child::lo_que_sea()

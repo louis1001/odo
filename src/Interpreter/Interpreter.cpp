@@ -2034,6 +2034,16 @@ namespace Odo::Interpreting {
             .kind = SymbolType::ClassType,
         };
         auto inTable = currentScope->addSymbol(newClassSym);
+// TODO Fix this. Not sure where the scope of the parent class shoud go if currentScope is the parent of the new class scope
+
+// Probably should make a new field in class value for the parent class.
+        SymbolTable* parentScope = currentScope;
+        if (typeSym) {
+            auto parentMolde = typeSym->value;
+            if (parentMolde) {
+                parentScope = &Value::as<ClassValue>(parentMolde)->ownScope;
+            }
+        }
 
         SymbolTable classScope{"class-" + node->name.value + "-scope", {}, currentScope};
         auto newClassMolde = ClassValue::create(inTable, classScope, currentScope, node->body);
