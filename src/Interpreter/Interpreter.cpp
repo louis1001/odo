@@ -2334,6 +2334,20 @@ namespace Odo::Interpreting {
                         varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
                     } else if (theValue->kind() == ValueType::InstanceVal) {
                         varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+                    } else if (theValue->kind() == ValueType::EnumVal) {
+                        auto as_enum_value = Value::as<EnumValue>(theValue);
+                        auto sm = as_enum_value->ownScope.findSymbol(as_static_var->name.value, false);
+                        if (sm) {
+                            if (sm->value)
+                                return sm;
+                            return nullptr;
+                        } else {
+                            throw Exceptions::NameException(
+                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
+                                    current_line,
+                                    current_col
+                            );
+                        }
                     } else {
                         throw Exceptions::NameException(
                                 //TODO Change to cannot read static
