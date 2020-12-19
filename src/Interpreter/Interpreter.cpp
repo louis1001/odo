@@ -1213,8 +1213,6 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
-        return getSymbolFromNode(node)->value;
-
         auto found = currentScope->findSymbol(node->token.value);
 
         if (found != nullptr) {
@@ -1233,7 +1231,6 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
-        return getSymbolFromNode(node)->value;
         auto visited_val = visit(node->val);
 
         if (visited_val->type->name == STRING_TP) {
@@ -2442,6 +2439,14 @@ namespace Odo::Interpreting {
                     if (visited_indx->type->name == INT_TP) {
                         auto& as_list = Value::as<ListValue>(visited_source)->elements;
                         auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
+                        // TODO: Add funcionality of reverse indexing.
+                        if (as_int > as_list.size()-1 || as_int < 0) {
+                            throw Exceptions::ValueException(
+                                    INDX_STR_OB_EXCP,
+                                    current_line,
+                                    current_col
+                            );
+                        }
                         return &as_list[as_int];
                     } else {
                         throw Exceptions::TypeException(
