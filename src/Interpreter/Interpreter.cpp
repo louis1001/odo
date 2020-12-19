@@ -1213,6 +1213,8 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
+        return getMemberVarSymbol(node)->value;
+
         auto found = currentScope->findSymbol(node->token.value);
 
         if (found != nullptr) {
@@ -1231,6 +1233,7 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
+        return getMemberVarSymbol(node)->value;
         auto visited_val = visit(node->val);
 
         if (visited_val->type->name == STRING_TP) {
@@ -2280,6 +2283,15 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
         auto instance = visit(node->inst);
 
+        auto symbol = getMemberVarSymbol(node);
+        if (symbol && symbol->value) {
+            return symbol->value;
+        }
+        return null;
+
+        // I'll keep this code around in case anything breaks.
+        // I really need to make a test suite.
+        /*
         if (instance->kind() == ValueType::InstanceVal) {
             auto as_instance_value = Value::as<InstanceValue>(instance);
             auto classVal = as_instance_value->molde;
@@ -2347,6 +2359,7 @@ namespace Odo::Interpreting {
         }
 
         return null;
+         */
     }
 
     Symbol* Interpreter::getMemberVarSymbol(const std::shared_ptr<Node>& mem) {
