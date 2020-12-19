@@ -108,7 +108,7 @@ namespace Odo::Interpreting {
 
         std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
 
-        Symbol *getMemberVarSymbol(const std::shared_ptr<Parsing::Node>& mem);
+        Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
 
     public:
         void interpret(std::string);

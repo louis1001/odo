@@ -1174,7 +1174,7 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Assignment(const std::shared_ptr<AssignmentNode>& node) {
-        auto varSym = getMemberVarSymbol(node->expr);
+        auto varSym = getSymbolFromNode(node->expr);
         auto newValue = visit(node->val);
 
         if (varSym) {
@@ -1213,7 +1213,7 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
-        return getMemberVarSymbol(node)->value;
+        return getSymbolFromNode(node)->value;
 
         auto found = currentScope->findSymbol(node->token.value);
 
@@ -1233,7 +1233,7 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
-        return getMemberVarSymbol(node)->value;
+        return getSymbolFromNode(node)->value;
         auto visited_val = visit(node->val);
 
         if (visited_val->type->name == STRING_TP) {
@@ -2293,7 +2293,7 @@ namespace Odo::Interpreting {
     std::shared_ptr<Value> Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
         auto instance = visit(node->inst);
 
-        auto symbol = getMemberVarSymbol(node);
+        auto symbol = getSymbolFromNode(node);
         if (symbol && symbol->value) {
             return symbol->value;
         }
@@ -2372,7 +2372,7 @@ namespace Odo::Interpreting {
          */
     }
 
-    Symbol* Interpreter::getMemberVarSymbol(const std::shared_ptr<Node>& mem) {
+    Symbol* Interpreter::getSymbolFromNode(const std::shared_ptr<Node>& mem) {
         Symbol* varSym = nullptr;
 
         switch (mem->kind()) {
@@ -2382,7 +2382,7 @@ namespace Odo::Interpreting {
             case NodeType::MemberVar:
             {
                 auto as_member_node = Node::as<MemberVarNode>(mem);
-                auto leftHandSym = getMemberVarSymbol(as_member_node->inst);
+                auto leftHandSym = getSymbolFromNode(as_member_node->inst);
 
                 if (leftHandSym && leftHandSym->value) {
                     auto theValue = leftHandSym->value;
@@ -2403,7 +2403,7 @@ namespace Odo::Interpreting {
             case NodeType::StaticVar:
             {
                 auto as_static_var = Node::as<StaticVarNode>(mem);
-                auto leftHandSym = getMemberVarSymbol(as_static_var->inst);
+                auto leftHandSym = getSymbolFromNode(as_static_var->inst);
 
                 if (leftHandSym && leftHandSym->value) {
                     auto theValue = leftHandSym->value;
