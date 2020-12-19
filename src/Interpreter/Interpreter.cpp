@@ -2293,6 +2293,12 @@ namespace Odo::Interpreting {
         auto symbol = getSymbolFromNode(node);
         if (symbol && symbol->value) {
             return symbol->value;
+        } else {
+            throw Exceptions::NameException(
+                NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
+                current_line,
+                current_col
+            );
         }
         return null;
 
@@ -2407,13 +2413,12 @@ namespace Odo::Interpreting {
                     if (theValue->kind() == ValueType::ModuleVal) {
                         varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
                     } else if (theValue->kind() == ValueType::ClassVal) {
-                        varSym = Value::as<ClassValue>(theValue)->ownScope.findSymbol(as_static_var->name.value);
+                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
                     } else if (theValue->kind() == ValueType::InstanceVal) {
-                        auto classVal = Value::as<InstanceValue>(theValue)->molde;
-
-                        varSym = classVal->ownScope.findSymbol(as_static_var->name.value);
+                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
                     } else {
                         throw Exceptions::NameException(
+                                //TODO Change to cannot read static
                                 INVALID_STATIC_OP_EXCP,
                                 current_line,
                                 current_col

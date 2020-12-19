@@ -133,6 +133,8 @@ namespace Odo::Interpreting {
         ClassValue(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
 
         static std::shared_ptr<ClassValue> create(Symbol* tp, const SymbolTable& scope, SymbolTable* parent_, std::shared_ptr<Parsing::Node> body_);
+
+        Symbol* getStaticVarSymbol(const std::string& name);
     };
 
     struct InstanceValue final: public Value {
@@ -148,6 +150,8 @@ namespace Odo::Interpreting {
         InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
 
         static std::shared_ptr<InstanceValue> create(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope);
+
+        Symbol* getStaticVarSymbol(const std::string& name);
     };
 
     struct EnumValue final: public Value {

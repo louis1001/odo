@@ -184,6 +184,21 @@ namespace Odo::Interpreting {
         return copied_value;
     }
 
+    Symbol* ClassValue::getStaticVarSymbol(const std::string& name) {
+        auto inMe = ownScope.findSymbol(name);
+
+        if (inMe) return inMe;
+
+        if (type && type->tp && type->tp->value) {
+            auto myParent = as<ClassValue>(type->tp->value);
+            if (myParent) {
+                return myParent->getStaticVarSymbol(name);
+            }
+        }
+
+        return nullptr;
+    }
+
     InstanceValue::InstanceValue(Symbol* tp, std::shared_ptr<ClassValue> molde_, const SymbolTable& scope)
         : Value(tp)
         , molde(std::move(molde_))
@@ -198,6 +213,10 @@ namespace Odo::Interpreting {
         auto copied_value = std::make_shared<InstanceValue>(type, molde, ownScope);
 
         return copied_value;
+    }
+
+    Symbol* InstanceValue::getStaticVarSymbol(const std::string& name) {
+        return molde->getStaticVarSymbol(name);
     }
 
     EnumValue::EnumValue(Symbol* tp, const SymbolTable& scope): Value(tp), ownScope(scope) {}
