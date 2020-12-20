@@ -6,6 +6,7 @@
 #include "Exceptions/exception.h"
 #include "IO/io.h"
 #include "utils.h"
+#include "SemAnalyzer/SemanticAnalyzer.h"
 
 #include "Translations/lang.h"
 
@@ -2412,6 +2413,11 @@ namespace Odo::Interpreting {
 
         auto root = parser.program();
 
+        Semantics::SemanticAnalyzer analyzer(*this);
+        auto result = analyzer.visit(root);
+
+        std::cout << result.has_side_effects << "\n";
+
         call_stack.push_back({"global", 1, 1});
         visit(root);
         call_stack.pop_back();
@@ -2428,7 +2434,9 @@ namespace Odo::Interpreting {
         currentScope = &replScope;
 
         auto result = null;
+        Semantics::SemanticAnalyzer analyzer(*this);
         for (const auto& node : statements) {
+            auto m = analyzer.visit(node);
             result = visit(node);
         }
 

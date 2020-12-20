@@ -7,7 +7,7 @@
 namespace Odo::Semantics {
     using namespace Parsing;
     // This should initialize the symbol tables and basic types, like the Interpreter.
-    SemanticAnalyzer::SemanticAnalyzer() = default;
+    SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {};
 
     NodeResult SemanticAnalyzer::visit(const std::shared_ptr<Parsing::Node>& node) {
 //        current_line = node->line_number;
@@ -15,17 +15,13 @@ namespace Odo::Semantics {
         switch (node->kind()) {
             // Normal Types
             case NodeType::Double:
-                // return visit_Double(Node::as<DoubleNode>(node));
-                /* ToRemoveLater */ break;
+                return visit_Double(Node::as<DoubleNode>(node));
             case NodeType::Int:
-                // return visit_Int(Node::as<IntNode>(node));
-                /* ToRemoveLater */ break;
+                return visit_Int(Node::as<IntNode>(node));
             case NodeType::Bool:
-                // return visit_Bool(Node::as<BoolNode>(node));
-                /* ToRemoveLater */ break;
+                return visit_Bool(Node::as<BoolNode>(node));
             case NodeType::Str:
-                // return visit_Str(Node::as<StrNode>(node));
-                /* ToRemoveLater */ break;
+                return visit_Str(Node::as<StrNode>(node));
 
                 // Operations
             case NodeType::BinOp:
@@ -73,8 +69,7 @@ namespace Odo::Semantics {
                 /* ToRemoveLater */ break;
                 // return null;
             case NodeType::Block:
-                // return visit_Block(Node::as<BlockNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Block(Node::as<BlockNode>(node));
 
                 // Variable Handling
             case NodeType::VarDeclaration:
@@ -161,6 +156,29 @@ namespace Odo::Semantics {
             case NodeType::Null:
                 // return null;
                 break;
+        }
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Double(const std::shared_ptr<Parsing::DoubleNode>& node) {
+        return {inter.globalTable.findSymbol(DOUBLE_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Int(const std::shared_ptr<Parsing::IntNode>& node) {
+        return {inter.globalTable.findSymbol(INT_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Str(const std::shared_ptr<Parsing::StrNode>& node) {
+        return {inter.globalTable.findSymbol(STRING_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Bool(const std::shared_ptr<Parsing::BoolNode>& node) {
+        return {inter.globalTable.findSymbol(BOOL_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {
+        for (const auto& statement : node->statements) {
+            visit(statement);
         }
         return {};
     }

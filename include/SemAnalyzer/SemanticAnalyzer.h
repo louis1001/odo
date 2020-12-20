@@ -4,12 +4,64 @@
 
 #ifndef ODO_SEMANTICANALYZER_H
 #define ODO_SEMANTICANALYZER_H
+
+#include <Interpreter/Interpreter.h>
 #include "NodeResult.h"
-#include "Parser/AST/Node.h"
+
+#include "Translations/lang.h"
+
+#include "Parser/AST/DoubleNode.h"
+#include "Parser/AST/IntNode.h"
+#include "Parser/AST/BoolNode.h"
+#include "Parser/AST/StrNode.h"
+#include "Parser/AST/TernaryOpNode.h"
+#include "Parser/AST/BinOpNode.h"
+#include "Parser/AST/UnaryOpNode.h"
+#include "Parser/AST/NoOpNode.h"
+#include "Parser/AST/VarDeclarationNode.h"
+#include "Parser/AST/ListDeclarationNode.h"
+#include "Parser/AST/VariableNode.h"
+#include "Parser/AST/AssignmentNode.h"
+#include "Parser/AST/ListExpressionNode.h"
+#include "Parser/AST/BlockNode.h"
+#include "Parser/AST/FuncExpressionNode.h"
+#include "Parser/AST/FuncDeclNode.h"
+#include "Parser/AST/FuncCallNode.h"
+#include "Parser/AST/FuncBodyNode.h"
+#include "Parser/AST/ReturnNode.h"
+#include "Parser/AST/IfNode.h"
+#include "Parser/AST/ForNode.h"
+#include "Parser/AST/ForEachNode.h"
+#include "Parser/AST/FoRangeNode.h"
+#include "Parser/AST/WhileNode.h"
+#include "Parser/AST/LoopNode.h"
+#include "Parser/AST/ModuleNode.h"
+#include "Parser/AST/ImportNode.h"
+#include "Parser/AST/EnumNode.h"
+#include "Parser/AST/ClassNode.h"
+#include "Parser/AST/ClassBodyNode.h"
+#include "Parser/AST/InstanceBodyNode.h"
+#include "Parser/AST/ClassInitializerNode.h"
+#include "Parser/AST/ConstructorDeclNode.h"
+#include "Parser/AST/ConstructorCallNode.h"
+#include "Parser/AST/StaticStatementNode.h"
+#include "Parser/AST/MemberVarNode.h"
+#include "Parser/AST/StaticVarNode.h"
+#include "Parser/AST/IndexNode.h"
 
 namespace Odo::Semantics {
     class SemanticAnalyzer {
-        SemanticAnalyzer();
+        Interpreting::Interpreter& inter;
+
+        NodeResult visit_Double(const std::shared_ptr<Parsing::DoubleNode>&);
+        NodeResult visit_Int(const std::shared_ptr<Parsing::IntNode>&);
+        NodeResult visit_Str(const std::shared_ptr<Parsing::StrNode>&);
+        NodeResult visit_Bool(const std::shared_ptr<Parsing::BoolNode>&);
+
+        NodeResult visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
+
+    public:
+        SemanticAnalyzer(Interpreting::Interpreter&);
 
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
     };

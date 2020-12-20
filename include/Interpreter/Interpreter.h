@@ -13,6 +13,7 @@
 
 #include <functional>
 #include <vector>
+namespace Odo::Semantics { class SemanticAnalyzer; }
 
 #define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
@@ -110,6 +111,7 @@ namespace Odo::Interpreting {
 
         Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
 
+        friend class Semantics::SemanticAnalyzer;
     public:
         void interpret(std::string);
         std::shared_ptr<Value> eval(std::string);
