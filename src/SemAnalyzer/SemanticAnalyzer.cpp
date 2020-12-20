@@ -34,8 +34,7 @@ namespace Odo::Semantics {
                 // return visit_UnaryOp(Node::as<UnaryOpNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::NoOp:
-                // return null;
-                /* ToRemoveLater */ break;
+                 return {};
 
             case NodeType::Index:
                 // return visit_Index(Node::as<IndexNode>(node));
