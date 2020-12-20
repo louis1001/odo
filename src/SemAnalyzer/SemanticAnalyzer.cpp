@@ -199,7 +199,7 @@ namespace Odo::Semantics {
         auto val_cond = visit(node->cond);
 
         // The condition of the ternary operator has to be boolean
-        if (val_cond.type->name != BOOL_TP) {
+        if (val_cond.type && val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
                     COND_TERN_MUST_BOOL_EXCP,
                     node->cond->line_number,
