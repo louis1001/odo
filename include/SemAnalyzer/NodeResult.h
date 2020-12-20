@@ -9,9 +9,9 @@
 
 namespace Odo::Semantics {
     struct NodeResult {
-        Interpreting::Symbol* type;
-        bool is_constant;
-        bool has_side_effects;
+        Interpreting::Symbol* type {nullptr};
+        bool is_constant {true};
+        bool has_side_effects {false};
     };
 }
 
