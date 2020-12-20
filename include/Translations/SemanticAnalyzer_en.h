@@ -7,5 +7,6 @@
 #define ODO_SEMANTICANALYZER_EN_H
 
 #define BOTH_BRANCH_SAME_TYPE_EXCP "Both branches in ternary operator must return the same type."
+#define BRANCHES_MUST_RETURN_EXCP "Ternary operator branches must be valid expressions. (Must return value)"
 
 #endif //ODO_SEMANTICANALYZER_EN_H

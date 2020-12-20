@@ -212,6 +212,15 @@ namespace Odo::Semantics {
 
         auto false_result = visit(node->falseb);
 
+        if (!true_result.type || !false_result.type) {
+            // Error! Ternary operator branches must be valid expressions. (Must return value)
+            throw Exceptions::ValueException(
+                    BRANCHES_MUST_RETURN_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
         if (true_result.type != false_result.type) {
             // Error! Both branches must return the same value
             // TODO: Add type coersion
