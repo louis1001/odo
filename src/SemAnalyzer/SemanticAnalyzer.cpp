@@ -155,8 +155,7 @@ namespace Odo::Semantics {
             case NodeType::Debug:
                 // noop;
             case NodeType::Null:
-                // return null;
-                break;
+                return {inter.get_null()->type, true, false};
         }
 
 #ifdef TEST_SEMANTICS
