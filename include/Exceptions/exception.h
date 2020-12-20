@@ -8,6 +8,9 @@
 
 #ifndef ODO_PORT_EXCEPTION_H
 #define ODO_PORT_EXCEPTION_H
+#define NOT_IMPLEMENTED(...) \
+    throw Exceptions::OdoException(NOT_IMPL_EXCP + std::string(#__VA_ARGS__))
+
 namespace Odo::Exceptions {
     class Exception: public std::exception {
     public:

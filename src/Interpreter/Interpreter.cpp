@@ -59,9 +59,6 @@
 #define noop (void)0
 // #define DEBUG_FUNCTIONS
 
-#define NOT_IMPLEMENTED(...) \
-    throw Exceptions::OdoException(NOT_IMPL_EXCP + std::string(#__VA_ARGS__), current_line, current_col)
-
 namespace Odo::Interpreting {
     using namespace Parsing;
 

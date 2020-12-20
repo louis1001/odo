@@ -3,6 +3,9 @@
 //
 
 #include "SemAnalyzer/SemanticAnalyzer.h"
+#include "Exceptions/exception.h"
+
+#define TEST_SEMANTICS
 
 namespace Odo::Semantics {
     using namespace Parsing;
@@ -157,6 +160,10 @@ namespace Odo::Semantics {
                 // return null;
                 break;
         }
+
+#ifdef TEST_SEMANTICS
+        NOT_IMPLEMENTED("Semantics");
+#endif
         return {};
     }
 
