@@ -1729,7 +1729,7 @@ namespace Odo::Interpreting {
 
         switch (node->token.tp) {
             case Lexing::PLUS:
-                break;
+                return result_as_normal;
             case Lexing::MINUS:
                 if (result->type->name == INT_TP) {
                     auto actual_value = result_as_normal->as_int();
