@@ -11,7 +11,7 @@ namespace Odo::Semantics {
     class SemanticAnalyzer {
         SemanticAnalyzer();
 
-        NodeResult visit(Parsing::Node);
+        NodeResult visit(const std::shared_ptr<Parsing::Node>&);
     };
 }
 
