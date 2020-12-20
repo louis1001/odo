@@ -41,8 +41,7 @@ namespace Odo::Semantics {
 
                 // Control Flow
             case NodeType::TernaryOp:
-                // return visit_TernaryOp(Node::as<TernaryOpNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_TernaryOp(Node::as<TernaryOpNode>(node));
             case NodeType::If:
                 // return visit_If(Node::as<IfNode>(node));
                 /* ToRemoveLater */ break;
@@ -194,6 +193,40 @@ namespace Odo::Semantics {
                 node->line_number,
                 node->column_number
         );
+    }
+
+    NodeResult SemanticAnalyzer::visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>& node) {
+        auto val_cond = visit(node->cond);
+
+        // The condition of the ternary operator has to be boolean
+        if (val_cond.type->name != BOOL_TP) {
+            throw Exceptions::TypeException(
+                    COND_TERN_MUST_BOOL_EXCP,
+                    node->cond->line_number,
+                    node->cond->column_number
+            );
+        }
+
+        // In the SemanticAnalyzer I dont need to check for the condition, just visit every branch.
+        auto true_result = visit(node->trueb);
+
+        auto false_result = visit(node->falseb);
+
+        if (true_result.type != false_result.type) {
+            // Error! Both branches must return the same value
+            // TODO: Add type coersion
+            throw Exceptions::TypeException(
+                BOTH_BRANCH_SAME_TYPE_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        return {
+            true_result.type,
+            true_result.is_constant && false_result.is_constant,
+            true_result.has_side_effects || false_result.has_side_effects
+        };
     }
 
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {

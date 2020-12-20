@@ -135,6 +135,9 @@ add_executable(odo
         include/Translations/symbol_en.h
         include/Translations/symbol_es.h
         include/SemAnalyzer/SemanticAnalyzer.h
+        include/Translations/SemanticAnalyzer_en.h
+        include/Translations/SemanticAnalyzer_es.h
+
         include/SemAnalyzer/NodeResult.h
         src/SemAnalyzer/SemanticAnalyzer.cpp)
 
