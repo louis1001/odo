@@ -58,6 +58,8 @@ namespace Odo::Semantics {
         NodeResult visit_Str(const std::shared_ptr<Parsing::StrNode>&);
         NodeResult visit_Bool(const std::shared_ptr<Parsing::BoolNode>&);
 
+        NodeResult visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>&);
+
         NodeResult visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
 
     public:

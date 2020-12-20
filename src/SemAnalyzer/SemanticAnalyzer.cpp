@@ -31,8 +31,7 @@ namespace Odo::Semantics {
                 // return visit_BinOp(Node::as<BinOpNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::UnaryOp:
-                // return visit_UnaryOp(Node::as<UnaryOpNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_UnaryOp(Node::as<UnaryOpNode>(node));
             case NodeType::NoOp:
                  return {};
 
@@ -180,6 +179,22 @@ namespace Odo::Semantics {
 
     NodeResult SemanticAnalyzer::visit_Bool(const std::shared_ptr<Parsing::BoolNode>& node) {
         return {inter.globalTable.findSymbol(BOOL_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>& node) {
+        auto result = visit(node->ast);
+
+        if (result.type) {
+            if (result.type->name == INT_TP || result.type->name == DOUBLE_TP) {
+                return result;
+            }
+        }
+
+        throw Exceptions::TypeException(
+                UNA_ONLY_NUM_EXCP,
+                node->line_number,
+                node->column_number
+        );
     }
 
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {
