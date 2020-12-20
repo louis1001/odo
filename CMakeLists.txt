@@ -133,7 +133,9 @@ add_executable(odo
         include/Translations/value_es.h
         include/Translations/main_es.h
         include/Translations/symbol_en.h
-        include/Translations/symbol_es.h)
+        include/Translations/symbol_es.h
+        include/SemAnalyzer/SemanticAnalyzer.h
+        include/SemAnalyzer/NodeResult.h)
 
 target_compile_definitions(odo PUBLIC LANG_USE_ES=0)
 
