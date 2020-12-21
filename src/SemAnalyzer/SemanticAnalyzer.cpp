@@ -11,7 +11,10 @@
 namespace Odo::Semantics {
     using namespace Parsing;
     // This should initialize the symbol tables and basic types, like the Interpreter.
-    SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {};
+    SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {
+        currentScope = &inter.globalTable;
+        replScope = { "repl-analyzer", {}, &inter.globalTable };
+    };
 
     NodeResult SemanticAnalyzer::visit(const std::shared_ptr<Parsing::Node>& node) {
 //        current_line = node->line_number;
@@ -314,6 +317,16 @@ namespace Odo::Semantics {
             result.has_side_effects = result.has_side_effects || el_result.has_side_effects;
         }
 
+        return result;
+    }
+
+    NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
+        auto temp_scope = currentScope;
+        currentScope = &replScope;
+
+        auto result = visit(node);
+
+        currentScope = temp_scope;
         return result;
     }
 }

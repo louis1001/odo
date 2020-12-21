@@ -54,6 +54,9 @@ namespace Odo::Interpreting {
 
 namespace Odo::Semantics {
     class SemanticAnalyzer {
+        Interpreting::SymbolTable replScope;
+        Interpreting::SymbolTable* currentScope;
+
         Interpreting::Interpreter& inter;
 
         NodeResult visit_Double(const std::shared_ptr<Parsing::DoubleNode>&);
@@ -75,6 +78,7 @@ namespace Odo::Semantics {
         SemanticAnalyzer(Interpreting::Interpreter&);
 
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
+        NodeResult from_repl(const std::shared_ptr<Parsing::Node>&);
     };
 }
 

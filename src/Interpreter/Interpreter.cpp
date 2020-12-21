@@ -2433,8 +2433,14 @@ namespace Odo::Interpreting {
 
         auto result = null;
         for (const auto& node : statements) {
-            auto m = analyzer->visit(node);
+            auto m = analyzer->from_repl(node);
             result = visit(node);
+
+            if (m.type) {
+                std::cout << "This returned a value of type '" << m.type->name << "'.\n";
+            } else {
+                std::cout << "This didn't return anything.\n";
+            }
         }
 
         currentScope = &globalTable;
