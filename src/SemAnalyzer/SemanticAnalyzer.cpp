@@ -302,7 +302,7 @@ namespace Odo::Semantics {
             if (!result.type) {
                 result.type = inter.globalTable.addListType(el_result.type);
             }
-            else if (result.type != el_result.type && !is_any) {
+            else if (result.type->tp != el_result.type && !is_any) {
                 result.type = inter.globalTable.addListType(inter.any_type());
                 is_any = true;
             }
