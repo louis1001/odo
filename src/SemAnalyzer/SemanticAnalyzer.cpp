@@ -89,8 +89,7 @@ namespace Odo::Semantics {
             case NodeType::ListDeclaration:
                  return visit_ListDeclaration(Node::as<ListDeclarationNode>(node));
             case NodeType::Variable:
-                // return visit_Variable(Node::as<VariableNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Variable(Node::as<VariableNode>(node));
             case NodeType::Assignment:
                 // return visit_Assignment(Node::as<AssignmentNode>(node));
                 /* ToRemoveLater */ break;
@@ -596,6 +595,33 @@ namespace Odo::Semantics {
         in_table->content_has_side_effects = has_side_effects;
 
         return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Variable(const std::shared_ptr<Parsing::VariableNode>& node) {
+        auto found = currentScope->findSymbol(node->token.value);
+
+        if (found != nullptr) {
+                // Check if initialized!
+            if (found->is_initialized) {
+                return {
+                    found->tp,
+                    found->content_is_constant,
+                    found->content_has_side_effects
+                };
+            } else {
+                throw Exceptions::ValueException(
+                    "(SemAn) " USI_VAR_NOT_INIT_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        } else {
+            throw Exceptions::NameException(
+                "(SemAn) " VAR_CALLED_EXCP + node->token.value + NOT_DEFINED_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
     }
 
     NodeResult SemanticAnalyzer::visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>& node) {

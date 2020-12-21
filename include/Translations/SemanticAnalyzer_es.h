@@ -17,5 +17,6 @@
 #define INVALID_LST_DECL_TYPE_EXCP "Declaracion de lista invalida. Inicializando lista de tipo "
 #define WITH_LST_VAL_OF_TYPE_EXCP " con valor de tipo "
 #define LST_INIT_MUST_BE_VALID_EXCP "La inicializacion de una lista debe ser una expresion valida (Debe devolver un valor)"
+#define USI_VAR_NOT_INIT_EXCP "Usando una variable que no ha sido inicializada."
 
 #endif //ODO_SEMANTICANALYZER_ES_H

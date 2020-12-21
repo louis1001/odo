@@ -80,6 +80,7 @@ namespace Odo::Semantics {
 
         NodeResult visit_VarDeclaration(const std::shared_ptr<Parsing::VarDeclarationNode>&);
         NodeResult visit_ListDeclaration(const std::shared_ptr<Parsing::ListDeclarationNode>&);
+        NodeResult visit_Variable(const std::shared_ptr<Parsing::VariableNode>&);
 
         NodeResult visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
 
