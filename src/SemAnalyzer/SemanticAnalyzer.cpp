@@ -36,8 +36,7 @@ namespace Odo::Semantics {
                  return {};
 
             case NodeType::Index:
-                // return visit_Index(Node::as<IndexNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Index(Node::as<IndexNode>(node));
 
                 // Control Flow
             case NodeType::TernaryOp:
@@ -236,6 +235,47 @@ namespace Odo::Semantics {
             true_result.is_constant && false_result.is_constant,
             true_result.has_side_effects || false_result.has_side_effects
         };
+    }
+
+    NodeResult SemanticAnalyzer::visit_Index(const std::shared_ptr<Parsing::IndexNode>& node) {
+        auto visited_val = visit(node->val);
+
+        if (!visited_val.type) {
+            // Error! Using index operator where there's no value to index.
+            throw Exceptions::ValueException(
+                NO_VALUE_TO_INDEX_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        if (visited_val.type->name == STRING_TP) {
+            auto visited_indx = visit(node->expr);
+            if (visited_indx.type->name != INT_TP) {
+                throw Exceptions::TypeException(
+                    STR_ONLY_INDX_NUM_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        } else if (visited_val.type->kind == Interpreting::SymbolType::ListType){
+            auto visited_indx = visit(node->expr);
+            if (visited_indx.type->name != INT_TP) {
+                throw Exceptions::TypeException(
+                    LST_ONLY_INDX_NUM_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        } else {
+            throw Exceptions::ValueException(
+                    INDX_ONLY_LST_STR_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        return {visited_val.type->tp, visited_val.is_constant};
     }
 
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {

@@ -62,6 +62,8 @@ namespace Odo::Semantics {
 
         NodeResult visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>&);
 
+        NodeResult visit_Index(const std::shared_ptr<Parsing::IndexNode>&);
+
         NodeResult visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
 
     public:
