@@ -60,7 +60,7 @@ namespace Odo::Interpreting {
         std::any val;
 
         ValueType kind() final { return ValueType::NormalVal; }
-        [[nodiscard]] bool is_numeric() const final { return type->name == INT_TP || type->name == DOUBLE_TP; }
+        [[nodiscard]] bool is_numeric() const final { return type->is_numeric(); }
         [[nodiscard]] bool is_copyable() const final { return type->name != NULL_TP; }
 
         std::shared_ptr<Value> copy() final;

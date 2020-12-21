@@ -11,6 +11,8 @@
 #include "utils.h"
 #include <memory>
 
+#include "Translations/lang.h"
+
 #include "Lexer/token.hpp"
 namespace Odo::Interpreting {
     struct Value;
@@ -38,6 +40,8 @@ namespace Odo::Interpreting {
         std::shared_ptr<Value> value = nullptr;
         bool isType = false;
         SymbolType kind = SymbolType::VarSymbol;
+
+        [[nodiscard]] bool is_numeric() const { return name == INT_TP || name == DOUBLE_TP; }
 
         static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol, bool> >& paramTypes) {
             std::string result = "(";
