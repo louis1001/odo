@@ -67,6 +67,12 @@ namespace Odo::Semantics {
         NodeResult visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>&);
 
         NodeResult visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>&);
+        NodeResult visit_If(const std::shared_ptr<Parsing::IfNode>&);
+        NodeResult visit_For(const std::shared_ptr<Parsing::ForNode>&);
+        NodeResult visit_ForEach(const std::shared_ptr<Parsing::ForEachNode>&);
+        NodeResult visit_FoRange(const std::shared_ptr<Parsing::FoRangeNode>&);
+        NodeResult visit_While(const std::shared_ptr<Parsing::WhileNode>&);
+        NodeResult visit_Loop(const std::shared_ptr<Parsing::LoopNode>&);
 
         NodeResult visit_Index(const std::shared_ptr<Parsing::IndexNode>&);
 

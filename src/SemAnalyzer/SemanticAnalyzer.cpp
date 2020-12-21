@@ -46,23 +46,17 @@ namespace Odo::Semantics {
             case NodeType::TernaryOp:
                  return visit_TernaryOp(Node::as<TernaryOpNode>(node));
             case NodeType::If:
-                // return visit_If(Node::as<IfNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_If(Node::as<IfNode>(node));
             case NodeType::For:
-                // return visit_For(Node::as<ForNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_For(Node::as<ForNode>(node));
             case NodeType::ForEach:
-                // return visit_ForEach(Node::as<ForEachNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ForEach(Node::as<ForEachNode>(node));
             case NodeType::FoRange:
-                // return visit_FoRange(Node::as<FoRangeNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_FoRange(Node::as<FoRangeNode>(node));
             case NodeType::While:
-                // return visit_While(Node::as<WhileNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_While(Node::as<WhileNode>(node));
             case NodeType::Loop:
-                // return visit_Loop(Node::as<LoopNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Loop(Node::as<LoopNode>(node));
             case NodeType::Break:
                 // breaking = true;
                 /* ToRemoveLater */ break;
@@ -239,6 +233,173 @@ namespace Odo::Semantics {
             true_result.has_side_effects || false_result.has_side_effects
         };
     }
+
+    NodeResult SemanticAnalyzer::visit_If(const std::shared_ptr<Parsing::IfNode>& node) {
+        auto val_cond = visit(node->cond);
+
+        // The condition of the if statement has to be boolean
+        if (!val_cond.type || val_cond.type->name != BOOL_TP) {
+            throw Exceptions::TypeException(
+                    COND_IF_MUST_BOOL_EXCP,
+                    node->cond->line_number,
+                    node->cond->column_number
+            );
+        }
+
+        visit(node->trueb);
+
+        visit(node->falseb);
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_For(const std::shared_ptr<Parsing::ForNode>& node) {
+        auto forScope = Interpreting::SymbolTable("for:loop", {}, currentScope);
+        currentScope = &forScope;
+        visit(node->ini);
+
+        auto val_cond = visit(node->cond);
+
+        // The condition of the if statement has to be boolean
+        if (!val_cond.type || val_cond.type->name != BOOL_TP) {
+            throw Exceptions::TypeException(
+                    COND_IF_MUST_BOOL_EXCP,
+                    node->cond->line_number,
+                    node->cond->column_number
+            );
+        }
+
+        visit(node->incr);
+
+        visit(node->body);
+
+        currentScope = forScope.getParent();
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ForEach(const std::shared_ptr<Parsing::ForEachNode>& node) {
+        auto forScope = Interpreting::SymbolTable("foreach:loop", {}, currentScope);
+        currentScope = &forScope;
+
+        auto lst_value = visit(node->lst);
+
+        if (!lst_value.type) {
+            throw Exceptions::ValueException(
+                NOTHING_TO_ITERATE_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        if (lst_value.type->kind == Interpreting::SymbolType::ListType) {
+            std::shared_ptr<Node> iterator_decl;
+            auto empty_initial = std::make_shared<NoOpNode>();
+            auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value.type->tp->name);
+            if (lst_value.type->tp && lst_value.type->tp->kind == Interpreting::SymbolType::ListType) {
+                iterator_decl = std::make_shared<ListDeclarationNode>(
+                        std::move(element_tp),
+                        node->var,
+                        std::move(empty_initial)
+                );
+            } else {
+                iterator_decl = std::make_shared<VarDeclarationNode>(std::move(element_tp), node->var, std::move(empty_initial));
+            }
+
+            visit(iterator_decl);
+
+            visit(node->body);
+        } else if (lst_value.type->name == STRING_TP) {
+            auto iterator_decl = std::make_shared<VarDeclarationNode>(
+                    Lexing::Token(Lexing::TokenType::ID, STRING_TP),
+                    node->var,
+                    std::make_shared<NoOpNode>()
+            );
+            visit(iterator_decl);
+
+            visit(node->body);
+
+        } else {
+            throw Exceptions::ValueException(
+                    FOREACH_ONLY_LIST_STR_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        currentScope = forScope.getParent();
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_FoRange(const std::shared_ptr<Parsing::FoRangeNode>& node) {
+        auto forScope = Interpreting::SymbolTable("forange:loop", {}, currentScope);
+        currentScope = &forScope;
+
+        auto first_visited = visit(node->first);
+        //TODO: Add "is_numeric" function to types, not values.
+        if (!first_visited.type || !(first_visited.type->name == DOUBLE_TP || first_visited.type->name == INT_TP)) {
+            throw Exceptions::ValueException(
+                    VAL_RANGE_NUM_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        if (node->second && node->second->kind() != NodeType::NoOp) {
+
+            auto second_visited = visit(node->second);
+            if (!second_visited.type || !(second_visited.type->name == DOUBLE_TP || second_visited.type->name == INT_TP)) {
+                throw Exceptions::ValueException(
+                        VAL_RANGE_NUM_EXCP,
+                        node->line_number,
+                        node->column_number
+                );
+            }
+        }
+
+        bool use_iterator = node->var.tp != Lexing::NOTHING;
+
+        if (use_iterator) {
+            std::shared_ptr<Node> iterator_decl = std::make_shared<VarDeclarationNode>(
+                    Lexing::Token(Lexing::TokenType::ID, INT_TP),
+                    node->var,
+                    std::make_shared<NoOpNode>()
+            );
+            visit(iterator_decl);
+        }
+
+        visit(node->body);
+
+        currentScope = forScope.getParent();
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_While(const std::shared_ptr<Parsing::WhileNode>& node) {
+        auto whileScope = Interpreting::SymbolTable("while:loop", {}, currentScope);
+        currentScope = &whileScope;
+        auto val_cond = visit(node->cond);
+
+        // The condition of the while statement has to be boolean
+        if (!val_cond.type || val_cond.type->name != BOOL_TP) {
+            throw Exceptions::TypeException(
+                    COND_WHILE_MUST_BOOL_EXCP,
+                    node->cond->line_number,
+                    node->cond->column_number
+            );
+        }
+
+        visit(node->body);
+
+        currentScope = whileScope.getParent();
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Loop(const std::shared_ptr<Parsing::LoopNode>& node) {
+        visit(node->body);
+        return {};
+    }
+
 
     NodeResult SemanticAnalyzer::visit_Index(const std::shared_ptr<Parsing::IndexNode>& node) {
         auto visited_val = visit(node->val);

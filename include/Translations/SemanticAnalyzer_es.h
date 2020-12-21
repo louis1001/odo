@@ -9,5 +9,6 @@
 #define BOTH_BRANCH_SAME_TYPE_EXCP "Ambas ramas del operador ternario deben devolver el mismo tipo."
 #define BRANCHES_MUST_RETURN_EXCP "Las ramas del operador ternario deben ser expresiones validas. (Deben devolver un valor)"
 #define LST_EL_NO_VALUE_EXCP "El elemento en la lista no tiene o devuelve valor."
+#define NOTHING_TO_ITERATE_EXCP "No hay nada sobre que iterar en la sentencia 'paracada'"
 
 #endif //ODO_SEMANTICANALYZER_ES_H

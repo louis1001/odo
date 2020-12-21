@@ -9,5 +9,6 @@
 #define BOTH_BRANCH_SAME_TYPE_EXCP "Both branches in ternary operator must return the same type."
 #define BRANCHES_MUST_RETURN_EXCP "Ternary operator branches must be valid expressions. (Must return value)"
 #define LST_EL_NO_VALUE_EXCP "Element in list has no value."
+#define NOTHING_TO_ITERATE_EXCP "Nothing to iterate over in foreach statement"
 
 #endif //ODO_SEMANTICANALYZER_EN_H
