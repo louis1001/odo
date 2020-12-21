@@ -6,7 +6,7 @@
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
 
-#define TEST_SEMANTICS
+//#define TEST_SEMANTICS
 
 namespace Odo::Semantics {
     using namespace Parsing;
@@ -87,8 +87,7 @@ namespace Odo::Semantics {
             case NodeType::VarDeclaration:
                  return visit_VarDeclaration(Node::as<VarDeclarationNode>(node));
             case NodeType::ListDeclaration:
-                // return visit_ListDeclaration(Node::as<ListDeclarationNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ListDeclaration(Node::as<ListDeclarationNode>(node));
             case NodeType::Variable:
                 // return visit_Variable(Node::as<VariableNode>(node));
                 /* ToRemoveLater */ break;
@@ -534,6 +533,62 @@ namespace Odo::Semantics {
         }
 
         currentScope->addSymbol(newVar);
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ListDeclaration(const std::shared_ptr<Parsing::ListDeclarationNode>& node) {
+        if (currentScope->symbolExists(node->name.value)) {
+            throw Exceptions::NameException(
+                    "(SemAn) " VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        auto base_type = currentScope->findSymbol(node->var_type.value);
+        if (!(base_type && base_type->isType)) {
+            throw Exceptions::TypeException(
+                    "(SemAn) " INVALID_TYPE_EXCP + node->var_type.value + "'.",
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        Interpreting::Symbol* list_type = inter.globalTable.addListType(base_type);
+
+        if (node->initial && node->initial->kind() != NodeType::NoOp) {
+            auto newValue = visit(node->initial);
+
+            if (!newValue.type) {
+                throw Exceptions::ValueException(
+                    "(SemAn) " LST_INIT_MUST_BE_VALID_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (newValue.type->kind != Interpreting::SymbolType::ListType) {
+                throw Exceptions::TypeException(
+                    "(SemAn) " INVALID_LIST_INIT_NOT_LIST_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (!counts_as(newValue.type->tp, list_type->tp)) {
+                throw Exceptions::TypeException(
+                    "(SemAn) " INVALID_LST_DECL_TYPE_EXCP + list_type->tp->name + WITH_LST_VAL_OF_TYPE_EXCP + newValue.type->tp->name,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        }
+
+        currentScope->addSymbol({
+            list_type,
+            node->name.value
+        });
+
         return {};
     }
 

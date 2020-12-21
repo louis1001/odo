@@ -13,5 +13,9 @@
 #define INVALID_DECL_TYPE_EXCP "Invalid declaration. Initializing variable of type "
 #define WITH_VAL_OF_TYPE_EXCP " with value of type "
 #define VAR_INIT_MUST_BE_VALID_EXCP "Variable initialization must be a valid expression (Must return value)"
+#define INVALID_LIST_INIT_NOT_LIST_EXCP "Invalid list initialization. The value is not a list."
+#define INVALID_LST_DECL_TYPE_EXCP "Invalid list declaration. Initializing list of type "
+#define WITH_LST_VAL_OF_TYPE_EXCP " with value of type "
+#define LST_INIT_MUST_BE_VALID_EXCP "List initialization must be a valid expression (Must return value)"
 
 #endif //ODO_SEMANTICANALYZER_EN_H
