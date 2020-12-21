@@ -83,7 +83,7 @@ namespace Odo::Semantics {
         NodeResult visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
 
     public:
-        SemanticAnalyzer(Interpreting::Interpreter&);
+        explicit SemanticAnalyzer(Interpreting::Interpreter&);
 
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
         NodeResult from_repl(const std::shared_ptr<Parsing::Node>&);
