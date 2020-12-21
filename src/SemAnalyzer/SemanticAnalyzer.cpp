@@ -238,6 +238,8 @@ namespace Odo::Semantics {
         auto val_cond = visit(node->cond);
 
         // The condition of the if statement has to be boolean
+        // TODO: Add separate error message for when there is no type.
+        //      This is for all things that take a condition.
         if (!val_cond.type || val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
                     "(SemAn) " COND_IF_MUST_BOOL_EXCP,
@@ -248,7 +250,8 @@ namespace Odo::Semantics {
 
         visit(node->trueb);
 
-        visit(node->falseb);
+        if (node->falseb)
+            visit(node->falseb);
 
         return {};
     }
