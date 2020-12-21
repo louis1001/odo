@@ -2412,9 +2412,7 @@ namespace Odo::Interpreting {
 
         auto root = parser.program();
 
-        auto result = analyzer->visit(root);
-
-        std::cout << result.has_side_effects << "\n";
+        analyzer->visit(root);
 
         call_stack.push_back({"global", 1, 1});
         visit(root);
