@@ -489,7 +489,10 @@ namespace Odo::Semantics {
             );
         }
 
-        Interpreting::Symbol newVar;
+        Interpreting::Symbol newVar = Interpreting::Symbol{
+            type_,
+            node->name.value
+        };;
         // TODO: Where should the information for the initialization go?
         // If a variable is constant, should it be replaced by the calculation of it's result?
 
@@ -519,17 +522,6 @@ namespace Odo::Semantics {
 
             // For the moment, type coercion happens at runtime. Will work on that when I figure out
             // how to change the AST from here.
-
-            newVar = Interpreting::Symbol{
-                type_,
-                node->name.value
-            };
-        } else {
-            newVar = {
-                type_,
-                node->name.value
-            };
-
         }
 
         currentScope->addSymbol(newVar);
