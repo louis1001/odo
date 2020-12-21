@@ -82,6 +82,8 @@ namespace Odo::Semantics {
 
         NodeResult visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
 
+        bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
+
     public:
         explicit SemanticAnalyzer(Interpreting::Interpreter&);
 

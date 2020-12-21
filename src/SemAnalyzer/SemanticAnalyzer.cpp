@@ -14,7 +14,22 @@ namespace Odo::Semantics {
     SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {
         currentScope = &inter.globalTable;
         replScope = { "repl-analyzer", {}, &inter.globalTable };
-    };
+    }
+
+    bool SemanticAnalyzer::counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2) {
+        if (type2 == inter.any_type()) return true;
+
+        if (type1->is_numeric() && type2->is_numeric()) return true;
+
+        auto curr = type1;
+        while (curr) {
+            if (curr == type2) return true;
+
+            curr = curr->tp;
+        }
+
+        return false;
+    }
 
     NodeResult SemanticAnalyzer::visit(const std::shared_ptr<Parsing::Node>& node) {
 //        current_line = node->line_number;
@@ -490,17 +505,21 @@ namespace Odo::Semantics {
                 );
             }
 
-            if (type_->name == ANY_TP) {
-                type_ = newValue.type;
-            } else if (type_ != newValue.type) {
-                // TODO: Add Type Coersion
-                // TODO: Also Check For Inheritance
+            if (!counts_as(newValue.type, type_)) {
                 throw Exceptions::TypeException(
-                    "(SemAn) " INVALID_DECL_TYPE_EXCP + type_->name + WITH_VAL_OF_TYPE_EXCP + newValue.type->name,
-                    node->line_number,
-                    node->column_number
+                        "(SemAn) " INVALID_DECL_TYPE_EXCP + type_->name + WITH_VAL_OF_TYPE_EXCP + newValue.type->name,
+                        node->line_number,
+                        node->column_number
                 );
             }
+
+            if (type_->name == ANY_TP) {
+                type_ = newValue.type;
+                node->var_type = Lexing::Token(Lexing::TokenType::ID, newValue.type->name);
+            }
+
+            // For the moment, type coercion happens at runtime. Will work on that when I figure out
+            // how to change the AST from here.
 
             newVar = Interpreting::Symbol{
                 type_,
