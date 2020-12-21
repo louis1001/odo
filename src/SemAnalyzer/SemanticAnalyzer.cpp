@@ -185,7 +185,7 @@ namespace Odo::Semantics {
         }
 
         throw Exceptions::TypeException(
-                UNA_ONLY_NUM_EXCP,
+                "(SemAn) " UNA_ONLY_NUM_EXCP,
                 node->line_number,
                 node->column_number
         );
@@ -197,7 +197,7 @@ namespace Odo::Semantics {
         // The condition of the ternary operator has to be boolean
         if (!val_cond.type || val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    COND_TERN_MUST_BOOL_EXCP,
+                    "(SemAn) " COND_TERN_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -211,7 +211,7 @@ namespace Odo::Semantics {
         if (!true_result.type || !false_result.type) {
             // Error! Ternary operator branches must be valid expressions. (Must return value)
             throw Exceptions::ValueException(
-                    BRANCHES_MUST_RETURN_EXCP,
+                    "(SemAn) " BRANCHES_MUST_RETURN_EXCP,
                     node->line_number,
                     node->column_number
             );
@@ -221,7 +221,7 @@ namespace Odo::Semantics {
             // Error! Both branches must return the same value
             // TODO: Add type coersion
             throw Exceptions::TypeException(
-                BOTH_BRANCH_SAME_TYPE_EXCP,
+                "(SemAn) " BOTH_BRANCH_SAME_TYPE_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -240,7 +240,7 @@ namespace Odo::Semantics {
         // The condition of the if statement has to be boolean
         if (!val_cond.type || val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    COND_IF_MUST_BOOL_EXCP,
+                    "(SemAn) " COND_IF_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -263,7 +263,7 @@ namespace Odo::Semantics {
         // The condition of the if statement has to be boolean
         if (!val_cond.type || val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    COND_IF_MUST_BOOL_EXCP,
+                    "(SemAn) " COND_IF_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -286,7 +286,7 @@ namespace Odo::Semantics {
 
         if (!lst_value.type) {
             throw Exceptions::ValueException(
-                NOTHING_TO_ITERATE_EXCP,
+                "(SemAn) " NOTHING_TO_ITERATE_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -321,7 +321,7 @@ namespace Odo::Semantics {
 
         } else {
             throw Exceptions::ValueException(
-                    FOREACH_ONLY_LIST_STR_EXCP,
+                    "(SemAn) " FOREACH_ONLY_LIST_STR_EXCP,
                     node->line_number,
                     node->column_number
             );
@@ -339,7 +339,7 @@ namespace Odo::Semantics {
         //TODO: Add "is_numeric" function to types, not values.
         if (!first_visited.type || !(first_visited.type->name == DOUBLE_TP || first_visited.type->name == INT_TP)) {
             throw Exceptions::ValueException(
-                    VAL_RANGE_NUM_EXCP,
+                    "(SemAn) " VAL_RANGE_NUM_EXCP,
                     node->line_number,
                     node->column_number
             );
@@ -350,7 +350,7 @@ namespace Odo::Semantics {
             auto second_visited = visit(node->second);
             if (!second_visited.type || !(second_visited.type->name == DOUBLE_TP || second_visited.type->name == INT_TP)) {
                 throw Exceptions::ValueException(
-                        VAL_RANGE_NUM_EXCP,
+                        "(SemAn) " VAL_RANGE_NUM_EXCP,
                         node->line_number,
                         node->column_number
                 );
@@ -382,7 +382,7 @@ namespace Odo::Semantics {
         // The condition of the while statement has to be boolean
         if (!val_cond.type || val_cond.type->name != BOOL_TP) {
             throw Exceptions::TypeException(
-                    COND_WHILE_MUST_BOOL_EXCP,
+                    "(SemAn) " COND_WHILE_MUST_BOOL_EXCP,
                     node->cond->line_number,
                     node->cond->column_number
             );
@@ -407,7 +407,7 @@ namespace Odo::Semantics {
         if (!visited_val.type) {
             // Error! Using index operator where there's no value to index.
             throw Exceptions::ValueException(
-                NO_VALUE_TO_INDEX_EXCP,
+                "(SemAn) " NO_VALUE_TO_INDEX_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -417,7 +417,7 @@ namespace Odo::Semantics {
             auto visited_indx = visit(node->expr);
             if (visited_indx.type->name != INT_TP) {
                 throw Exceptions::TypeException(
-                    STR_ONLY_INDX_NUM_EXCP,
+                    "(SemAn) " STR_ONLY_INDX_NUM_EXCP,
                     node->line_number,
                     node->column_number
                 );
@@ -426,14 +426,14 @@ namespace Odo::Semantics {
             auto visited_indx = visit(node->expr);
             if (visited_indx.type->name != INT_TP) {
                 throw Exceptions::TypeException(
-                    LST_ONLY_INDX_NUM_EXCP,
+                    "(SemAn) " LST_ONLY_INDX_NUM_EXCP,
                     node->line_number,
                     node->column_number
                 );
             }
         } else {
             throw Exceptions::ValueException(
-                    INDX_ONLY_LST_STR_EXCP,
+                    "(SemAn) " INDX_ONLY_LST_STR_EXCP,
                     node->line_number,
                     node->column_number
             );
@@ -462,7 +462,7 @@ namespace Odo::Semantics {
             auto el_result = visit(el);
             if (!el_result.type) {
                 throw Exceptions::TypeException(
-                    LST_EL_NO_VALUE_EXCP,
+                    "(SemAn) " LST_EL_NO_VALUE_EXCP,
                     node->line_number,
                     node->column_number
                 );
