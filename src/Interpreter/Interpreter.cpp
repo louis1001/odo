@@ -473,6 +473,8 @@ namespace Odo::Interpreting {
             }
             return null;
         });
+
+        analyzer = std::make_unique<Semantics::SemanticAnalyzer>(*this);
     }
 
     Symbol* Interpreter::any_type() {
@@ -2410,8 +2412,7 @@ namespace Odo::Interpreting {
 
         auto root = parser.program();
 
-        Semantics::SemanticAnalyzer analyzer(*this);
-        auto result = analyzer.visit(root);
+        auto result = analyzer->visit(root);
 
         std::cout << result.has_side_effects << "\n";
 
@@ -2431,9 +2432,8 @@ namespace Odo::Interpreting {
         currentScope = &replScope;
 
         auto result = null;
-        Semantics::SemanticAnalyzer analyzer(*this);
         for (const auto& node : statements) {
-            auto m = analyzer.visit(node);
+            auto m = analyzer->visit(node);
             result = visit(node);
         }
 

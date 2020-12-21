@@ -4,6 +4,7 @@
 
 #include "SemAnalyzer/SemanticAnalyzer.h"
 #include "Exceptions/exception.h"
+#include "Interpreter/Interpreter.h"
 
 #define TEST_SEMANTICS
 

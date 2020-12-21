@@ -5,7 +5,6 @@
 #ifndef ODO_SEMANTICANALYZER_H
 #define ODO_SEMANTICANALYZER_H
 
-#include <Interpreter/Interpreter.h>
 #include "NodeResult.h"
 
 #include "Translations/lang.h"
@@ -48,6 +47,10 @@
 #include "Parser/AST/MemberVarNode.h"
 #include "Parser/AST/StaticVarNode.h"
 #include "Parser/AST/IndexNode.h"
+
+namespace Odo::Interpreting {
+    class Interpreter;
+}
 
 namespace Odo::Semantics {
     class SemanticAnalyzer {

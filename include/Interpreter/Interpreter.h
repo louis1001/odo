@@ -10,16 +10,18 @@
 #include "value.h"
 #include "symbol.h"
 #include "frame.h"
+#include "SemAnalyzer/SemanticAnalyzer.h"
 
 #include <functional>
 #include <vector>
-namespace Odo::Semantics { class SemanticAnalyzer; }
 
 #define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
     typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> NativeFunction;
     class Interpreter {
         Parsing::Parser parser;
+
+        std::unique_ptr<Semantics::SemanticAnalyzer> analyzer {nullptr};
 
         std::vector<std::shared_ptr<Value>> constructorParams;
 
