@@ -516,12 +516,15 @@ namespace Odo::Semantics {
             }
 
             if (type_->name == ANY_TP) {
-                type_ = newValue.type;
+                newVar.tp = newValue.type;
                 node->var_type = Lexing::Token(Lexing::TokenType::ID, newValue.type->name);
             }
 
             // For the moment, type coercion happens at runtime. Will work on that when I figure out
             // how to change the AST from here.
+            newVar.is_initialized = true;
+            newVar.content_is_constant = newValue.is_constant;
+            newVar.content_has_side_effects = newValue.has_side_effects;
         }
 
         currentScope->addSymbol(newVar);
@@ -547,6 +550,9 @@ namespace Odo::Semantics {
         }
 
         Interpreting::Symbol* list_type = inter.globalTable.addListType(base_type);
+        bool was_init = false;
+        bool is_constant = true;
+        bool has_side_effects = false;
 
         if (node->initial && node->initial->kind() != NodeType::NoOp) {
             auto newValue = visit(node->initial);
@@ -574,12 +580,20 @@ namespace Odo::Semantics {
                     node->column_number
                 );
             }
+
+            was_init = true;
+            is_constant = newValue.is_constant;
+            has_side_effects = newValue.has_side_effects;
         }
 
-        currentScope->addSymbol({
+        auto in_table = currentScope->addSymbol({
             list_type,
             node->name.value
         });
+
+        in_table->is_initialized = was_init;
+        in_table->content_is_constant = is_constant;
+        in_table->content_has_side_effects = has_side_effects;
 
         return {};
     }

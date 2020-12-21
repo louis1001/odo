@@ -41,6 +41,10 @@ namespace Odo::Interpreting {
         bool isType = false;
         SymbolType kind = SymbolType::VarSymbol;
 
+        bool is_initialized{false};
+        bool content_is_constant{false};
+        bool content_has_side_effects{false};
+
         [[nodiscard]] bool is_numeric() const { return name == INT_TP || name == DOUBLE_TP; }
 
         static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol, bool> >& paramTypes) {
