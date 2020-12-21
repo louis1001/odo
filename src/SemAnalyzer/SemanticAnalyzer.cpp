@@ -282,9 +282,14 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {
+        auto blockScope = Interpreting::SymbolTable("block_scope", {}, currentScope);
+        currentScope = &blockScope;
+
         for (const auto& statement : node->statements) {
             visit(statement);
         }
+
+        currentScope = blockScope.getParent();
         return {};
     }
 
