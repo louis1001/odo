@@ -85,8 +85,7 @@ namespace Odo::Semantics {
                 /* ToRemoveLater */ break;
 
             case NodeType::ListExpression:
-                // return visit_ListExpression(Node::as<ListExpressionNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ListExpression(Node::as<ListExpressionNode>(node));
 
                 // Functions
             case NodeType::FuncExpression:
@@ -283,5 +282,37 @@ namespace Odo::Semantics {
             visit(statement);
         }
         return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>& node) {
+        NodeResult result{};
+        bool is_any = false;
+
+        for (const auto& el : node->elements) {
+            auto el_result = visit(el);
+            if (!el_result.type) {
+                throw Exceptions::TypeException(
+                    LST_EL_NO_VALUE_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (!result.type) {
+                result.type = inter.globalTable.addListType(el_result.type);
+            }
+            else if (result.type != el_result.type && !is_any) {
+                result.type = inter.globalTable.addListType(inter.any_type());
+                is_any = true;
+            }
+
+            // If any of the list's elements isn't constant, the list itself isn't
+            result.is_constant = result.is_constant && el_result.is_constant;
+
+            // If any of the list's elements has side effects, the list itself has as well
+            result.has_side_effects = result.has_side_effects || el_result.has_side_effects;
+        }
+
+        return result;
     }
 }
