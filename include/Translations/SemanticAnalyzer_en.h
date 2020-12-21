@@ -10,5 +10,8 @@
 #define BRANCHES_MUST_RETURN_EXCP "Ternary operator branches must be valid expressions. (Must return value)"
 #define LST_EL_NO_VALUE_EXCP "Element in list has no value."
 #define NOTHING_TO_ITERATE_EXCP "Nothing to iterate over in foreach statement"
+#define INVALID_DECL_TYPE_EXCP "Invalid declaration. Initializing variable of type "
+#define WITH_VAL_OF_TYPE_EXCP " with value of type "
+#define VAR_INIT_MUST_BE_VALID_EXCP "Variable initialization must be a valid expression (Must return value)"
 
 #endif //ODO_SEMANTICANALYZER_EN_H

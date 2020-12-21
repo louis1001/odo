@@ -70,8 +70,7 @@ namespace Odo::Semantics {
 
                 // Variable Handling
             case NodeType::VarDeclaration:
-                // return visit_VarDeclaration(Node::as<VarDeclarationNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_VarDeclaration(Node::as<VarDeclarationNode>(node));
             case NodeType::ListDeclaration:
                 // return visit_ListDeclaration(Node::as<ListDeclarationNode>(node));
                 /* ToRemoveLater */ break;
@@ -454,6 +453,68 @@ namespace Odo::Semantics {
         }
 
         currentScope = blockScope.getParent();
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_VarDeclaration(const std::shared_ptr<Parsing::VarDeclarationNode>& node) {
+        if (currentScope->symbolExists(node->name.value)) {
+            throw Exceptions::NameException(
+                    "(SemAn) " VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        auto type_ = currentScope->findSymbol(node->var_type.value);
+
+        if (type_ == nullptr) {
+            throw Exceptions::NameException(
+                    "(SemAn) " UNKWN_TYPE_EXCP + node->var_type.value + "'.",
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        Interpreting::Symbol newVar;
+        // TODO: Where should the information for the initialization go?
+        // If a variable is constant, should it be replaced by the calculation of it's result?
+
+        if (node->initial && node->initial->kind() != NodeType::NoOp) {
+            auto newValue = visit(node->initial);
+
+            if (!newValue.type) {
+                throw Exceptions::ValueException(
+                    "(SemAn) " VAR_INIT_MUST_BE_VALID_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (type_->name == ANY_TP) {
+                type_ = newValue.type;
+            } else if (type_ != newValue.type) {
+                // TODO: Add Type Coersion
+                // TODO: Also Check For Inheritance
+                throw Exceptions::TypeException(
+                    "(SemAn) " INVALID_DECL_TYPE_EXCP + type_->name + WITH_VAL_OF_TYPE_EXCP + newValue.type->name,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            newVar = Interpreting::Symbol{
+                type_,
+                node->name.value
+            };
+        } else {
+            newVar = {
+                type_,
+                node->name.value
+            };
+
+        }
+
+        currentScope->addSymbol(newVar);
         return {};
     }
 
