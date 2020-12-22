@@ -22,4 +22,12 @@
 #define INDEX_MUST_BE_VALID_EXCP "Index value must be a valid expression of type integer."
 #define INVALID_ASS_TYPE_EXCP "Invalid assignment. Assigning to symbol of type "
 
+#define RIGHT_OP_BIN_NO_VAL_EXCP "Right operand in binary operation has no value."
+#define LEFT_OP_BIN_NO_VAL_EXCP "Left operand in binary operation has no value."
+
+#define CONC_LST_INCOM_TPS_EXCP "Contenating lists with incompatible types."
+#define APP_LST_INCOM_TP_EXCP "Appending to list a value of incompatible type."
+#define LST_ONLY_MUL_INT_EXCP "Lists can only be multiplied with ints."
+#define STR_ONLY_MUL_INT_EXCP "Strings can only be multiplied with ints."
+
 #endif //ODO_SEMANTICANALYZER_EN_H

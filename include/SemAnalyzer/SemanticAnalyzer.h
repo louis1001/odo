@@ -66,6 +66,7 @@ namespace Odo::Semantics {
         ADD_VISITOR(Str);
         ADD_VISITOR(Bool);
 
+        ADD_VISITOR(BinOp);
         ADD_VISITOR(UnaryOp);
 
         ADD_VISITOR(TernaryOp);

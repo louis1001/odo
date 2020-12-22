@@ -22,4 +22,12 @@
 #define INDEX_MUST_BE_VALID_EXCP "El valor en el operdor de indice debe ser una expresion valida de tipo ent."
 #define INVALID_ASS_TYPE_EXCP "Asignacion invalida. Asignando a un simbolo de tipo "
 
+#define RIGHT_OP_BIN_NO_VAL_EXCP "El operando derecho en la operacion binaria no tiene un valor."
+#define LEFT_OP_BIN_NO_VAL_EXCP "El operando derecho en la operacion binaria no tiene un valor."
+
+#define CONC_LST_INCOM_TPS_EXCP "Cocatenando listas de tipos incompatibles."
+#define APP_LST_INCOM_TP_EXCP "Agregando a una lista un valor de tipo incompatible."
+#define LST_ONLY_MUL_INT_EXCP "Listas solo pueden ser multiplicadas por enteros."
+#define STR_ONLY_MUL_INT_EXCP "Cadenas solo puede ser multiplicadas por enteros."
+
 #endif //ODO_SEMANTICANALYZER_ES_H

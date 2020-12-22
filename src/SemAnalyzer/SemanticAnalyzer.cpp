@@ -6,7 +6,7 @@
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
 
-//#define TEST_SEMANTICS
+#define TEST_SEMANTICS
 
 namespace Odo::Semantics {
     using namespace Parsing;
@@ -86,23 +86,23 @@ namespace Odo::Semantics {
 //                        } else {
 //                            throw Exceptions::NameException(
 //                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
-//                                    current_line,
-//                                    current_col
+//                                    node->line_number,
+//                                    node->column_number
 //                            );
 //                        }
 //                    } else {
 //                        throw Exceptions::NameException(
 //                                //TODO Change to cannot read static
 //                                INVALID_STATIC_OP_EXCP,
-//                                current_line,
-//                                current_col
+//                                node->line_number,
+//                                node->column_number
 //                        );
 //                    }
 //                } else {
 //                    throw Exceptions::NameException(
 //                            UNKWN_VAL_IN_STATIC_EXCP,
-//                            current_line,
-//                            current_col
+//                            node->line_number,
+//                            node->column_number
 //                    );
 //                }
 
@@ -175,8 +175,7 @@ namespace Odo::Semantics {
 
                 // Operations
             case NodeType::BinOp:
-                // return visit_BinOp(Node::as<BinOpNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_BinOp(Node::as<BinOpNode>(node));
             case NodeType::UnaryOp:
                  return visit_UnaryOp(Node::as<UnaryOpNode>(node));
             case NodeType::NoOp:
@@ -269,8 +268,8 @@ namespace Odo::Semantics {
                 // throw Exceptions::OdoException(
                 /* ToRemoveLater */ break;
 //                        STATIC_ONLY_CLASS_EXCP,
-//                        current_line,
-//                        current_col
+//                        node->line_number,
+//                        node->column_number
 //                );
             case NodeType::MemberVar:
                 // return visit_MemberVar(Node::as<MemberVarNode>(node));
@@ -312,6 +311,208 @@ namespace Odo::Semantics {
 
     NodeResult SemanticAnalyzer::visit_Bool(const std::shared_ptr<Parsing::BoolNode>& node) {
         return {inter.globalTable.findSymbol(BOOL_TP), true, false};
+    }
+
+    NodeResult SemanticAnalyzer::visit_BinOp(const std::shared_ptr<Parsing::BinOpNode>& node) {
+        auto leftVisited = visit(node->left);
+        auto rightVisited = visit(node->right);
+
+        if (!leftVisited.type) {
+            //Error! Left operand in binary operation has no value.
+            throw Exceptions::ValueException(
+                "(SemAn) " LEFT_OP_BIN_NO_VAL_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        if (!rightVisited.type) {
+            //Error! Right operand in binary operation has no value.
+            throw Exceptions::ValueException(
+                "(SemAn) " RIGHT_OP_BIN_NO_VAL_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        NodeResult double_result = {inter.globalTable.findSymbol(DOUBLE_TP), true, false};
+        NodeResult int_result = {inter.globalTable.findSymbol(INT_TP), true, false};
+        NodeResult string_result = {inter.globalTable.findSymbol(STRING_TP), true, false};
+        NodeResult bool_result = {inter.globalTable.findSymbol(BOOL_TP), true, false};
+
+        auto both_numerical = leftVisited.type->is_numeric() && rightVisited.type->is_numeric();
+        auto same_types = leftVisited.type == rightVisited.type;
+
+        switch (node->token.tp) {
+            case Lexing::PLUS: {
+                if (leftVisited.type->kind == Interpreting::SymbolType::ListType) {
+                    auto element_template_name = "__" + leftVisited.type->name + "_list_element";
+                    auto template_symbol = currentScope->findSymbol(element_template_name);
+
+                    if (rightVisited.type->kind == Interpreting::SymbolType::ListType) {
+                        if (!counts_as(rightVisited.type->tp, leftVisited.type->tp)) {
+                            // Error! Contenating lists with incompatible types.
+                            throw Exceptions::TypeException(
+                                "(SemAn) " CONC_LST_INCOM_TPS_EXCP,
+                                node->line_number,
+                                node->column_number
+                            );
+                        }
+                    } else {
+                        if (!counts_as(rightVisited.type, leftVisited.type->tp)) {
+                            // Error! Appending to list a symbol of incompatible type.
+                            throw Exceptions::TypeException(
+                                "(SemAn) " APP_LST_INCOM_TP_EXCP,
+                                node->line_number,
+                                node->column_number
+                            );
+                        }
+                    }
+                    return {
+                            leftVisited.type,
+                            template_symbol->content_is_constant,
+                            template_symbol->content_has_side_effects
+                    };
+                } else if (leftVisited.type->name == STRING_TP || rightVisited.type->name == STRING_TP) {
+                    return string_result;
+                } else if (both_numerical) {
+                    if (same_types && leftVisited.type->name == INT_TP) {
+                        return int_result;
+                    }
+
+                    return double_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " ADD_ONLY_SAME_TP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            }
+            case Lexing::MINUS:
+                if (both_numerical) {
+                    if (same_types && leftVisited.type->name == INT_TP) {
+                        return int_result;
+                    }
+
+                    return double_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " SUB_ONLY_SAME_TP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            case Lexing::MUL: {
+                if (both_numerical) {
+                    if (same_types && leftVisited.type->name == INT_TP) {
+                        return int_result;
+                    }
+
+                    return double_result;
+                } else if (leftVisited.type->kind == Interpreting::SymbolType::ListType) {
+                    if (rightVisited.type->name != INT_TP) {
+                        // Error! List can only be multiplied with ints.
+                        throw Exceptions::TypeException(
+                            "(SemAn) " LST_ONLY_MUL_INT_EXCP,
+                            node->line_number,
+                            node->column_number
+                        );
+                    }
+
+                    // TODO: Worry about the flags later.
+                    return leftVisited;
+                } else if (leftVisited.type->name == STRING_TP) {
+                    if (rightVisited.type->name != INT_TP) {
+                        // Error! Strings can only be multiplied with ints.
+                        throw Exceptions::TypeException(
+                            "(SemAn) " STR_ONLY_MUL_INT_EXCP,
+                            node->line_number,
+                            node->column_number
+                        );
+                    }
+                    return string_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " MUL_ONLY_SAME_TP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            }
+            case Lexing::DIV: {
+                if (both_numerical) {
+                    // Just return double, even if both are int.
+                    // TODO: I need to update the interpreter with that.
+                    return double_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " DIV_ONLY_DOB_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            }
+            case Lexing::MOD:
+                if (same_types && leftVisited.type->name == INT_TP) {
+                    return int_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " MOD_ONLY_INT_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            case Lexing::POW:
+                if (both_numerical) {
+                    if (same_types && leftVisited.type->name == "int") {
+                        return int_result;
+                    }
+
+                    return double_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " POW_ONLY_SAME_TP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            case Lexing::EQU:
+            case Lexing::NEQ:
+                if (same_types || leftVisited.type == inter.null->type || rightVisited.type == inter.null->type) {
+                    return bool_result;
+                }
+
+                // Else, fallback
+            case Lexing::LT:
+            case Lexing::GT:
+            case Lexing::LET:
+            case Lexing::GET:
+                if (both_numerical) {
+                    return bool_result;
+                } else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " COM_ONLY_SAME_TP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            case Lexing::AND:
+            case Lexing::OR:
+                if (same_types && leftVisited.type->name == BOOL_TP) {
+                    return bool_result;
+                }else {
+                    throw Exceptions::TypeException(
+                            "(SemAn) " LOG_ONLY_BOOL_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            default:
+                break;
+        }
+
+        return {};
     }
 
     NodeResult SemanticAnalyzer::visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>& node) {
@@ -618,7 +819,7 @@ namespace Odo::Semantics {
         Interpreting::Symbol newVar = Interpreting::Symbol{
             type_,
             node->name.value
-        };;
+        };
         // TODO: Where should the information for the initialization go?
         // If a variable is constant, should it be replaced by the calculation of it's result?
 
