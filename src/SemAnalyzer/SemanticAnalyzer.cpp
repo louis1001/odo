@@ -31,6 +31,134 @@ namespace Odo::Semantics {
         return false;
     }
 
+    Interpreting::Symbol* SemanticAnalyzer::getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem) {
+        Interpreting::Symbol* varSym = nullptr;
+
+        switch (mem->kind()) {
+            case NodeType::Variable:
+                varSym = currentScope->findSymbol(Node::as<VariableNode>(mem)->token.value);
+                break;
+            case NodeType::MemberVar:
+            {
+                auto as_member_node = Node::as<MemberVarNode>(mem);
+                auto leftHandSym = getSymbolFromNode(as_member_node->inst);
+
+                if (leftHandSym) {
+                    if (leftHandSym->tp->kind != Interpreting::SymbolType::ClassType) {
+                        throw Exceptions::ValueException(
+                                "(SemAn) " "'" + leftHandSym->name + NOT_VALID_INST_EXCP,
+                                mem->line_number,
+                                mem->column_number
+                        );
+                    }
+
+                    // TODO: Implement SemanticContexts
+                    // varSym = as_instance_value->ownScope.findSymbol(as_member_node->name.value);
+                } else {
+                    throw Exceptions::ValueException(
+                            "(SemAn) " SYM_NOT_DEFINED_EXCP,
+                            mem->line_number,
+                            mem->column_number
+                    );
+                }
+                break;
+            }
+            case NodeType::StaticVar:
+            {
+//                auto as_static_var = Node::as<StaticVarNode>(mem);
+//                auto leftHandSym = getSymbolFromNode(as_static_var->inst);
+//
+//                if (leftHandSym && leftHandSym->value) {
+//                    auto theValue = leftHandSym->value;
+//                    if (theValue->kind() == ValueType::ModuleVal) {
+//                        varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
+//                    } else if (theValue->kind() == ValueType::ClassVal) {
+//                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+//                    } else if (theValue->kind() == ValueType::InstanceVal) {
+//                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+//                    } else if (theValue->kind() == ValueType::EnumVal) {
+//                        auto as_enum_value = Value::as<EnumValue>(theValue);
+//                        auto sm = as_enum_value->ownScope.findSymbol(as_static_var->name.value, false);
+//                        if (sm) {
+//                            if (sm->value)
+//                                return sm;
+//                            return nullptr;
+//                        } else {
+//                            throw Exceptions::NameException(
+//                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
+//                                    current_line,
+//                                    current_col
+//                            );
+//                        }
+//                    } else {
+//                        throw Exceptions::NameException(
+//                                //TODO Change to cannot read static
+//                                INVALID_STATIC_OP_EXCP,
+//                                current_line,
+//                                current_col
+//                        );
+//                    }
+//                } else {
+//                    throw Exceptions::NameException(
+//                            UNKWN_VAL_IN_STATIC_EXCP,
+//                            current_line,
+//                            current_col
+//                    );
+//                }
+
+                break;
+            }
+            case NodeType::Index:
+            {
+                auto as_index_node = Node::as<IndexNode>(mem);
+                auto visited_source = visit(as_index_node->val);
+
+                if (!visited_source.type) {
+                    throw Exceptions::ValueException(
+                            "(SemAn) " NO_VALUE_TO_INDEX_EXCP,
+                            as_index_node->line_number,
+                            as_index_node->column_number
+                    );
+                }
+
+                if (visited_source.type->kind == Interpreting::SymbolType::ListType) {
+                    auto visited_indx = visit(as_index_node->expr);
+
+                    if (!visited_indx.type) {
+                        throw Exceptions::ValueException(
+                                "(SemAn) " INDEX_MUST_BE_VALID_EXCP,
+                                as_index_node->expr->line_number,
+                                as_index_node->expr->column_number
+                        );
+                    }
+
+                    if (visited_indx.type->name == INT_TP) {
+                        auto element_template_name = "__" + visited_source.type->name + "_list_element";
+
+                        varSym = currentScope->findSymbol(element_template_name);
+                    } else {
+                        throw Exceptions::TypeException(
+                                "(SemAn) " LST_ONLY_INDX_NUM_EXCP,
+                                as_index_node->line_number,
+                                as_index_node->column_number
+                        );
+                    }
+                } else {
+                    throw Exceptions::ValueException(
+                            "(SemAn) " ASS_TO_INVALID_INDX_EXCP,
+                            as_index_node->line_number,
+                            as_index_node->column_number
+                    );
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        return varSym;
+    }
+
     NodeResult SemanticAnalyzer::visit(const std::shared_ptr<Parsing::Node>& node) {
 //        current_line = node->line_number;
 //        current_col = node->column_number;
@@ -91,8 +219,7 @@ namespace Odo::Semantics {
             case NodeType::Variable:
                  return visit_Variable(Node::as<VariableNode>(node));
             case NodeType::Assignment:
-                // return visit_Assignment(Node::as<AssignmentNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Assignment(Node::as<AssignmentNode>(node));
 
             case NodeType::ListExpression:
                  return visit_ListExpression(Node::as<ListExpressionNode>(node));
@@ -635,6 +762,39 @@ namespace Odo::Semantics {
                 node->column_number
             );
         }
+    }
+
+    NodeResult SemanticAnalyzer::visit_Assignment(const std::shared_ptr<Parsing::AssignmentNode>& node) {
+        auto varSym = getSymbolFromNode(node->expr);
+        auto newValue = visit(node->val);
+
+        if (varSym) {
+            if (!varSym->is_initialized) {
+                if (varSym->tp->name == ANY_TP) {
+                    varSym->tp = newValue.type;
+                }
+
+                varSym->is_initialized = true;
+            }
+
+            if (!counts_as(newValue.type, varSym->tp)){
+                throw Exceptions::TypeException(
+                        "(SemAn) " INVALID_ASS_TYPE_EXCP + varSym->tp->name + WITH_VAL_OF_TYPE_EXCP + newValue.type->name,
+                        node->line_number,
+                        node->column_number
+                );
+            }
+
+            varSym->content_is_constant = newValue.is_constant;
+            varSym->content_has_side_effects = newValue.has_side_effects;
+        } else {
+            throw Exceptions::NameException(
+                    "(SemAn) " ASS_TO_UNKWN_VAR_EXCP,
+                    node->line_number,
+                    node->column_number
+            );
+        }
+        return {};
     }
 
     NodeResult SemanticAnalyzer::visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>& node) {

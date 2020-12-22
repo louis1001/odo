@@ -18,5 +18,8 @@
 #define WITH_LST_VAL_OF_TYPE_EXCP " with value of type "
 #define LST_INIT_MUST_BE_VALID_EXCP "List initialization must be a valid expression (Must return value)"
 #define USI_VAR_NOT_INIT_EXCP "Using variable that has not been initialized."
+#define SYM_NOT_DEFINED_EXCP "Can't get member variable from this symbol. It hasn't been defined."
+#define INDEX_MUST_BE_VALID_EXCP "Index value must be a valid expression of type integer."
+#define INVALID_ASS_TYPE_EXCP "Invalid assignment. Assigning to symbol of type "
 
 #endif //ODO_SEMANTICANALYZER_EN_H

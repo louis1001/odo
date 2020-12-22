@@ -18,5 +18,8 @@
 #define WITH_LST_VAL_OF_TYPE_EXCP " con valor de tipo "
 #define LST_INIT_MUST_BE_VALID_EXCP "La inicializacion de una lista debe ser una expresion valida (Debe devolver un valor)"
 #define USI_VAR_NOT_INIT_EXCP "Usando una variable que no ha sido inicializada."
+#define SYM_NOT_DEFINED_EXCP "No se puede conseguir una variable miembro de este simbolo. No ha sido definido."
+#define INDEX_MUST_BE_VALID_EXCP "El valor en el operdor de indice debe ser una expresion valida de tipo ent."
+#define INVALID_ASS_TYPE_EXCP "Asignacion invalida. Asignando a un simbolo de tipo "
 
 #endif //ODO_SEMANTICANALYZER_ES_H
