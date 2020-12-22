@@ -15,6 +15,8 @@
 #include <functional>
 #include <vector>
 
+#define INTER_VISITOR(X) std::shared_ptr<Value> visit_ ## X(const std::shared_ptr<Parsing::X ## Node>&)
+
 #define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
     typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> NativeFunction;
@@ -53,59 +55,59 @@ namespace Odo::Interpreting {
         std::shared_ptr<Value> create_literal(double val);
         std::shared_ptr<Value> create_literal(bool val);
 
-        std::shared_ptr<Value> visit_Double(const std::shared_ptr<Parsing::DoubleNode>&);
-        std::shared_ptr<Value> visit_Int(const std::shared_ptr<Parsing::IntNode>&);
-        std::shared_ptr<Value> visit_Bool(const std::shared_ptr<Parsing::BoolNode>&);
-        std::shared_ptr<Value> visit_Str(const std::shared_ptr<Parsing::StrNode>&);
+        INTER_VISITOR(Double);
+        INTER_VISITOR(Int);
+        INTER_VISITOR(Bool);
+        INTER_VISITOR(Str);
 
-        std::shared_ptr<Value> visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
+        INTER_VISITOR(Block);
 
-        std::shared_ptr<Value> visit_BinOp(const std::shared_ptr<Parsing::BinOpNode>&);
-        std::shared_ptr<Value> visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>&);
+        INTER_VISITOR(BinOp);
+        INTER_VISITOR(UnaryOp);
 
-        std::shared_ptr<Value> visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>&);
+        INTER_VISITOR(TernaryOp);
 
 
-        std::shared_ptr<Value> visit_If(const std::shared_ptr<Parsing::IfNode>&);
-        std::shared_ptr<Value> visit_For(const std::shared_ptr<Parsing::ForNode>&);
-        std::shared_ptr<Value> visit_ForEach(const std::shared_ptr<Parsing::ForEachNode>&);
-        std::shared_ptr<Value> visit_FoRange(const std::shared_ptr<Parsing::FoRangeNode>&);
-        std::shared_ptr<Value> visit_While(const std::shared_ptr<Parsing::WhileNode>&);
-        std::shared_ptr<Value> visit_Loop(const std::shared_ptr<Parsing::LoopNode>&);
+        INTER_VISITOR(If);
+        INTER_VISITOR(For);
+        INTER_VISITOR(ForEach);
+        INTER_VISITOR(FoRange);
+        INTER_VISITOR(While);
+        INTER_VISITOR(Loop);
 
-        std::shared_ptr<Value> visit_VarDeclaration(const std::shared_ptr<Parsing::VarDeclarationNode>&);
-        std::shared_ptr<Value> visit_ListDeclaration(const std::shared_ptr<Parsing::ListDeclarationNode>&);
-        std::shared_ptr<Value> visit_Assignment(const std::shared_ptr<Parsing::AssignmentNode>&);
-        std::shared_ptr<Value> visit_Variable(const std::shared_ptr<Parsing::VariableNode>&);
+        INTER_VISITOR(VarDeclaration);
+        INTER_VISITOR(ListDeclaration);
+        INTER_VISITOR(Assignment);
+        INTER_VISITOR(Variable);
 
-        std::shared_ptr<Value> visit_Index(const std::shared_ptr<Parsing::IndexNode>&);
+        INTER_VISITOR(Index);
 
-        std::shared_ptr<Value> visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
+        INTER_VISITOR(ListExpression);
 
-        std::shared_ptr<Value> visit_Module(const std::shared_ptr<Parsing::ModuleNode>&);
-        std::shared_ptr<Value> visit_Import(const std::shared_ptr<Parsing::ImportNode>&);
+        INTER_VISITOR(Module);
+        INTER_VISITOR(Import);
 
-        std::shared_ptr<Value> visit_FuncExpression(const std::shared_ptr<Parsing::FuncExpressionNode>&);
-        std::shared_ptr<Value> visit_FuncDecl(const std::shared_ptr<Parsing::FuncDeclNode>&);
-        std::shared_ptr<Value> visit_FuncCall(const std::shared_ptr<Parsing::FuncCallNode>&);
-        std::shared_ptr<Value> visit_FuncBody(const std::shared_ptr<Parsing::FuncBodyNode>&);
-        std::shared_ptr<Value> visit_Return(const std::shared_ptr<Parsing::ReturnNode>&);
+        INTER_VISITOR(FuncExpression);
+        INTER_VISITOR(FuncDecl);
+        INTER_VISITOR(FuncCall);
+        INTER_VISITOR(FuncBody);
+        INTER_VISITOR(Return);
 
-        std::shared_ptr<Value> visit_Enum(const std::shared_ptr<Parsing::EnumNode>&);
+        INTER_VISITOR(Enum);
 
-        std::shared_ptr<Value> visit_Class(const std::shared_ptr<Parsing::ClassNode>&);
-        std::shared_ptr<Value> visit_ClassBody(const std::shared_ptr<Parsing::ClassBodyNode>&);
+        INTER_VISITOR(Class);
+        INTER_VISITOR(ClassBody);
 
-        std::shared_ptr<Value> visit_ConstructorDecl(const std::shared_ptr<Parsing::ConstructorDeclNode>&);
+        INTER_VISITOR(ConstructorDecl);
 
-        std::shared_ptr<Value> visit_ConstructorCall(const std::shared_ptr<Parsing::ConstructorCallNode>&);
+        INTER_VISITOR(ConstructorCall);
 
-        std::shared_ptr<Value> visit_ClassInitializer(const std::shared_ptr<Parsing::ClassInitializerNode>&);
+        INTER_VISITOR(ClassInitializer);
 
-        std::shared_ptr<Value> visit_InstanceBody(const std::shared_ptr<Parsing::InstanceBodyNode>&);
+        INTER_VISITOR(InstanceBody);
 
-        std::shared_ptr<Value> visit_MemberVar(const std::shared_ptr<Parsing::MemberVarNode>&);
-        std::shared_ptr<Value> visit_StaticVar(const std::shared_ptr<Parsing::StaticVarNode>&);
+        INTER_VISITOR(MemberVar);
+        INTER_VISITOR(StaticVar);
 
         std::shared_ptr<Value> interpret_as_module(const std::string &path, const Lexing::Token& name);
 
