@@ -594,6 +594,19 @@ namespace Odo::Semantics {
         in_table->content_is_constant = is_constant;
         in_table->content_has_side_effects = has_side_effects;
 
+        auto element_template_name = "__" + list_type->name + "_list_element";
+
+        if (!currentScope->symbolExists(element_template_name)) {
+            auto list_el = currentScope->addSymbol({
+                    list_type->tp,
+                    element_template_name
+            });
+
+            list_el->is_initialized = was_init;
+            list_el->content_is_constant = is_constant;
+            list_el->content_has_side_effects = has_side_effects;
+        }
+
         return {};
     }
 
