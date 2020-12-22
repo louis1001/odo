@@ -52,6 +52,8 @@ namespace Odo::Interpreting {
     class Interpreter;
 }
 
+#define ADD_VISITOR(X) NodeResult visit_ ## X(const std::shared_ptr<Parsing::X ## Node>&)
+
 namespace Odo::Semantics {
     class SemanticAnalyzer {
         Interpreting::SymbolTable replScope;
@@ -59,31 +61,31 @@ namespace Odo::Semantics {
 
         Interpreting::Interpreter& inter;
 
-        NodeResult visit_Double(const std::shared_ptr<Parsing::DoubleNode>&);
-        NodeResult visit_Int(const std::shared_ptr<Parsing::IntNode>&);
-        NodeResult visit_Str(const std::shared_ptr<Parsing::StrNode>&);
-        NodeResult visit_Bool(const std::shared_ptr<Parsing::BoolNode>&);
+        ADD_VISITOR(Double);
+        ADD_VISITOR(Int);
+        ADD_VISITOR(Str);
+        ADD_VISITOR(Bool);
 
-        NodeResult visit_UnaryOp(const std::shared_ptr<Parsing::UnaryOpNode>&);
+        ADD_VISITOR(UnaryOp);
 
-        NodeResult visit_TernaryOp(const std::shared_ptr<Parsing::TernaryOpNode>&);
-        NodeResult visit_If(const std::shared_ptr<Parsing::IfNode>&);
-        NodeResult visit_For(const std::shared_ptr<Parsing::ForNode>&);
-        NodeResult visit_ForEach(const std::shared_ptr<Parsing::ForEachNode>&);
-        NodeResult visit_FoRange(const std::shared_ptr<Parsing::FoRangeNode>&);
-        NodeResult visit_While(const std::shared_ptr<Parsing::WhileNode>&);
-        NodeResult visit_Loop(const std::shared_ptr<Parsing::LoopNode>&);
+        ADD_VISITOR(TernaryOp);
+        ADD_VISITOR(If);
+        ADD_VISITOR(For);
+        ADD_VISITOR(ForEach);
+        ADD_VISITOR(FoRange);
+        ADD_VISITOR(While);
+        ADD_VISITOR(Loop);
 
-        NodeResult visit_Index(const std::shared_ptr<Parsing::IndexNode>&);
+        ADD_VISITOR(Index);
 
-        NodeResult visit_Block(const std::shared_ptr<Parsing::BlockNode>&);
+        ADD_VISITOR(Block);
 
-        NodeResult visit_VarDeclaration(const std::shared_ptr<Parsing::VarDeclarationNode>&);
-        NodeResult visit_ListDeclaration(const std::shared_ptr<Parsing::ListDeclarationNode>&);
-        NodeResult visit_Variable(const std::shared_ptr<Parsing::VariableNode>&);
-        NodeResult visit_Assignment(const std::shared_ptr<Parsing::AssignmentNode>&);
+        ADD_VISITOR(VarDeclaration);
+        ADD_VISITOR(ListDeclaration);
+        ADD_VISITOR(Variable);
+        ADD_VISITOR(Assignment);
 
-        NodeResult visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>&);
+        ADD_VISITOR(ListExpression);
 
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
 
