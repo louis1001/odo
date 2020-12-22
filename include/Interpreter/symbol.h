@@ -10,6 +10,7 @@
 #include <limits>
 #include "utils.h"
 #include <memory>
+#include <functional>
 
 #include "Translations/lang.h"
 
@@ -45,6 +46,8 @@ namespace Odo::Interpreting {
         bool content_is_constant{false};
         bool content_has_side_effects{false};
 
+        std::function<void(Symbol*)> ondestruction{nullptr};
+
         [[nodiscard]] bool is_numeric() const { return name == INT_TP || name == DOUBLE_TP; }
 
         static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol, bool> >& paramTypes) {
@@ -65,6 +68,12 @@ namespace Odo::Interpreting {
             }
 
             return result;
+        }
+
+        ~Symbol() {
+            if (ondestruction) {
+                ondestruction(this);
+            }
         }
     };
 
