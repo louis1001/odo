@@ -61,6 +61,14 @@ namespace Odo::Semantics {
 
         Interpreting::Interpreter& inter;
 
+        std::map<Interpreting::Symbol*, Interpreting::SymbolTable> semantic_contexts;
+        std::vector<Interpreting::Symbol*> to_clean;
+
+        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
+        Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
+
+        void clean_contexts();
+
         ADD_VISITOR(Double);
         ADD_VISITOR(Int);
         ADD_VISITOR(Str);

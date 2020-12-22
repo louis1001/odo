@@ -3,6 +3,8 @@
 //
 
 #include "SemAnalyzer/SemanticAnalyzer.h"
+
+#include <utility>
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
 
@@ -14,6 +16,34 @@ namespace Odo::Semantics {
     SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {
         currentScope = &inter.globalTable;
         replScope = { "repl-analyzer", {}, &inter.globalTable };
+    }
+
+    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
+        semantic_contexts.insert(std::pair(sym, Interpreting::SymbolTable{
+            std::move(name),
+            {},
+            currentScope
+        }));
+
+        sym->ondestruction = [this](auto* sym){
+            to_clean.push_back(sym);
+        };
+
+        return &semantic_contexts.find(sym)->second;
+    }
+
+    Interpreting::SymbolTable* SemanticAnalyzer::get_semantic_context(Interpreting::Symbol* sym) {
+        auto in_my_map = semantic_contexts.find(sym);
+        if (in_my_map != semantic_contexts.end()) return &in_my_map->second;
+
+        return nullptr;
+    }
+
+    void SemanticAnalyzer::clean_contexts() {
+        // This is what used to add the most slowdown when I had aa value table. I'll test it out a few times when I get every thing working.
+        for (auto el : to_clean) {
+            semantic_contexts.erase(semantic_contexts.find(el));
+        }
     }
 
     bool SemanticAnalyzer::counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2) {
