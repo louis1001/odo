@@ -22,6 +22,32 @@ namespace Odo::Semantics {
         type_bool = &inter.globalTable.symbols[BOOL_TP];
 
         replScope = { "repl-analyzer", {}, &inter.globalTable };
+
+        native_function_data[PRINT_FN] = {};
+        native_function_data[PRINTLN_FN] = {};
+        native_function_data[MOVE_CRSR_FN] = {};
+        native_function_data[FACTR_FN] = {type_int, true, false};
+        native_function_data[LENGTH_FN] = {type_int};
+        native_function_data[FROM_ASCII_FN] = {type_string};
+        native_function_data[TO_ASCII_FN] = {type_int};
+        native_function_data[POW_FN] = {type_double};
+        native_function_data[SQRT_FN] = {type_double};
+        native_function_data[SIN_FN] = {type_double};
+        native_function_data[COS_FN] = {type_double};
+        native_function_data[FLOOR_FN] = {type_int};
+        native_function_data[TRUNC_FN] = {type_int};
+        native_function_data[ROUND_FN] = {type_double};
+        native_function_data[READ_FN] = {type_string};
+        native_function_data[READ_INT_FN] = {type_int};
+        native_function_data[READ_DOUBLE_FN] = {type_double};
+        native_function_data[RAND_FN] = {type_double};
+        native_function_data[RAND_INT_FN] = {type_int};
+        native_function_data[POP_FN] = {inter.any_type()};
+        native_function_data[PUSH_FN] = {};
+        native_function_data[TYPEOF_FN] = {type_string};
+        native_function_data[CLEAR_FN] = {};
+        native_function_data[WAIT_FN] = {};
+        native_function_data[SLEEP_FN] = {};
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {

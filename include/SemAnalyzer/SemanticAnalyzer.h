@@ -71,6 +71,8 @@ namespace Odo::Semantics {
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
         Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
 
+        std::map<std::string, NodeResult> native_function_data;
+
         ADD_VISITOR(Double);
         ADD_VISITOR(Int);
         ADD_VISITOR(Str);
