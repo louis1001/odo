@@ -61,6 +61,11 @@ namespace Odo::Semantics {
 
         Interpreting::Interpreter& inter;
 
+        Interpreting::Symbol* type_int;
+        Interpreting::Symbol* type_double;
+        Interpreting::Symbol* type_string;
+        Interpreting::Symbol* type_bool;
+
         std::map<Interpreting::Symbol*, Interpreting::SymbolTable> semantic_contexts;
 
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);

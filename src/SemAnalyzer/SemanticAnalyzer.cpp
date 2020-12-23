@@ -15,6 +15,12 @@ namespace Odo::Semantics {
     // This should initialize the symbol tables and basic types, like the Interpreter.
     SemanticAnalyzer::SemanticAnalyzer(Interpreting::Interpreter& inter_): inter(inter_) {
         currentScope = &inter.globalTable;
+
+        type_int = &inter.globalTable.symbols[INT_TP];
+        type_double = &inter.globalTable.symbols[DOUBLE_TP];
+        type_string = &inter.globalTable.symbols[STRING_TP];
+        type_bool = &inter.globalTable.symbols[BOOL_TP];
+
         replScope = { "repl-analyzer", {}, &inter.globalTable };
     }
 
