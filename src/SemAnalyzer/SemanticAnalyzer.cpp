@@ -26,7 +26,7 @@ namespace Odo::Semantics {
         }));
 
         sym->ondestruction = [this](auto* sym){
-            to_clean.push_back(sym);
+            semantic_contexts.erase(sym);
         };
 
         return &semantic_contexts.find(sym)->second;
@@ -37,13 +37,6 @@ namespace Odo::Semantics {
         if (in_my_map != semantic_contexts.end()) return &in_my_map->second;
 
         return nullptr;
-    }
-
-    void SemanticAnalyzer::clean_contexts() {
-        // This is what used to add the most slowdown when I had aa value table. I'll test it out a few times when I get every thing working.
-        for (auto el : to_clean) {
-            semantic_contexts.erase(semantic_contexts.find(el));
-        }
     }
 
     bool SemanticAnalyzer::counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2) {
