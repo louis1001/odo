@@ -2278,8 +2278,6 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
-        auto instance = visit(node->inst);
-
         auto symbol = getSymbolFromNode(node);
         if (symbol && symbol->value) {
             return symbol->value;
