@@ -72,6 +72,26 @@ namespace Odo::Semantics {
         return nullptr;
     }
 
+    Interpreting::SymbolTable *
+    SemanticAnalyzer::add_function_semantic_context(Interpreting::Symbol* sym, std::string name, SemanticAnalyzer::arg_types tps) {
+        auto func_table = add_semantic_context(sym, std::move(name));
+
+        functions_context.insert(std::pair(sym, std::move(tps)));
+
+        sym->ondestruction = [this](auto* sym){
+            functions_context.erase(sym);
+            semantic_contexts.erase(sym);
+        };
+        return func_table;
+    }
+
+    SemanticAnalyzer::arg_types SemanticAnalyzer::get_function_semantic_context(Interpreting::Symbol* sym) {
+        auto in_my_map = functions_context.find(sym);
+        if (in_my_map != functions_context.end()) return in_my_map->second;
+
+        return {};
+    }
+
     bool SemanticAnalyzer::counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2) {
         if (type2 == inter.any_type()) return true;
 
@@ -282,13 +302,11 @@ namespace Odo::Semantics {
                 // return visit_FuncExpression(Node::as<FuncExpressionNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::FuncDecl:
-                // return visit_FuncDecl(Node::as<FuncDeclNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_FuncDecl(Node::as<FuncDeclNode>(node));
             case NodeType::FuncCall:
                  return visit_FuncCall(Node::as<FuncCallNode>(node));
             case NodeType::FuncBody:
-                // return visit_FuncBody(Node::as<FuncBodyNode>(node));
-                /* ToRemoveLater */ break;
+                return visit_FuncBody(Node::as<FuncBodyNode>(node));
             case NodeType::Return:
                 // return visit_Return(Node::as<ReturnNode>(node));
                 /* ToRemoveLater */ break;
@@ -1077,6 +1095,112 @@ namespace Odo::Semantics {
         return result;
     }
 
+    SemanticAnalyzer::arg_types SemanticAnalyzer::getParamTypes(const std::vector<std::shared_ptr<Node>>& params) {
+        arg_types ts;
+
+        for (const auto& par : params) {
+            switch (par->kind()) {
+                case NodeType::VarDeclaration: {
+                    auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
+                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
+                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                        ts.emplace_back(ft, is_not_optional);
+                    } else {
+                        // TODO: Handle Error
+                        // Error! Unknown type par.type.value
+                        throw Exceptions::TypeException(
+                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                par->line_number,
+                                par->column_number
+                        );
+                    }
+                    break;
+                }
+                case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
+                    auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
+                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
+                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                        ts.emplace_back(ft, is_not_optional);
+                    } else {
+                        throw Exceptions::TypeException(
+                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                par->line_number,
+                                par->column_number
+                        );
+                    }
+                    break;
+                }
+                default:
+                    // Error! Expected variable declaration inside function parenthesis.
+                    throw Exceptions::SyntaxException(
+                            EXPCT_DECL_IN_PAR_EXCP,
+                            par->line_number,
+                            par->column_number
+                    );
+                    break;
+            }
+        }
+
+        return ts;
+    }
+
+    NodeResult SemanticAnalyzer::visit_FuncDecl(const std::shared_ptr<Parsing::FuncDeclNode>& node) {
+        if (currentScope->symbolExists(node->name.value)) {
+            throw Exceptions::NameException(
+                VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        auto returnType =
+                node->retType.tp == Lexing::NOTHING
+                ? nullptr
+                : currentScope->findSymbol(node->retType.value);
+
+        auto paramTypes = getParamTypes(node->params);
+
+        auto typeName = Interpreting::Symbol::constructFuncTypeName(returnType, paramTypes);
+
+        auto typeOfFunc = globalScope.findSymbol(typeName);
+
+        Interpreting::SymbolTable* func_scope;
+
+        if (!typeOfFunc) {
+            typeOfFunc = globalScope.addFuncType(returnType, paramTypes);
+            func_scope = add_function_semantic_context(typeOfFunc, typeName, paramTypes);
+        } else {
+            func_scope = get_semantic_context(typeOfFunc);
+        }
+
+        auto temp = currentScope;
+        currentScope = func_scope;
+        // Store the current function symbol in a variable of SemAn
+        for (const auto& par : node->params) {
+            visit(par);
+            std::string name;
+            if (par->kind() == NodeType::VarDeclaration) {
+                name = Node::as<VarDeclarationNode>(par)->name.value;
+            } else {
+                name = Node::as<ListDeclarationNode>(par)->name.value;
+            }
+            currentScope->findSymbol(name)->is_initialized = true;
+        }
+
+        visit(node->body);
+        currentScope = temp;
+
+        // Only define the function when I'm completly sure there are no semantic
+        // Error in the body or parameters.
+        currentScope->addSymbol({
+            .tp=typeOfFunc,
+            .name=node->name.value,
+            .kind=Interpreting::SymbolType::FunctionSymbol
+        });
+
+        return {};
+    }
+
     NodeResult SemanticAnalyzer::visit_FuncCall(const std::shared_ptr<Parsing::FuncCallNode>& node) {
         if (node->fname.tp != Lexing::NOTHING) {
             auto in_natives = native_function_data.find(node->fname.value);
@@ -1094,6 +1218,20 @@ namespace Odo::Semantics {
                 return in_natives->second;
             }
         }
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_FuncBody(const std::shared_ptr<Parsing::FuncBodyNode>& node) {
+        auto temp = currentScope;
+        auto bodyScope = Interpreting::SymbolTable("func-body-scope", {}, currentScope);
+
+        currentScope = &bodyScope;
+
+        for (const auto& st : node->statements) {
+            visit(st);
+        }
+
+        currentScope = temp;
         return {};
     }
 

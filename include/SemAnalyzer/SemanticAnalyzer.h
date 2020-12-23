@@ -68,10 +68,15 @@ namespace Odo::Semantics {
         Interpreting::Symbol* type_string;
         Interpreting::Symbol* type_bool;
 
+        typedef std::vector<std::pair<Interpreting::Symbol*, bool>> arg_types;
+
         std::map<Interpreting::Symbol*, Interpreting::SymbolTable> semantic_contexts;
+        std::map<Interpreting::Symbol*, arg_types> functions_context;
 
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
         Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
+        Interpreting::SymbolTable* add_function_semantic_context(Interpreting::Symbol*, std::string, arg_types);
+        arg_types get_function_semantic_context(Interpreting::Symbol*);
 
         std::map<std::string, NodeResult> native_function_data;
 
@@ -102,7 +107,9 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(ListExpression);
 
+        ADD_VISITOR(FuncDecl);
         ADD_VISITOR(FuncCall);
+        ADD_VISITOR(FuncBody);
 
         ADD_VISITOR(Enum);
 
@@ -110,6 +117,7 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(Module);
 
+        arg_types getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>& params);
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
