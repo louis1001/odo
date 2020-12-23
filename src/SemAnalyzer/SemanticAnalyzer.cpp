@@ -99,14 +99,14 @@ namespace Odo::Semantics {
                 auto leftHandSym = getSymbolFromNode(as_static_var->inst);
 
                 if (leftHandSym) {
-//                    if (theValue->kind() == ValueType::ModuleVal) {
-//                        varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
+                    if (leftHandSym->kind == Interpreting::SymbolType::ModuleSymbol) {
+                        auto module_context = get_semantic_context(leftHandSym);
+                        varSym = module_context->findSymbol(as_static_var->name.value, false);
 //                    } else if (theValue->kind() == ValueType::ClassVal) {
 //                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
 //                    } else if (theValue->kind() == ValueType::InstanceVal) {
 //                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
-//                    } else
-                    if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
+                    } else if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
                         auto context = get_semantic_context(leftHandSym);
                         auto sm = context->findSymbol(as_static_var->name.value, false);
                         if (sm) {
@@ -305,8 +305,7 @@ namespace Odo::Semantics {
                  return visit_StaticVar(Node::as<StaticVarNode>(node));
 
             case NodeType::Module:
-                // return visit_Module(Node::as<ModuleNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Module(Node::as<ModuleNode>(node));
             case NodeType::Import:
                 // return visit_Import(Node::as<ImportNode>(node));
                 /* ToRemoveLater */ break;
@@ -1109,6 +1108,27 @@ namespace Odo::Semantics {
                 node->column_number
             );
         }
+    }
+
+    NodeResult SemanticAnalyzer::visit_Module(const std::shared_ptr<Parsing::ModuleNode>& node) {
+        auto module_in_table = currentScope->addSymbol({
+            .tp=nullptr,
+            .name=node->name.value,
+            .kind=Interpreting::SymbolType::ModuleSymbol
+        });
+
+        auto module_context = add_semantic_context(module_in_table, "module_" + module_in_table->name + "_scope");
+
+        auto temp = currentScope;
+        currentScope = module_context;
+        for (const auto& st : node->statements) {
+            visit(st);
+        }
+
+        currentScope = temp;
+        module_in_table->is_initialized = true;
+
+        return {};
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
