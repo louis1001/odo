@@ -30,4 +30,6 @@
 #define LST_ONLY_MUL_INT_EXCP "Listas solo pueden ser multiplicadas por enteros."
 #define STR_ONLY_MUL_INT_EXCP "Cadenas solo puede ser multiplicadas por enteros."
 
+#define INVALID_CALL_ARG_EXCP "Llamada de funcion invalida. Todos los argumentos deben ser expresiones validas."
+
 #endif //ODO_SEMANTICANALYZER_ES_H

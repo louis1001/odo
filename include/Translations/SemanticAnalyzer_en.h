@@ -30,4 +30,6 @@
 #define LST_ONLY_MUL_INT_EXCP "Lists can only be multiplied with ints."
 #define STR_ONLY_MUL_INT_EXCP "Strings can only be multiplied with ints."
 
+#define INVALID_CALL_ARG_EXCP "Invalid function call. All call arguments must be valid expressions."
+
 #endif //ODO_SEMANTICANALYZER_EN_H

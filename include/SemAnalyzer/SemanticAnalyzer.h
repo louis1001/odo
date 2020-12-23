@@ -100,6 +100,8 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(ListExpression);
 
+        ADD_VISITOR(FuncCall);
+
         ADD_VISITOR(Enum);
 
         ADD_VISITOR(StaticVar);

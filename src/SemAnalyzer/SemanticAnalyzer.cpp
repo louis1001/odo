@@ -284,8 +284,7 @@ namespace Odo::Semantics {
                 // return visit_FuncDecl(Node::as<FuncDeclNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::FuncCall:
-                // return visit_FuncCall(Node::as<FuncCallNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_FuncCall(Node::as<FuncCallNode>(node));
             case NodeType::FuncBody:
                 // return visit_FuncBody(Node::as<FuncBodyNode>(node));
                 /* ToRemoveLater */ break;
@@ -1073,6 +1072,26 @@ namespace Odo::Semantics {
         }
 
         return result;
+    }
+
+    NodeResult SemanticAnalyzer::visit_FuncCall(const std::shared_ptr<Parsing::FuncCallNode>& node) {
+        if (node->fname.tp != Lexing::NOTHING) {
+            auto in_natives = native_function_data.find(node->fname.value);
+            if (in_natives != native_function_data.end()) {
+                for(const auto& arg : node->args) {
+                    if (!visit(arg).type) {
+                        throw Exceptions::ValueException(
+                            "(SemAn) " INVALID_CALL_ARG_EXCP,
+                            arg->line_number,
+                            arg->column_number
+                        );
+                    }
+                }
+
+                return in_natives->second;
+            }
+        }
+        return {};
     }
 
     NodeResult SemanticAnalyzer::visit_Enum(const std::shared_ptr<Parsing::EnumNode>& node) {
