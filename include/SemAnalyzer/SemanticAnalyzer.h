@@ -59,6 +59,8 @@ namespace Odo::Semantics {
         Interpreting::SymbolTable replScope;
         Interpreting::SymbolTable* currentScope;
 
+        Interpreting::SymbolTable globalScope;
+
         Interpreting::Interpreter& inter;
 
         Interpreting::Symbol* type_int;
