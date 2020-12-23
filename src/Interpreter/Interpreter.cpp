@@ -2497,8 +2497,8 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    std::vector<std::pair<Symbol, bool>> Interpreter::getParamTypes(const std::vector<std::shared_ptr<Node>>& params) {
-        std::vector<std::pair<Symbol, bool>> ts;
+    std::vector<std::pair<Symbol*, bool>> Interpreter::getParamTypes(const std::vector<std::shared_ptr<Node>>& params) {
+        std::vector<std::pair<Symbol*, bool>> ts;
 
         for (const auto& par : params) {
             switch (par->kind()) {
@@ -2506,7 +2506,7 @@ namespace Odo::Interpreting {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
                     if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
                         auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(*ft, is_not_optional);
+                        ts.emplace_back(ft, is_not_optional);
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
@@ -2522,7 +2522,7 @@ namespace Odo::Interpreting {
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
                     if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
                         auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(*ft, is_not_optional);
+                        ts.emplace_back(ft, is_not_optional);
                     } else {
                         throw Exceptions::TypeException(
                                 UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",

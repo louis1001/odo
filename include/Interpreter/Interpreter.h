@@ -111,7 +111,7 @@ namespace Odo::Interpreting {
 
         std::shared_ptr<Value> interpret_as_module(const std::string &path, const Lexing::Token& name);
 
-        std::vector<std::pair<Symbol, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
+        std::vector<std::pair<Symbol*, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
 
         Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
 

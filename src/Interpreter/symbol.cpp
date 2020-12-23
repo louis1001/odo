@@ -84,7 +84,7 @@ namespace Odo::Interpreting {
         return symbols.find(name) != symbols.end();
     }
 
-    Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol, bool>>& params) {
+    Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol*, bool>>& params) {
         auto funcName = Symbol::constructFuncTypeName(type, params);
 
         return addFuncType(type, funcName);

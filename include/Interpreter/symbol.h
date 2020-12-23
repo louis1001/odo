@@ -51,11 +51,11 @@ namespace Odo::Interpreting {
 
         [[nodiscard]] bool is_numeric() const { return name == INT_TP || name == DOUBLE_TP; }
 
-        static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol, bool> >& paramTypes) {
+        static std::string constructFuncTypeName(Symbol* type, const std::vector< std::pair<Symbol*, bool> >& paramTypes) {
             std::string result = "(";
             auto cont = 0;
             for (const auto& arg : paramTypes) {
-                result += arg.first.name + (arg.second ? "" : "?");
+                result += arg.first->name + (arg.second ? "" : "?");
                 if (cont != paramTypes.size()-1) {
                     result += ", ";
                 }
@@ -100,7 +100,7 @@ namespace Odo::Interpreting {
         SymbolTable* getParent() { return parent; }
         void setParent(SymbolTable* newP) { parent = newP; }
 
-        Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol, bool>>& vector);
+        Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol*, bool>>& vector);
         Symbol *addFuncType(Symbol *pSymbol, const std::string& funcName);
 
         void debugChain();
