@@ -694,6 +694,7 @@ namespace Odo::Semantics {
             }
 
             visit(iterator_decl);
+            currentScope->findSymbol(Node::as<VarDeclarationNode>(iterator_decl)->name.value)->is_initialized = true;
 
             visit(node->body);
         } else if (lst_value.type->name == STRING_TP) {
@@ -733,7 +734,6 @@ namespace Odo::Semantics {
         }
 
         if (node->second && node->second->kind() != NodeType::NoOp) {
-
             auto second_visited = visit(node->second);
             if (!second_visited.type || !(second_visited.type->name == DOUBLE_TP || second_visited.type->name == INT_TP)) {
                 throw Exceptions::ValueException(
@@ -753,6 +753,7 @@ namespace Odo::Semantics {
                     std::make_shared<NoOpNode>()
             );
             visit(iterator_decl);
+            currentScope->findSymbol(Node::as<VarDeclarationNode>(iterator_decl)->name.value)->is_initialized = true;
         }
 
         visit(node->body);
