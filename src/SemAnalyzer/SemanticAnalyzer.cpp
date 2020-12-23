@@ -271,8 +271,7 @@ namespace Odo::Semantics {
                 /* ToRemoveLater */ break;
 
             case NodeType::Enum:
-                // return visit_Enum(Node::as<EnumNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Enum(Node::as<EnumNode>(node));
 
                 // Classes
             case NodeType::Class:
@@ -1058,6 +1057,46 @@ namespace Odo::Semantics {
         }
 
         return result;
+    }
+
+    NodeResult SemanticAnalyzer::visit_Enum(const std::shared_ptr<Parsing::EnumNode>& node) {
+        if (currentScope->symbolExists(node->name.value)) {
+            throw Exceptions::NameException(
+                VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        auto* enumInTable = currentScope->addSymbol({
+            inter.any_type(),
+            node->name.value,
+            nullptr,
+            true,
+            Interpreting::SymbolType::EnumType
+        });
+
+        auto enum_variant_scope = add_semantic_context(enumInTable, "enum_" + node->name.value + "_scope");
+
+        for (const auto& variant : node->variants) {
+            // By the parsing module, this can't not be a variable
+
+            // But if you hand construct the tree, I should test for that.
+            // TODO: Don't trust this conversion.
+            auto as_variable = Node::as<VariableNode>(variant);
+            auto variant_name = as_variable->token.value;
+
+            auto variant_in_table = enum_variant_scope->addSymbol({
+                .tp=enumInTable,
+                .name=variant_name,
+                .kind=Interpreting::SymbolType::EnumSymbol
+            });
+            variant_in_table->is_initialized = true;
+        }
+
+        enumInTable->is_initialized = true;
+
+        return {};
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {

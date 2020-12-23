@@ -96,6 +96,8 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(ListExpression);
 
+        ADD_VISITOR(Enum);
+
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
