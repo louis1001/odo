@@ -98,6 +98,8 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(Enum);
 
+        ADD_VISITOR(StaticVar);
+
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);

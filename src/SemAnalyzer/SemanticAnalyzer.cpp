@@ -95,46 +95,44 @@ namespace Odo::Semantics {
             }
             case NodeType::StaticVar:
             {
-//                auto as_static_var = Node::as<StaticVarNode>(mem);
-//                auto leftHandSym = getSymbolFromNode(as_static_var->inst);
-//
-//                if (leftHandSym && leftHandSym->value) {
-//                    auto theValue = leftHandSym->value;
+                auto as_static_var = Node::as<StaticVarNode>(mem);
+                auto leftHandSym = getSymbolFromNode(as_static_var->inst);
+
+                if (leftHandSym) {
 //                    if (theValue->kind() == ValueType::ModuleVal) {
 //                        varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
 //                    } else if (theValue->kind() == ValueType::ClassVal) {
 //                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
 //                    } else if (theValue->kind() == ValueType::InstanceVal) {
 //                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
-//                    } else if (theValue->kind() == ValueType::EnumVal) {
-//                        auto as_enum_value = Value::as<EnumValue>(theValue);
-//                        auto sm = as_enum_value->ownScope.findSymbol(as_static_var->name.value, false);
-//                        if (sm) {
-//                            if (sm->value)
-//                                return sm;
-//                            return nullptr;
-//                        } else {
-//                            throw Exceptions::NameException(
-//                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
-//                                    node->line_number,
-//                                    node->column_number
-//                            );
-//                        }
-//                    } else {
-//                        throw Exceptions::NameException(
-//                                //TODO Change to cannot read static
-//                                INVALID_STATIC_OP_EXCP,
-//                                node->line_number,
-//                                node->column_number
-//                        );
-//                    }
-//                } else {
-//                    throw Exceptions::NameException(
-//                            UNKWN_VAL_IN_STATIC_EXCP,
-//                            node->line_number,
-//                            node->column_number
-//                    );
-//                }
+//                    } else
+                    if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
+                        auto context = get_semantic_context(leftHandSym);
+                        auto sm = context->findSymbol(as_static_var->name.value, false);
+                        if (sm) {
+                            return sm;
+                        } else {
+                            throw Exceptions::NameException(
+                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
+                                    mem->line_number,
+                                    mem->column_number
+                            );
+                        }
+                    } else {
+                        throw Exceptions::NameException(
+                                //TODO Change to cannot read static
+                                INVALID_STATIC_OP_EXCP,
+                                mem->line_number,
+                                mem->column_number
+                        );
+                    }
+                } else {
+                    throw Exceptions::NameException(
+                            UNKWN_VAL_IN_STATIC_EXCP,
+                            mem->line_number,
+                            mem->column_number
+                    );
+                }
 
                 break;
             }
@@ -304,8 +302,7 @@ namespace Odo::Semantics {
                 // return visit_MemberVar(Node::as<MemberVarNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::StaticVar:
-                // return visit_StaticVar(Node::as<StaticVarNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_StaticVar(Node::as<StaticVarNode>(node));
 
             case NodeType::Module:
                 // return visit_Module(Node::as<ModuleNode>(node));
@@ -1069,11 +1066,9 @@ namespace Odo::Semantics {
         }
 
         auto* enumInTable = currentScope->addSymbol({
-            inter.any_type(),
-            node->name.value,
-            nullptr,
-            true,
-            Interpreting::SymbolType::EnumType
+            .name=node->name.value,
+            .isType=true,
+            .kind=Interpreting::SymbolType::EnumType
         });
 
         auto enum_variant_scope = add_semantic_context(enumInTable, "enum_" + node->name.value + "_scope");
@@ -1097,6 +1092,23 @@ namespace Odo::Semantics {
         enumInTable->is_initialized = true;
 
         return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_StaticVar(const std::shared_ptr<Parsing::StaticVarNode>& node) {
+        auto symbol = getSymbolFromNode(node);
+        if (symbol) {
+            return {
+                symbol->tp,
+                true,
+                false
+            };
+        } else {
+            throw Exceptions::NameException(
+                NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
