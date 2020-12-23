@@ -1778,7 +1778,7 @@ namespace Odo::Interpreting {
         currentScope = temp;
         moduleValue->important = false;
 
-        currentScope->addSymbol({nullptr, node->name.value, moduleValue});
+        currentScope->addSymbol({nullptr, node->name.value, moduleValue, false, SymbolType::ModuleSymbol});
 
         return moduleValue;
     }
