@@ -64,9 +64,7 @@ namespace Odo::Interpreting {
 
             result += ")";
 
-            if (type) {
-                result += ": " + type->name;
-            }
+            result += ": " + (type? type->name : "void");
 
             return result;
         }
