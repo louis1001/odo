@@ -1831,7 +1831,7 @@ namespace Odo::Interpreting {
         auto typeOfFunc = globalTable.findSymbol(typeName);
 
         if (!typeOfFunc) {
-            typeOfFunc = globalTable.addFuncType(returnType, paramTypes);
+            typeOfFunc = globalTable.addFuncType(returnType, typeName);
         }
 
         auto funcValue = FunctionValue::create(typeOfFunc, node->params, node->body, currentScope, node->name.value);
@@ -2065,7 +2065,7 @@ namespace Odo::Interpreting {
         auto typeOfFunc = globalTable.findSymbol(typeName);
 
         if (!typeOfFunc) {
-            typeOfFunc = globalTable.addFuncType(retType, paramTypes);
+            typeOfFunc = globalTable.addFuncType(retType, typeName);
         }
 
         auto funcValue = FunctionValue::create(typeOfFunc, node->params, node->body, currentScope);

@@ -101,6 +101,7 @@ namespace Odo::Interpreting {
         void setParent(SymbolTable* newP) { parent = newP; }
 
         Symbol *addFuncType(Symbol *pSymbol, const std::vector<std::pair<Symbol, bool>>& vector);
+        Symbol *addFuncType(Symbol *pSymbol, const std::string& funcName);
 
         void debugChain();
         ~SymbolTable();

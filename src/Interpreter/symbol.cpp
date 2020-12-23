@@ -87,6 +87,10 @@ namespace Odo::Interpreting {
     Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol, bool>>& params) {
         auto funcName = Symbol::constructFuncTypeName(type, params);
 
+        return addFuncType(type, funcName);
+    }
+
+    Symbol *SymbolTable::addFuncType(Symbol *type, const std::string& funcName) {
         auto foundAsFuncType = symbols.find(funcName);
         if (foundAsFuncType != symbols.end())
             return &foundAsFuncType->second;
@@ -104,10 +108,10 @@ namespace Odo::Interpreting {
         // Where should the param types go?
         // In a member var of symbol, apparently... Ugh.
         symbols[funcName] = Symbol{
-            .tp=type,
-            .name=funcName,
-            .isType=true,
-            .kind=SymbolType::FunctionType
+                .tp=type,
+                .name=funcName,
+                .isType=true,
+                .kind=SymbolType::FunctionType
         };
 
         return &symbols.find(funcName)->second;
