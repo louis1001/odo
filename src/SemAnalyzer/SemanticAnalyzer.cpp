@@ -348,19 +348,19 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::visit_Double(const std::shared_ptr<Parsing::DoubleNode>& node) {
-        return {inter.globalTable.findSymbol(DOUBLE_TP), true, false};
+        return {type_double, true, false};
     }
 
     NodeResult SemanticAnalyzer::visit_Int(const std::shared_ptr<Parsing::IntNode>& node) {
-        return {inter.globalTable.findSymbol(INT_TP), true, false};
+        return {type_int, true, false};
     }
 
     NodeResult SemanticAnalyzer::visit_Str(const std::shared_ptr<Parsing::StrNode>& node) {
-        return {inter.globalTable.findSymbol(STRING_TP), true, false};
+        return {type_string, true, false};
     }
 
     NodeResult SemanticAnalyzer::visit_Bool(const std::shared_ptr<Parsing::BoolNode>& node) {
-        return {inter.globalTable.findSymbol(BOOL_TP), true, false};
+        return {type_bool, true, false};
     }
 
     NodeResult SemanticAnalyzer::visit_BinOp(const std::shared_ptr<Parsing::BinOpNode>& node) {
@@ -384,11 +384,6 @@ namespace Odo::Semantics {
                 node->column_number
             );
         }
-
-        NodeResult double_result = {inter.globalTable.findSymbol(DOUBLE_TP), true, false};
-        NodeResult int_result = {inter.globalTable.findSymbol(INT_TP), true, false};
-        NodeResult string_result = {inter.globalTable.findSymbol(STRING_TP), true, false};
-        NodeResult bool_result = {inter.globalTable.findSymbol(BOOL_TP), true, false};
 
         auto both_numerical = leftVisited.type->is_numeric() && rightVisited.type->is_numeric();
         auto same_types = leftVisited.type == rightVisited.type;
@@ -424,13 +419,13 @@ namespace Odo::Semantics {
                             template_symbol->content_has_side_effects
                     };
                 } else if (leftVisited.type->name == STRING_TP || rightVisited.type->name == STRING_TP) {
-                    return string_result;
+                    return {type_string};
                 } else if (both_numerical) {
                     if (same_types && leftVisited.type->name == INT_TP) {
-                        return int_result;
+                        return {type_int};
                     }
 
-                    return double_result;
+                    return {type_double};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " ADD_ONLY_SAME_TP_EXCP,
@@ -442,10 +437,10 @@ namespace Odo::Semantics {
             case Lexing::MINUS:
                 if (both_numerical) {
                     if (same_types && leftVisited.type->name == INT_TP) {
-                        return int_result;
+                        return {type_int};
                     }
 
-                    return double_result;
+                    return {type_double};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " SUB_ONLY_SAME_TP_EXCP,
@@ -456,10 +451,10 @@ namespace Odo::Semantics {
             case Lexing::MUL: {
                 if (both_numerical) {
                     if (same_types && leftVisited.type->name == INT_TP) {
-                        return int_result;
+                        return {type_int};
                     }
 
-                    return double_result;
+                    return {type_double};
                 } else if (leftVisited.type->kind == Interpreting::SymbolType::ListType) {
                     if (rightVisited.type->name != INT_TP) {
                         // Error! List can only be multiplied with ints.
@@ -481,7 +476,7 @@ namespace Odo::Semantics {
                             node->column_number
                         );
                     }
-                    return string_result;
+                    return {type_string};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " MUL_ONLY_SAME_TP_EXCP,
@@ -494,7 +489,7 @@ namespace Odo::Semantics {
                 if (both_numerical) {
                     // Just return double, even if both are int.
                     // TODO: I need to update the interpreter with that.
-                    return double_result;
+                    return {type_double};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " DIV_ONLY_DOB_EXCP,
@@ -505,7 +500,7 @@ namespace Odo::Semantics {
             }
             case Lexing::MOD:
                 if (same_types && leftVisited.type->name == INT_TP) {
-                    return int_result;
+                    return {type_int};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " MOD_ONLY_INT_EXCP,
@@ -516,10 +511,10 @@ namespace Odo::Semantics {
             case Lexing::POW:
                 if (both_numerical) {
                     if (same_types && leftVisited.type->name == "int") {
-                        return int_result;
+                        return {type_int};
                     }
 
-                    return double_result;
+                    return {type_double};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " POW_ONLY_SAME_TP_EXCP,
@@ -530,7 +525,7 @@ namespace Odo::Semantics {
             case Lexing::EQU:
             case Lexing::NEQ:
                 if (same_types || leftVisited.type == inter.null->type || rightVisited.type == inter.null->type) {
-                    return bool_result;
+                    return {type_bool};
                 }
 
                 // Else, fallback
@@ -539,7 +534,7 @@ namespace Odo::Semantics {
             case Lexing::LET:
             case Lexing::GET:
                 if (both_numerical) {
-                    return bool_result;
+                    return {type_bool};
                 } else {
                     throw Exceptions::TypeException(
                             "(SemAn) " COM_ONLY_SAME_TP_EXCP,
@@ -550,7 +545,7 @@ namespace Odo::Semantics {
             case Lexing::AND:
             case Lexing::OR:
                 if (same_types && leftVisited.type->name == BOOL_TP) {
-                    return bool_result;
+                    return {type_bool};
                 }else {
                     throw Exceptions::TypeException(
                             "(SemAn) " LOG_ONLY_BOOL_EXCP,
