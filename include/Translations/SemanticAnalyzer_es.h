@@ -32,4 +32,9 @@
 
 #define INVALID_CALL_ARG_EXCP "Llamada de funcion invalida. Todos los argumentos deben ser expresiones validas."
 
+#define RET_OUTS_FUNC_BODY_EXCP "Sentencia 'devolver' fuera del cuerpo de una funcion."
+#define RET_ON_VOID_FUNC_EXCP "Devolviendo un valor dentro de una funcion sin tipo de retorno."
+#define RET_VAL_TYPE_EXCP "El valor devuelto de tipo '"
+#define NOT_MATCH_FUNC_EXCP "' no concuerda con el tipo de la funcion: '"
+
 #endif //ODO_SEMANTICANALYZER_ES_H

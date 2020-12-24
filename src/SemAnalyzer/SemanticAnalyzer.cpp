@@ -312,8 +312,7 @@ namespace Odo::Semantics {
             case NodeType::FuncBody:
                 return visit_FuncBody(Node::as<FuncBodyNode>(node));
             case NodeType::Return:
-                // return visit_Return(Node::as<ReturnNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Return(Node::as<ReturnNode>(node));
 
             case NodeType::Enum:
                  return visit_Enum(Node::as<EnumNode>(node));
@@ -1204,6 +1203,10 @@ namespace Odo::Semantics {
 
         auto temp = currentScope;
         currentScope = &func_scope;
+        auto prev_accepted = accepted_return_type;
+        auto could_return = can_return;
+        can_return = true;
+        accepted_return_type = returnType;
 
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
@@ -1215,6 +1218,8 @@ namespace Odo::Semantics {
             throw e;
         }
         currentScope = temp;
+        accepted_return_type = prev_accepted;
+        can_return = could_return;
 
         return {};
     }
@@ -1250,6 +1255,41 @@ namespace Odo::Semantics {
         }
 
         currentScope = temp;
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Return(const std::shared_ptr<Parsing::ReturnNode>& node) {
+        if (!can_return) {
+            // Error! return statement outside of a function body.
+            throw Exceptions::SemanticException(
+                "(SemAn) " RET_OUTS_FUNC_BODY_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        auto result = visit(node->val);
+
+        if (accepted_return_type == inter.any_type()) {
+            accepted_return_type = result.type;
+        } else if (accepted_return_type != result.type) {
+            if (accepted_return_type == nullptr) {
+                // Error! returning a value inside a void function.
+                throw Exceptions::SemanticException(
+                    "(SemAn) " RET_ON_VOID_FUNC_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+            if (!counts_as(result.type, accepted_return_type)) {
+                // Error! The returned value does not match the functions return type of accepted_return_type->name
+                throw Exceptions::TypeException(
+                    "(SemAn) " RET_VAL_TYPE_EXCP + (result.type ? result.type->name : "void") + NOT_MATCH_FUNC_EXCP + accepted_return_type->name + "'.",
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        }
         return {};
     }
 

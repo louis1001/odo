@@ -73,6 +73,9 @@ namespace Odo::Semantics {
         std::map<Interpreting::Symbol*, Interpreting::SymbolTable> semantic_contexts;
         std::map<Interpreting::Symbol*, arg_types> functions_context;
 
+        bool can_return {false};
+        Interpreting::Symbol* accepted_return_type;
+
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
         Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
         Interpreting::SymbolTable* add_function_semantic_context(Interpreting::Symbol*, std::string, arg_types);
@@ -110,6 +113,7 @@ namespace Odo::Semantics {
         ADD_VISITOR(FuncDecl);
         ADD_VISITOR(FuncCall);
         ADD_VISITOR(FuncBody);
+        ADD_VISITOR(Return);
 
         ADD_VISITOR(Enum);
 

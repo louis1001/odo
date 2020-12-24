@@ -32,4 +32,9 @@
 
 #define INVALID_CALL_ARG_EXCP "Invalid function call. All call arguments must be valid expressions."
 
+#define RET_OUTS_FUNC_BODY_EXCP "return statement outside of a function body."
+#define RET_ON_VOID_FUNC_EXCP "Returning a value inside a void function."
+#define RET_VAL_TYPE_EXCP "The returned value of type '"
+#define NOT_MATCH_FUNC_EXCP "' does not match the functions return type of '"
+
 #endif //ODO_SEMANTICANALYZER_EN_H
