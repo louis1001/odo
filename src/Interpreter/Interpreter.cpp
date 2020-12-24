@@ -1057,6 +1057,9 @@ namespace Odo::Interpreting {
                     current_col
             );
         } else {
+            std::shared_ptr<Value> newValue;
+            if (node->initial)
+                newValue = visit(node->initial);
             auto type_ = currentScope->findSymbol(node->var_type.value);
 
             if (type_ == nullptr) {
@@ -1071,8 +1074,6 @@ namespace Odo::Interpreting {
             std::shared_ptr<Value> valueReturn;
 
             if (node->initial && node->initial->kind() != NodeType::NoOp) {
-                auto newValue = visit(node->initial);
-
                 if (newValue->is_copyable()) {
                     newValue = newValue->copy();
                 }
