@@ -1164,39 +1164,53 @@ namespace Odo::Semantics {
 
         auto typeOfFunc = globalScope.findSymbol(typeName);
 
-        Interpreting::SymbolTable* func_scope;
+        Interpreting::SymbolTable func_scope;
 
         if (!typeOfFunc) {
             typeOfFunc = globalScope.addFuncType(returnType, typeName);
-            func_scope = add_function_semantic_context(typeOfFunc, typeName, paramTypes);
-        } else {
-            func_scope = get_semantic_context(typeOfFunc);
-        }
+            func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
+            func_scope.setParent(currentScope);
 
-        auto temp = currentScope;
-        currentScope = func_scope;
-        // Store the current function symbol in a variable of SemAn
-        for (const auto& par : node->params) {
-            visit(par);
-            std::string name;
-            if (par->kind() == NodeType::VarDeclaration) {
-                name = Node::as<VarDeclarationNode>(par)->name.value;
-            } else {
-                name = Node::as<ListDeclarationNode>(par)->name.value;
+            auto temp = currentScope;
+            currentScope = &func_scope;
+            // Store the current function symbol in a variable of SemAn
+            for (const auto& par : node->params) {
+                visit(par);
+                std::string name;
+                if (par->kind() == NodeType::VarDeclaration) {
+                    name = Node::as<VarDeclarationNode>(par)->name.value;
+                } else {
+                    name = Node::as<ListDeclarationNode>(par)->name.value;
+                }
+                currentScope->findSymbol(name)->is_initialized = true;
             }
-            currentScope->findSymbol(name)->is_initialized = true;
+
+            currentScope = temp;
+        } else {
+            func_scope = *get_semantic_context(typeOfFunc);
+            func_scope.setParent(currentScope);
         }
 
-        visit(node->body);
-        currentScope = temp;
-
-        // Only define the function when I'm completly sure there are no semantic
-        // Error in the body or parameters.
-        currentScope->addSymbol({
+        auto func_symbol = currentScope->addSymbol({
             .tp=typeOfFunc,
             .name=node->name.value,
             .kind=Interpreting::SymbolType::FunctionSymbol
         });
+        func_symbol->is_initialized = true;
+
+        auto temp = currentScope;
+        currentScope = &func_scope;
+
+        // This is a little messy.
+        // I don't like doing this kind of error checking inside of the whole module.
+        // But the fact that I just bubble it up means it probably won't change much.
+        try {
+            visit(node->body);
+        } catch (Exceptions::OdoException& e) {
+            temp->removeSymbol(func_symbol);
+            throw e;
+        }
+        currentScope = temp;
 
         return {};
     }
