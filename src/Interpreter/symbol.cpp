@@ -56,6 +56,15 @@ namespace Odo::Interpreting {
         return &symbols.find(new_sym_name)->second;
     }
 
+    void SymbolTable::removeSymbol(Symbol* name) {
+        for (auto it = symbols.begin(); it != symbols.end(); it++) {
+            if (&it->second == name) {
+                symbols.erase(it);
+                return;
+            }
+        }
+    }
+
     Symbol* SymbolTable::addListType(Symbol* tp) {
         std::string new_sym_name = tp->name+"[]";
         auto foundAsListType = symbols.find(new_sym_name);

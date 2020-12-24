@@ -90,6 +90,7 @@ namespace Odo::Interpreting {
 
         Symbol* findSymbol(const std::string&, bool and_in_parents=true);
         Symbol* addSymbol(const Symbol&);
+        void removeSymbol(Symbol*);
         Symbol* addListType(Symbol*);
         bool symbolExists(const std::string&);
 
