@@ -55,7 +55,7 @@ namespace Odo::Interpreting {
             std::string result = "(";
             auto cont = 0;
             for (const auto& arg : paramTypes) {
-                result += arg.first->name + (arg.second ? "" : "?");
+                result += arg.first->name + (arg.second ? "?" : "");
                 if (cont != paramTypes.size()-1) {
                     result += ", ";
                 }

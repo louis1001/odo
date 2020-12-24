@@ -1167,7 +1167,7 @@ namespace Odo::Semantics {
         Interpreting::SymbolTable* func_scope;
 
         if (!typeOfFunc) {
-            typeOfFunc = globalScope.addFuncType(returnType, paramTypes);
+            typeOfFunc = globalScope.addFuncType(returnType, typeName);
             func_scope = add_function_semantic_context(typeOfFunc, typeName, paramTypes);
         } else {
             func_scope = get_semantic_context(typeOfFunc);
