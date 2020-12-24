@@ -296,8 +296,7 @@ namespace Odo::Semantics {
 
                 // Functions
             case NodeType::FuncExpression:
-                // return visit_FuncExpression(Node::as<FuncExpressionNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_FuncExpression(Node::as<FuncExpressionNode>(node));
             case NodeType::FuncDecl:
                  return visit_FuncDecl(Node::as<FuncDeclNode>(node));
             case NodeType::FuncCall:
@@ -1138,6 +1137,61 @@ namespace Odo::Semantics {
         }
 
         return ts;
+    }
+
+    NodeResult SemanticAnalyzer::visit_FuncExpression(const std::shared_ptr<Parsing::FuncExpressionNode>& node) {
+        auto returnType = inter.any_type();
+
+        Interpreting::SymbolTable func_scope {"func_" ANONYMUS_MSG "_scope", {}, currentScope};
+        // Setup the current accepted return type as whatever this one returns.
+
+        auto temp = currentScope;
+        currentScope = &func_scope;
+        // Store the current function symbol in a variable of SemAn
+        for (const auto& par : node->params) {
+            visit(par);
+            std::string name;
+            if (par->kind() == NodeType::VarDeclaration) {
+                name = Node::as<VarDeclarationNode>(par)->name.value;
+            } else {
+                name = Node::as<ListDeclarationNode>(par)->name.value;
+            }
+            currentScope->findSymbol(name)->is_initialized = true;
+        }
+
+        auto prev_ret = accepted_return_type;
+        accepted_return_type = returnType;
+        auto could_return = can_return;
+        can_return = true;
+
+        visit(node->body);
+
+        if (accepted_return_type != returnType) {
+            returnType = accepted_return_type;
+            node->retType = Lexing::Token(Lexing::TokenType::ID, returnType->name);
+        } else {
+            returnType = nullptr;
+        }
+
+        can_return = could_return;
+        accepted_return_type = prev_ret;
+        currentScope = temp;
+
+        auto paramTypes = getParamTypes(node->params);
+
+        auto typeName = Interpreting::Symbol::constructFuncTypeName(returnType, paramTypes);
+
+        auto typeOfFunc = globalScope.findSymbol(typeName);
+
+        if (!typeOfFunc) {
+            typeOfFunc = globalScope.addFuncType(returnType, paramTypes);
+            add_semantic_context(typeOfFunc, func_scope);
+            functions_context.insert(std::pair(typeOfFunc, std::move(paramTypes)));
+
+            typeOfFunc->ondestruction = nullptr;
+        }
+
+        return {typeOfFunc};
     }
 
     NodeResult SemanticAnalyzer::visit_FuncDecl(const std::shared_ptr<Parsing::FuncDeclNode>& node) {

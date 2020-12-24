@@ -111,6 +111,7 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(ListExpression);
 
+        ADD_VISITOR(FuncExpression);
         ADD_VISITOR(FuncDecl);
         ADD_VISITOR(FuncCall);
         ADD_VISITOR(FuncBody);
