@@ -78,14 +78,7 @@ namespace Odo::Semantics {
 
         functions_context.insert(std::pair(sym, std::move(tps)));
 
-        sym->ondestruction = [this](auto* sym){
-            auto in_global = globalScope.findSymbol(sym->name);
-            if (in_global && in_global == sym){
-                return;
-            }
-            functions_context.erase(sym);
-            semantic_contexts.erase(sym);
-        };
+        sym->ondestruction = [](auto* sym){};
         return func_table;
     }
 
