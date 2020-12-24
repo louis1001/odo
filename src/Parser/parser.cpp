@@ -1079,14 +1079,13 @@ namespace Odo::Parsing{
 
         eat(RPAR);
 
-        eat(ARROW);
-
         std::shared_ptr<Node> body;
         if (current_token.tp == LCUR) {
             eat(LCUR);
             body = func_body();
             eat(RCUR);
         } else {
+            eat(ARROW);
             auto val = ternary_op();
             auto ex = ReturnNode::create(val);
             ex->line_number = ln;

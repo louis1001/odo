@@ -95,7 +95,7 @@ new_initializer = "new", identifier, call_arguments
 
 function = "func", identifier, func_params, [":", identifier], closure;
 
-function_expression = "func", func_params, "->", (closure | ternary_op);
+function_expression = "func", func_params, (closure | ("->", ternary_op));
 
 
 for_statement = "for", "(", statement, ternary_op, statement, ")", (closure | statement);
