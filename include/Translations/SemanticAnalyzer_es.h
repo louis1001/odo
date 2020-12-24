@@ -37,4 +37,13 @@
 #define RET_VAL_TYPE_EXCP "El valor devuelto de tipo '"
 #define NOT_MATCH_FUNC_EXCP "' no concuerda con el tipo de la funcion: '"
 
+#define UNEXP_CALL_NOT_FUNC_EXCP "Llamada de funcion invalida. La sentencia no tiene un valor al que llamar."
+#define FUNC_OF_TP_EXCP "La funcion de tipo '"
+#define TAKES_EXCP "' toma como maximo "
+#define ARGS_BUT_CALLED_EXCP " argumentos, pero fue llamada con "
+#define INVALID_TP_FOR_ARG_EXCP "Tipo invalido para argumento en llamada de funcion. El argumento "
+#define EXPC_TP_EXCP " esperaba un valor de tipo "
+#define BUT_RECVD_EXCP " pero recibio "
+#define NO_VAL_FOR_FUNC_ARG_EXCP "La llamada a la funcion no tiene valor para el argumento "
+
 #endif //ODO_SEMANTICANALYZER_ES_H

@@ -1288,7 +1288,61 @@ namespace Odo::Semantics {
                 return in_natives->second;
             }
         }
-        return {};
+
+        auto fVal = visit(node->expr);
+        if (!fVal.type) {
+            // Error! Not a valid function
+            throw Exceptions::TypeException(
+                "(SemAn) " UNEXP_CALL_NOT_FUNC_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+        auto functionType = fVal.type;
+
+        if (fVal.type->kind == Interpreting::SymbolType::FunctionType) {
+            const auto& parameters_in_template = get_function_semantic_context(functionType);
+            auto& call_args = node->args;
+
+            if (call_args.size() > parameters_in_template.size()) {
+                // Error! Function of type [type name] takes [parameters_in_template] arguments, but was called with [call_args.size()]
+                throw Exceptions::SemanticException(
+                    "(SemAn) " FUNC_OF_TP_EXCP + functionType->name + TAKES_EXCP + std::to_string(parameters_in_template.size()) + ARGS_BUT_CALLED_EXCP + std::to_string(call_args.size()),
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            for (int i = 0; i < parameters_in_template.size(); i++) {
+                auto param_def = parameters_in_template[i];
+                auto par = param_def.first;
+
+                if (call_args.size() > i) {
+                    const auto& argument = call_args.at(i);
+                    auto arg_result = visit(argument);
+
+                    if (!counts_as(arg_result.type, par)) {
+                        // Error! invalid type for call argument
+                        throw Exceptions::TypeException(
+                                "(SemAn) " INVALID_TP_FOR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->tp->name + BUT_RECVD_EXCP + arg_result.type->name,
+                                node->line_number,
+                                node->column_number
+                        );
+                    }
+                } else if (!param_def.second) {
+                    // Error! No value for function call argument
+                    throw Exceptions::SemanticException(
+                            "(SemAn) " NO_VAL_FOR_FUNC_ARG_EXCP + std::to_string(i),
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            }
+
+            return {functionType->tp};
+        }
+
+        throw Exceptions::ValueException(VAL_NOT_FUNC_EXCP, node->line_number, node->column_number);
     }
 
     NodeResult SemanticAnalyzer::visit_FuncBody(const std::shared_ptr<Parsing::FuncBodyNode>& node) {
