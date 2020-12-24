@@ -12,6 +12,7 @@
 #define IO_EXCP_MSG "ErrorDeIO\n\tNo se pudo abrir el archivo '"
 #define FILE_EXCP_NM "ErrorDeArchivo"
 #define SNTX_EXCP_NM "ErrorDeSyntaxis"
+#define SEM_EXCP_NM "ErrorSemantico"
 #define TP_EXCP_NM "ErrorDeTipo"
 #define VAL_EXCP_NM "ErrorDeValor"
 #define NM_EXCP_NM "ErrorDeNombre"

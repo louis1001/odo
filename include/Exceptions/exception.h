@@ -69,6 +69,14 @@ namespace Odo::Exceptions {
         [[nodiscard]] bool should_show_traceback() const override { return false; }
     };
 
+    class SemanticException: public OdoException {
+        [[nodiscard]] std::string exception_name() const  override { return SEM_EXCP_NM; }
+
+    public:
+        using OdoException::OdoException;
+        [[nodiscard]] bool should_show_traceback() const override { return false; }
+    };
+
     class TypeException: public OdoException {
         [[nodiscard]] std::string exception_name() const override { return TP_EXCP_NM; }
     public:
