@@ -51,18 +51,18 @@ namespace Odo::Semantics {
         native_function_data[SLEEP_FN] = {};
     }
 
-    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
-        semantic_contexts.insert(std::pair(sym, Interpreting::SymbolTable{
-            std::move(name),
-            {},
-            currentScope
-        }));
+    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, const Interpreting::SymbolTable& tb) {
+        semantic_contexts.insert(std::pair(sym, tb));
 
         sym->ondestruction = [this](auto* sym){
             semantic_contexts.erase(sym);
         };
 
         return &semantic_contexts.find(sym)->second;
+    }
+
+    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
+        return add_semantic_context(sym, {std::move(name), {}, currentScope});
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::get_semantic_context(Interpreting::Symbol* sym) {

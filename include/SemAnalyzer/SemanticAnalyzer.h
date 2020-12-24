@@ -76,6 +76,7 @@ namespace Odo::Semantics {
         bool can_return {false};
         Interpreting::Symbol* accepted_return_type;
 
+        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, const Interpreting::SymbolTable&);
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
         Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
         Interpreting::SymbolTable* add_function_semantic_context(Interpreting::Symbol*, std::string, arg_types);
