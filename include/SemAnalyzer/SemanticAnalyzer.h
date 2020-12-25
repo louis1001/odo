@@ -59,6 +59,8 @@ namespace Odo::Semantics {
         Interpreting::SymbolTable replScope;
         Interpreting::SymbolTable* currentScope;
 
+        bool deactivate_cleanup = false;
+
         Interpreting::SymbolTable globalScope;
 
         Interpreting::Interpreter& inter;
@@ -132,6 +134,7 @@ namespace Odo::Semantics {
 
     public:
         explicit SemanticAnalyzer(Interpreting::Interpreter&);
+        ~SemanticAnalyzer();
 
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
         NodeResult from_repl(const std::shared_ptr<Parsing::Node>&);

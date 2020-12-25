@@ -66,10 +66,15 @@ namespace Odo::Semantics {
         native_function_data[APPEND_TO_FILE_FN] = {};
     }
 
+    SemanticAnalyzer::~SemanticAnalyzer() {
+        deactivate_cleanup = true;
+    }
+
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, const Interpreting::SymbolTable& tb) {
         semantic_contexts.insert(std::pair(sym, tb));
 
         sym->ondestruction = [this](auto* sym){
+            if (deactivate_cleanup) return;
             semantic_contexts.erase(sym);
         };
 
@@ -93,7 +98,7 @@ namespace Odo::Semantics {
 
         functions_context.insert(std::pair(sym, std::move(tps)));
 
-        sym->ondestruction = [](auto* sym){};
+        sym->ondestruction = nullptr;
         return func_table;
     }
 
