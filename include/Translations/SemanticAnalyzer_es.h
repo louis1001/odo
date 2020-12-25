@@ -47,4 +47,6 @@
 #define NO_VAL_FOR_FUNC_ARG_EXCP "La llamada a la funcion no tiene valor para el argumento "
 #define CANT_DEFINE_NON_OPT_AFTER_OPT_EXCP "No puede definirse un argumento de funcion no opcional despues de uno opcional."
 
+#define UNKNWN_CLASS_EXCP "Clase desconocida: '"
+
 #endif //ODO_SEMANTICANALYZER_ES_H

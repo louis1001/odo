@@ -47,4 +47,6 @@
 #define NO_VAL_FOR_FUNC_ARG_EXCP "The function call has no value for the argument "
 #define CANT_DEFINE_NON_OPT_AFTER_OPT_EXCP "Cannot define a function's non-optional argument after an optional one."
 
+#define UNKNWN_CLASS_EXCP "Unknown class: '"
+
 #endif //ODO_SEMANTICANALYZER_EN_H

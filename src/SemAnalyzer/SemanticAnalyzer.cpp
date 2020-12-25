@@ -200,8 +200,8 @@ namespace Odo::Semantics {
                         varSym = module_context->findSymbol(as_static_var->name.value, false);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::ClassType) {
                         varSym = getStaticFromClass(leftHandSym, as_static_var);
-//                    } else if (theValue->kind() == ValueType::InstanceVal) {
-//                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+                    } else if (leftHandSym->tp->kind == Interpreting::SymbolType::ClassType) {
+                        varSym = getStaticFromClass(leftHandSym->tp, as_static_var);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
                         auto context = get_semantic_context(leftHandSym);
                         auto sm = context->findSymbol(as_static_var->name.value, false);
@@ -378,8 +378,7 @@ namespace Odo::Semantics {
                 // return visit_InstanceBody(Node::as<InstanceBodyNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::ClassInitializer:
-                // return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
             case NodeType::StaticStatement:
                 // throw Exceptions::OdoException(
                 /* ToRemoveLater */ break;
@@ -1536,6 +1535,20 @@ namespace Odo::Semantics {
         }
 
         return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ClassInitializer(const std::shared_ptr<Parsing::ClassInitializerNode>& node) {
+        auto class_symbol = currentScope->findSymbol(node->name.value);
+        if (!class_symbol) {
+            // Error! Unknown type node->name.value
+            throw Exceptions::NameException(
+                    "(SemAn) " UNKNWN_CLASS_EXCP + node->name.value + "'.",
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        return {class_symbol};
     }
 
     NodeResult SemanticAnalyzer::visit_StaticVar(const std::shared_ptr<Parsing::StaticVarNode>& node) {
