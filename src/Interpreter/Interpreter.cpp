@@ -474,6 +474,109 @@ namespace Odo::Interpreting {
             return null;
         });
 
+        add_native_function(READ_FILE_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                try {
+                    auto contents = io::read_file(path);
+                    return create_literal(contents);
+                } catch (Exceptions::IOException&) {
+                    throw Exceptions::FileException(COULD_NOT_READ_EXCP + path + MAY_NOT_EXIST_EXCP);
+                }
+            }
+            return null;
+        });
+
+        add_native_function(TO_ABS_PATH_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                return create_literal(io::to_absolute_path(path));
+            }
+            return null;
+        });
+
+        add_native_function(GET_CWD_FN, [&](const auto& vals){
+            return create_literal(io::get_cwd());
+        });
+
+        add_native_function(PATH_EXISTS_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                return create_literal(io::path_exists(path));
+            }
+            return null;
+        });
+        add_native_function(IS_DIR_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                return create_literal(io::is_dir(path));
+            }
+            return null;
+        });
+
+        add_native_function(IS_FILE_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                return create_literal(io::is_file(path));
+            }
+            return null;
+        });
+
+        add_native_function(LIST_DIR_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                auto result = io::list_dir(path);
+
+                std::vector<Symbol> lst_syms;
+                for(const auto& f : result) {
+                    std::shared_ptr<Value> val = create_literal(f);
+                    lst_syms.emplace_back(
+                        val->type,
+                        "list_element",
+                        val
+                    );
+                }
+
+                std::shared_ptr<Value> list_value = ListValue::create(globalTable.findSymbol(STRING_TP), std::move(lst_syms));
+                return list_value;
+            }
+            return null;
+        });
+
+        add_native_function(CREATE_FILE_FN, [&](const auto& vals){
+            if (!vals.empty()) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                io::create_file(path);
+            }
+            return null;
+        });
+
+        add_native_function(WRITE_TO_FILE_FN, [&](const auto& vals){
+            if (vals.size() >= 2) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                auto content = Value::as<NormalValue>(vals[1])->as_string();
+                try {
+                    io::write_to_file(path, content);
+                } catch (Exceptions::IOException&) {
+                    throw Exceptions::FileException(COULD_NOT_WRITE_EXCP + path + FOL_MAY_NOT_EXIST_EXCP);
+                }
+            }
+            return null;
+        });
+
+        add_native_function(APPEND_TO_FILE_FN, [&](const auto& vals){
+            if (vals.size() >= 2) {
+                auto path = Value::as<NormalValue>(vals[0])->as_string();
+                auto content = Value::as<NormalValue>(vals[1])->as_string();
+                try {
+                    io::append_to_file(path, content);
+                } catch (Exceptions::IOException&) {
+                    throw Exceptions::FileException(COULD_NOT_WRITE_EXCP + path + FOL_MAY_NOT_EXIST_EXCP);
+                }
+            }
+            return null;
+        });
+
         analyzer = std::make_unique<Semantics::SemanticAnalyzer>(*this);
     }
 

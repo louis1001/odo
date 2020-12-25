@@ -110,4 +110,19 @@
 #define CANNOT_IMPORT_MODULE_EXCP "No se pudo importar el modulo '"
 #define EXPCT_DECL_IN_PAR_EXCP "Se esperaba una declaracion de parametros en los parentesis de la funcion."
 
+#define READ_FILE_FN "leer_archivo"
+#define TO_ABS_PATH_FN "a_direccion_absoluta"
+#define IS_DIR_FN "es_carpeta"
+#define IS_FILE_FN "es_archivo"
+#define LIST_DIR_FN "listar_carpeta"
+#define CREATE_FILE_FN "crear_archivo"
+#define WRITE_TO_FILE_FN "escribir_a_archivo"
+#define APPEND_TO_FILE_FN "agregar_a_archivo"
+#define COULD_NOT_READ_EXCP "No se pudo leer el archivo '"
+#define MAY_NOT_EXIST_EXCP "'. Puede que no exista, o que no tenga permisos de abrirlo."
+#define COULD_NOT_WRITE_EXCP "No se pudo escribir al archivo '"
+#define FOL_MAY_NOT_EXIST_EXCP "'. Puede que la carpeta no exista, o no tenga permisos para modificarlo."
+#define GET_CWD_FN "carpeta_actual"
+#define PATH_EXISTS_FN "directorio_existe"
+
 #endif //ODO_INTERPRETER_ES_H

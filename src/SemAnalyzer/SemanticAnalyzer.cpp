@@ -51,6 +51,19 @@ namespace Odo::Semantics {
         native_function_data[SLEEP_FN] = {};
         native_function_data[ABOUT_FN] = {};
         native_function_data[EXIT_FN] = {};
+
+        native_function_data[TO_ABS_PATH_FN] = {type_string};
+        native_function_data[GET_CWD_FN] = {type_string};
+        native_function_data[READ_FILE_FN] = {type_string};
+        native_function_data[PATH_EXISTS_FN] = {type_bool};
+        native_function_data[IS_DIR_FN] = {type_bool};
+        native_function_data[IS_FILE_FN] = {type_bool};
+
+        auto lst_type = handle_list_type(type_string);
+        native_function_data[LIST_DIR_FN] = {lst_type};
+        native_function_data[CREATE_FILE_FN] = {};
+        native_function_data[WRITE_TO_FILE_FN] = {};
+        native_function_data[APPEND_TO_FILE_FN] = {};
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, const Interpreting::SymbolTable& tb) {

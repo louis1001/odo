@@ -103,4 +103,20 @@
 #define ALR_EXISTS_IN_SCOPE_EXCP " already exists in this scope"
 #define CANNOT_IMPORT_MODULE_EXCP "Cannot import module '"
 #define EXPCT_DECL_IN_PAR_EXCP "Expected parameter declaration in function parenthesis"
+
+#define READ_FILE_FN "read_file"
+#define TO_ABS_PATH_FN "to_absolute_path"
+#define IS_DIR_FN "is_dir"
+#define IS_FILE_FN "is_file"
+#define LIST_DIR_FN "list_dir"
+#define CREATE_FILE_FN "create_file"
+#define WRITE_TO_FILE_FN "write_to_file"
+#define APPEND_TO_FILE_FN "append_to_file"
+#define COULD_NOT_READ_EXCP "Could not read the file '"
+#define MAY_NOT_EXIST_EXCP "'. It may not exist, or you don't have permission to open it."
+#define COULD_NOT_WRITE_EXCP "Could not write to file '"
+#define FOL_MAY_NOT_EXIST_EXCP "'. The folder may not exist, or you don't have permission to modify it."
+#define GET_CWD_FN "get_cwd"
+#define PATH_EXISTS_FN "path_exists"
+
 #endif //ODO_INTERPRETER_EN_H
