@@ -178,8 +178,20 @@ namespace Odo::Semantics {
                         );
                     }
 
-                    // TODO: Implement SemanticContexts
-                    // varSym = as_instance_value->ownScope.findSymbol(as_member_node->name.value);
+                    auto template_name = "__$" + leftHandSym->tp->name + "_instance_template";
+                    auto instance_template = currentScope->findSymbol(template_name);
+                    auto instance_scope = get_semantic_context(instance_template);
+
+                    auto foundSymbol = instance_scope->findSymbol(as_member_node->name.value, false);
+                    if (foundSymbol) {
+                        varSym = foundSymbol;
+                    } else {
+                        throw Exceptions::NameException(
+                            NO_MEM_CALLED_EXCP + as_member_node->name.value + IN_THE_INST_EXCP,
+                            as_member_node->line_number,
+                            as_member_node->column_number
+                        );
+                    }
                 } else {
                     throw Exceptions::ValueException(
                             "(SemAn) " SYM_NOT_DEFINED_EXCP,
@@ -375,8 +387,7 @@ namespace Odo::Semantics {
                 // return visit_ConstructorCall(Node::as<ConstructorCallNode>(node));
                 /* ToRemoveLater */ break;
             case NodeType::InstanceBody:
-                // return visit_InstanceBody(Node::as<InstanceBodyNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_InstanceBody(Node::as<InstanceBodyNode>(node));
             case NodeType::ClassInitializer:
                  return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
             case NodeType::StaticStatement:
@@ -387,8 +398,7 @@ namespace Odo::Semantics {
 //                        node->column_number
 //                );
             case NodeType::MemberVar:
-                // return visit_MemberVar(Node::as<MemberVarNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_MemberVar(Node::as<MemberVarNode>(node));
             case NodeType::StaticVar:
                  return visit_StaticVar(Node::as<StaticVarNode>(node));
 
@@ -1520,7 +1530,25 @@ namespace Odo::Semantics {
         inTable->is_initialized = true;
 
         // Generate the instance template and visit the body
+        Interpreting::SymbolTable instance_scope {"instance_"+node->name.value+"_scope", {}, currentScope};
 
+        Interpreting::Symbol inst_template {
+            inTable,
+            "__$" + inTable->name + "_instance_template"
+        };
+        inst_template.is_initialized = true;
+
+        auto instanceInTable = currentScope->addSymbol(inst_template);
+
+        auto instance_body_node = std::make_shared<InstanceBodyNode>(Node::as<ClassBodyNode>(node->body)->statements);
+
+        auto temp = currentScope;
+        currentScope = &instance_scope;
+
+        visit(instance_body_node);
+
+        currentScope = temp;
+        add_semantic_context(instanceInTable, instance_scope);
         // Handle static variables.
 
         // Also, weird error when destroying class A and class B:A in replScope
@@ -1532,6 +1560,15 @@ namespace Odo::Semantics {
         for (auto& st : node->statements) {
             if (st->kind() == NodeType::StaticStatement)
                 visit(Node::as<StaticStatementNode>(st)->statement);
+        }
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_InstanceBody(const std::shared_ptr<Parsing::InstanceBodyNode>& node) {
+        for (auto& st : node->statements) {
+            if (st->kind() != NodeType::StaticStatement)
+                visit(st);
         }
 
         return {};
@@ -1549,6 +1586,35 @@ namespace Odo::Semantics {
         }
 
         return {class_symbol};
+    }
+
+    NodeResult SemanticAnalyzer::visit_MemberVar(const std::shared_ptr<Parsing::MemberVarNode>& node) {
+        auto instance = visit(node->inst);
+
+        if (!instance.type || instance.type->kind != Interpreting::SymbolType::ClassType) {
+            throw Exceptions::ValueException(
+                INVALID_INS_MEM_OP_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+
+        auto template_name = "__$" + instance.type->name + "_instance_template";
+        auto instance_template = currentScope->findSymbol(template_name);
+
+        auto instance_scope = get_semantic_context(instance_template);
+
+        auto foundSymbol = instance_scope->findSymbol(node->name.value, false);
+        if (foundSymbol) {
+            return {foundSymbol->tp, foundSymbol->content_is_constant, foundSymbol->content_has_side_effects};
+        } else {
+            throw Exceptions::NameException(
+                NO_MEM_CALLED_EXCP + node->name.value + IN_THE_INST_EXCP,
+                node->line_number,
+                node->column_number
+            );
+        }
+        return {};
     }
 
     NodeResult SemanticAnalyzer::visit_StaticVar(const std::shared_ptr<Parsing::StaticVarNode>& node) {

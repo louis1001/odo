@@ -123,8 +123,10 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(Class);
         ADD_VISITOR(ClassBody);
+        ADD_VISITOR(InstanceBody);
         ADD_VISITOR(ClassInitializer);
 
+        ADD_VISITOR(MemberVar);
         ADD_VISITOR(StaticVar);
 
         ADD_VISITOR(Module);
