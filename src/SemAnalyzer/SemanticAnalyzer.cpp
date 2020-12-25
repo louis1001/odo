@@ -49,6 +49,8 @@ namespace Odo::Semantics {
         native_function_data[CLEAR_FN] = {};
         native_function_data[WAIT_FN] = {};
         native_function_data[SLEEP_FN] = {};
+        native_function_data[ABOUT_FN] = {};
+        native_function_data[EXIT_FN] = {};
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, const Interpreting::SymbolTable& tb) {
