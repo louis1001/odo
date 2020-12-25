@@ -142,6 +142,21 @@ namespace Odo::Semantics {
         return tp;
     }
 
+    Interpreting::Symbol* SemanticAnalyzer::getStaticFromClass(Interpreting::Symbol* cls, const std::shared_ptr<Parsing::StaticVarNode>& var) {
+        auto current_class = cls;
+        do {
+            auto class_context = get_semantic_context(current_class);
+            auto in_class = class_context->findSymbol(var->name.value, false);
+            if (in_class) {
+                var->inst = VariableNode::create({Lexing::TokenType::ID, current_class->name});
+                return in_class;
+            }
+            current_class = current_class->tp;
+        } while (current_class);
+
+        return nullptr;
+    }
+
     Interpreting::Symbol* SemanticAnalyzer::getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem) {
         Interpreting::Symbol* varSym = nullptr;
 
@@ -184,8 +199,7 @@ namespace Odo::Semantics {
                         auto module_context = get_semantic_context(leftHandSym);
                         varSym = module_context->findSymbol(as_static_var->name.value, false);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::ClassType) {
-                        auto class_context = get_semantic_context(leftHandSym);
-                        varSym = class_context->findSymbol(as_static_var->name.value, false);
+                        varSym = getStaticFromClass(leftHandSym, as_static_var);
 //                    } else if (theValue->kind() == ValueType::InstanceVal) {
 //                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {

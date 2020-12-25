@@ -134,6 +134,7 @@ namespace Odo::Semantics {
         Interpreting::Symbol* handle_list_type(Interpreting::Symbol*);
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
+        Interpreting::Symbol* getStaticFromClass(Interpreting::Symbol*, const std::shared_ptr<Parsing::StaticVarNode>&);
 
     public:
         explicit SemanticAnalyzer(Interpreting::Interpreter&);
