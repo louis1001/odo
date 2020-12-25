@@ -106,6 +106,24 @@ namespace Odo::Semantics {
         return false;
     }
 
+    Interpreting::Symbol* SemanticAnalyzer::handle_list_type(Interpreting::Symbol* sym) {
+        auto tp = inter.globalTable.addListType(sym);
+
+        auto element_template_name = "__" + tp->name + "_list_element";
+
+        auto in_table = currentScope->findSymbol(element_template_name);
+        if (!in_table) {
+            auto list_el = currentScope->addSymbol({
+                sym,
+                element_template_name
+            });
+
+            list_el->is_initialized = true;
+        }
+
+        return tp;
+    }
+
     Interpreting::Symbol* SemanticAnalyzer::getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem) {
         Interpreting::Symbol* varSym = nullptr;
 
@@ -984,19 +1002,6 @@ namespace Odo::Semantics {
         in_table->content_is_constant = is_constant;
         in_table->content_has_side_effects = has_side_effects;
 
-        auto element_template_name = "__" + list_type->name + "_list_element";
-
-        if (!currentScope->symbolExists(element_template_name)) {
-            auto list_el = currentScope->addSymbol({
-                    list_type->tp,
-                    element_template_name
-            });
-
-            list_el->is_initialized = was_init;
-            list_el->content_is_constant = is_constant;
-            list_el->content_has_side_effects = has_side_effects;
-        }
-
         return {};
     }
 
@@ -1075,7 +1080,7 @@ namespace Odo::Semantics {
             }
 
             if (!result.type) {
-                result.type = inter.globalTable.addListType(el_result.type);
+                result.type = handle_list_type(el_result.type);
             }
             else if (result.type->tp != el_result.type && !is_any) {
                 result.type = inter.globalTable.addListType(inter.any_type());
