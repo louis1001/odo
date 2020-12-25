@@ -135,8 +135,4 @@ namespace Odo::Interpreting {
         }
     }
 
-    SymbolTable::~SymbolTable() {
-        symbols.clear();
-    }
-
 }

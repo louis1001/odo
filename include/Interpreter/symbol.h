@@ -103,7 +103,6 @@ namespace Odo::Interpreting {
         Symbol *addFuncType(Symbol *pSymbol, const std::string& funcName);
 
         void debugChain();
-        ~SymbolTable();
     };
 }
 #endif //ODO_PORT_SYMBOL_H
