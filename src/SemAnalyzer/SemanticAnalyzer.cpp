@@ -127,7 +127,7 @@ namespace Odo::Semantics {
     Interpreting::Symbol* SemanticAnalyzer::handle_list_type(Interpreting::Symbol* sym) {
         auto tp = inter.globalTable.addListType(sym);
 
-        auto element_template_name = "__" + tp->name + "_list_element";
+        auto element_template_name = "__$" + tp->name + "_list_element";
 
         auto in_table = currentScope->findSymbol(element_template_name);
         if (!in_table) {
@@ -257,7 +257,7 @@ namespace Odo::Semantics {
                     }
 
                     if (visited_indx.type->name == INT_TP) {
-                        auto element_template_name = "__" + visited_source.type->name + "_list_element";
+                        auto element_template_name = "__$" + visited_source.type->name + "_list_element";
 
                         varSym = currentScope->findSymbol(element_template_name);
                     } else {
@@ -454,7 +454,7 @@ namespace Odo::Semantics {
         switch (node->token.tp) {
             case Lexing::PLUS: {
                 if (leftVisited.type->kind == Interpreting::SymbolType::ListType) {
-                    auto element_template_name = "__" + leftVisited.type->name + "_list_element";
+                    auto element_template_name = "__$" + leftVisited.type->name + "_list_element";
                     auto template_symbol = currentScope->findSymbol(element_template_name);
 
                     if (rightVisited.type->kind == Interpreting::SymbolType::ListType) {
