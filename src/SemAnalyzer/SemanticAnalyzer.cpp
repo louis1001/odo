@@ -1093,13 +1093,16 @@ namespace Odo::Semantics {
     SemanticAnalyzer::arg_types SemanticAnalyzer::getParamTypes(const std::vector<std::shared_ptr<Node>>& params) {
         arg_types ts;
 
+        auto has_seen_an_optional = false;
         for (const auto& par : params) {
+            bool is_optional;
+            Interpreting::Symbol* ft;
             switch (par->kind()) {
                 case NodeType::VarDeclaration: {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
-                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(ft, is_not_optional);
+                    ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    if (ft) {
+                        is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
@@ -1113,9 +1116,9 @@ namespace Odo::Semantics {
                 }
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
-                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(ft, is_not_optional);
+                    ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    if (ft) {
+                        is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
                         throw Exceptions::TypeException(
                                 UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
@@ -1134,6 +1137,19 @@ namespace Odo::Semantics {
                     );
                     break;
             }
+            if (is_optional) {
+                if (!has_seen_an_optional){
+                    has_seen_an_optional = true;
+                }
+            } else if (has_seen_an_optional) {
+                // Error! Defining a non optional argument after an optional.
+                throw Exceptions::SemanticException(
+                    "(SemAn) " CANT_DEFINE_NON_OPT_AFTER_OPT_EXCP,
+                    par->line_number,
+                    par->column_number
+                );
+            }
+            ts.emplace_back(ft, is_optional);
         }
 
         return ts;
