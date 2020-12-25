@@ -121,6 +121,9 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(Enum);
 
+        ADD_VISITOR(Class);
+        ADD_VISITOR(ClassBody);
+
         ADD_VISITOR(StaticVar);
 
         ADD_VISITOR(Module);

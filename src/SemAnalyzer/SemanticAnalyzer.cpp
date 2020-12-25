@@ -183,8 +183,9 @@ namespace Odo::Semantics {
                     if (leftHandSym->kind == Interpreting::SymbolType::ModuleSymbol) {
                         auto module_context = get_semantic_context(leftHandSym);
                         varSym = module_context->findSymbol(as_static_var->name.value, false);
-//                    } else if (theValue->kind() == ValueType::ClassVal) {
-//                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+                    } else if (leftHandSym->kind == Interpreting::SymbolType::ClassType) {
+                        auto class_context = get_semantic_context(leftHandSym);
+                        varSym = class_context->findSymbol(as_static_var->name.value, false);
 //                    } else if (theValue->kind() == ValueType::InstanceVal) {
 //                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
@@ -349,11 +350,9 @@ namespace Odo::Semantics {
 
                 // Classes
             case NodeType::Class:
-                // return visit_Class(Node::as<ClassNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Class(Node::as<ClassNode>(node));
             case NodeType::ClassBody:
-                // return visit_ClassBody(Node::as<ClassBodyNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ClassBody(Node::as<ClassBodyNode>(node));
 //          Broken or incomplete.
             case NodeType::ConstructorDecl:
                 // return visit_ConstructorDecl(Node::as<ConstructorDeclNode>(node));
@@ -1469,6 +1468,58 @@ namespace Odo::Semantics {
         }
 
         enumInTable->is_initialized = true;
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Class(const std::shared_ptr<Parsing::ClassNode>& node) {
+        Interpreting::Symbol* typeSym = nullptr;
+
+        if (node->ty.tp != Lexing::NOTHING) {
+            auto sym = currentScope->findSymbol(node->ty.value);
+            if (!sym || !sym->isType) {
+                throw Exceptions::TypeException(
+                        CLASS_MUST_INH_TYPE_EXCP + node->name.value + IS_INVALID_EXCP,
+                        node->line_number,
+                        node->column_number
+                );
+            }
+
+            typeSym = sym;
+        }
+
+        Interpreting::Symbol newClassSym = {
+                .tp=typeSym,
+                .name=node->name.value,
+                .isType = true,
+                .kind = Interpreting::SymbolType::ClassType,
+        };
+        auto inTable = currentScope->addSymbol(newClassSym);
+
+        auto classScope = add_semantic_context(inTable, "class-" + node->name.value + "-scope");
+
+        auto prevScope = currentScope;
+        currentScope = classScope;
+
+        visit(node->body);
+        currentScope = prevScope;
+
+        inTable->is_initialized = true;
+
+        // Generate the instance template and visit the body
+
+        // Handle static variables.
+
+        // Also, weird error when destroying class A and class B:A in replScope
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ClassBody(const std::shared_ptr<Parsing::ClassBodyNode>& node) {
+        for (auto& st : node->statements) {
+            if (st->kind() == NodeType::StaticStatement)
+                visit(Node::as<StaticStatementNode>(st)->statement);
+        }
 
         return {};
     }
