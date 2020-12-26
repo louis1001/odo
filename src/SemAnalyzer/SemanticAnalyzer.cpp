@@ -400,12 +400,11 @@ namespace Odo::Semantics {
             case NodeType::ClassInitializer:
                  return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
             case NodeType::StaticStatement:
-                // throw Exceptions::OdoException(
-                /* ToRemoveLater */ break;
-//                        STATIC_ONLY_CLASS_EXCP,
-//                        node->line_number,
-//                        node->column_number
-//                );
+                 throw Exceptions::SemanticException(
+                        STATIC_ONLY_CLASS_EXCP,
+                        node->line_number,
+                        node->column_number
+                );
             case NodeType::MemberVar:
                  return visit_MemberVar(Node::as<MemberVarNode>(node));
             case NodeType::StaticVar:
