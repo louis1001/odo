@@ -132,6 +132,7 @@ namespace Odo::Semantics {
         ADD_VISITOR(StaticVar);
 
         ADD_VISITOR(Module);
+        ADD_VISITOR(Import);
 
         arg_types getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>& params);
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
@@ -140,6 +141,8 @@ namespace Odo::Semantics {
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);
         Interpreting::Symbol* getStaticFromClass(Interpreting::Symbol*, const std::shared_ptr<Parsing::StaticVarNode>&);
+
+        void analyze_as_module(const std::string&, const Lexing::Token&);
 
     public:
         explicit SemanticAnalyzer(Interpreting::Interpreter&);

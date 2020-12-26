@@ -5,6 +5,7 @@
 #include "SemAnalyzer/SemanticAnalyzer.h"
 
 #include <utility>
+#include <IO/io.h>
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
 
@@ -413,8 +414,7 @@ namespace Odo::Semantics {
             case NodeType::Module:
                  return visit_Module(Node::as<ModuleNode>(node));
             case NodeType::Import:
-                // return visit_Import(Node::as<ImportNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_Import(Node::as<ImportNode>(node));
 
             case NodeType::Debug:
                 // noop;
@@ -1805,6 +1805,49 @@ namespace Odo::Semantics {
         module_in_table->is_initialized = true;
 
         return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Import(const std::shared_ptr<Parsing::ImportNode>& node) {
+        analyze_as_module(node->path.value, node->name);
+        return {};
+    }
+
+    void SemanticAnalyzer::analyze_as_module(const std::string& path, const Lexing::Token& name) {
+        bool has_extension = ends_with(path, ".odo");
+
+        std::string full_path = path;
+        if (!has_extension)
+            full_path += ".odo";
+        auto filename = io::get_file_name(full_path, true);
+
+        if (name.tp != Lexing::NOTHING)
+            filename = name.value;
+
+        if (currentScope->findSymbol(filename)) {
+            throw Exceptions::NameException(
+                    SYM_CALLED_EXCP + filename + ALR_EXISTS_IN_SCOPE_EXCP
+            );
+        }
+
+        std::string code;
+        try {
+            code = io::read_file(full_path);
+        } catch (Exceptions::IOException&) {
+            std::string msg = CANNOT_IMPORT_MODULE_EXCP + full_path + "'.";
+            throw Exceptions::FileException(msg);
+        }
+        Parsing::Parser pr;
+        pr.set_text(code);
+
+        auto body = pr.program_content();
+
+        auto file_module = std::make_shared<ModuleNode>(
+            Lexing::Token(Lexing::STR, filename),
+            body
+        );
+
+        // TODO: Add some sort of callstack.
+        auto result = visit(file_module);
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
