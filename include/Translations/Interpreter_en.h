@@ -82,7 +82,7 @@
 #define UNA_ONLY_NUM_EXCP "Unary operator can be used with int or double values."
 #define CALL_DEPTH_EXC_EXCP "Callback depth exceeded."
 #define VAL_NOT_FUNC_EXCP "Value is not a function."
-#define CLASS_MUST_INH_TYPE_EXCP "Class must inherit from a type. "
+#define CLASS_MUST_INH_TYPE_EXCP "Class must inherit from another type. "
 #define IS_INVALID_EXCP " is invalid."
 #define INVALID_CONS_EXCP "Invalid constructor"
 #define NOT_VALID_CONS_EXCP " is not a valid constructor."

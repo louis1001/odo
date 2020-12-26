@@ -1509,9 +1509,9 @@ namespace Odo::Semantics {
 
         if (node->ty.tp != Lexing::NOTHING) {
             auto sym = currentScope->findSymbol(node->ty.value);
-            if (!sym || !sym->isType) {
+            if (!sym || !sym->isType || sym->kind != Interpreting::SymbolType::ClassType) {
                 throw Exceptions::TypeException(
-                        CLASS_MUST_INH_TYPE_EXCP + node->name.value + IS_INVALID_EXCP,
+                        CLASS_MUST_INH_TYPE_EXCP + node->ty.value + IS_INVALID_EXCP,
                         node->line_number,
                         node->column_number
                 );

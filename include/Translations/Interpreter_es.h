@@ -88,7 +88,7 @@
 #define UNA_ONLY_NUM_EXCP "El operador unitario solo puede ser usada con valores de tipo numerico."
 #define CALL_DEPTH_EXC_EXCP "Limite de profundidad en llamadas de funcion excedido."
 #define VAL_NOT_FUNC_EXCP "El valor no es una funcion."
-#define CLASS_MUST_INH_TYPE_EXCP "La clase debe heredar de un tipo."
+#define CLASS_MUST_INH_TYPE_EXCP "La clase solo puede heredar de otra clase."
 #define IS_INVALID_EXCP " es invalido."
 #define INVALID_CONS_EXCP "Constructor no valido"
 #define NOT_VALID_CONS_EXCP " no es un constructor valido."
