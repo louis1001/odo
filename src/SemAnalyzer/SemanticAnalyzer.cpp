@@ -1291,27 +1291,10 @@ namespace Odo::Semantics {
         if (!typeOfFunc) {
             typeOfFunc = globalScope.addFuncType(returnType, typeName);
             func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
-            func_scope.setParent(currentScope);
-
-            auto temp = currentScope;
-            currentScope = &func_scope;
-            // Store the current function symbol in a variable of SemAn
-            for (const auto& par : node->params) {
-                visit(par);
-                std::string name;
-                if (par->kind() == NodeType::VarDeclaration) {
-                    name = Node::as<VarDeclarationNode>(par)->name.value;
-                } else {
-                    name = Node::as<ListDeclarationNode>(par)->name.value;
-                }
-                currentScope->findSymbol(name)->is_initialized = true;
-            }
-
-            currentScope = temp;
         } else {
             func_scope = *get_semantic_context(typeOfFunc);
-            func_scope.setParent(currentScope);
         }
+        func_scope.setParent(currentScope);
 
         auto func_symbol = currentScope->addSymbol({
             .tp=typeOfFunc,
@@ -1322,6 +1305,17 @@ namespace Odo::Semantics {
 
         auto temp = currentScope;
         currentScope = &func_scope;
+        for (const auto& par : node->params) {
+            visit(par);
+            std::string name;
+            if (par->kind() == NodeType::VarDeclaration) {
+                name = Node::as<VarDeclarationNode>(par)->name.value;
+            } else {
+                name = Node::as<ListDeclarationNode>(par)->name.value;
+            }
+            currentScope->findSymbol(name)->is_initialized = true;
+        }
+
         auto prev_accepted = accepted_return_type;
         auto could_return = can_return;
         can_return = true;
@@ -1625,26 +1619,10 @@ namespace Odo::Semantics {
         if (!typeOfFunc) {
             typeOfFunc = globalScope.addFuncType(nullptr, typeName);
             func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
-            func_scope.setParent(currentScope);
-
-            auto temp = currentScope;
-            currentScope = &func_scope;
-            for (const auto& par : node->params) {
-                visit(par);
-                std::string name;
-                if (par->kind() == NodeType::VarDeclaration) {
-                    name = Node::as<VarDeclarationNode>(par)->name.value;
-                } else {
-                    name = Node::as<ListDeclarationNode>(par)->name.value;
-                }
-                currentScope->findSymbol(name)->is_initialized = true;
-            }
-
-            currentScope = temp;
         } else {
             func_scope = *get_semantic_context(typeOfFunc);
-            func_scope.setParent(currentScope);
         }
+        func_scope.setParent(currentScope);
 
         auto func_symbol = currentScope->addSymbol({
             .tp=typeOfFunc,
@@ -1655,6 +1633,17 @@ namespace Odo::Semantics {
 
         auto temp = currentScope;
         currentScope = &func_scope;
+        for (const auto& par : node->params) {
+            visit(par);
+            std::string name;
+            if (par->kind() == NodeType::VarDeclaration) {
+                name = Node::as<VarDeclarationNode>(par)->name.value;
+            } else {
+                name = Node::as<ListDeclarationNode>(par)->name.value;
+            }
+            currentScope->findSymbol(name)->is_initialized = true;
+        }
+
         auto prev_accepted = accepted_return_type;
         auto could_return = can_return;
         can_return = true;
