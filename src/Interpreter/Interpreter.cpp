@@ -2267,7 +2267,6 @@ namespace Odo::Interpreting {
             SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
 
             auto newInstance = InstanceValue::create(classInit, classVal, instanceScope);
-            Node::as<FunctionValue>(node);
             newInstance->important = true;
 
             std::vector<std::shared_ptr<Value>> newParams;
