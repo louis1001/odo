@@ -918,6 +918,8 @@ namespace Odo::Semantics {
                     node->column_number
                 );
             }
+
+            return {type_string, visited_val.is_constant, visited_val.has_side_effects};
         } else if (visited_val.type->kind == Interpreting::SymbolType::ListType){
             auto visited_indx = visit(node->expr);
             if (visited_indx.type->name != INT_TP) {
@@ -927,6 +929,7 @@ namespace Odo::Semantics {
                     node->column_number
                 );
             }
+            return {visited_val.type->tp, visited_val.is_constant};
         } else {
             throw Exceptions::ValueException(
                     "(SemAn) " INDX_ONLY_LST_STR_EXCP,
@@ -934,8 +937,6 @@ namespace Odo::Semantics {
                     node->column_number
             );
         }
-
-        return {visited_val.type->tp, visited_val.is_constant};
     }
 
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {
