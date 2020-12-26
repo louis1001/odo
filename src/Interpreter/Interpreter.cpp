@@ -2564,7 +2564,7 @@ namespace Odo::Interpreting {
         std::string full_path = path;
         if (!has_extension)
             full_path += ".odo";
-        auto filename = io::get_file_name(full_path);
+        auto filename = io::get_file_name(full_path, true);
         if (name.tp != Lexing::NOTHING)
             filename = name.value;
 

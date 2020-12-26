@@ -9,7 +9,7 @@
 
 namespace Odo::io {
     std::string read_file(const std::string& path);
-    std::string get_file_name(const std::string& path);
+    std::string get_file_name(const std::string& path, bool ignore_extension = false);
 
     std::string to_absolute_path(const std::string&);
     std::string get_cwd();

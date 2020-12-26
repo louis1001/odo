@@ -22,9 +22,15 @@ namespace Odo::io {
         return contents;
     }
 
-    std::string get_file_name(const std::string& path) {
-        std::size_t found = path.find_last_of("/\\");
+    std::string get_file_name(const std::string& path, bool ignore_extension) {
+        std::size_t found = path.find_last_of(std::filesystem::path::preferred_separator);
         std::string result = path.substr(found+1);
+
+        if (ignore_extension) {
+            std::filesystem::path without_ext{result};
+            without_ext.replace_extension();
+            return without_ext.string();
+        }
 
         return result;
     }
