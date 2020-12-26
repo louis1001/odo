@@ -684,7 +684,7 @@ namespace Odo::Semantics {
             );
         }
 
-        if (true_result.type != false_result.type) {
+        if (!counts_as(false_result.type, true_result.type)) {
             // Error! Both branches must return the same value
             // TODO: Add type coersion
             throw Exceptions::TypeException(
