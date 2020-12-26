@@ -1797,8 +1797,14 @@ namespace Odo::Semantics {
 
         auto temp = currentScope;
         currentScope = module_context;
-        for (const auto& st : node->statements) {
-            visit(st);
+        try {
+            for (const auto& st : node->statements) {
+                visit(st);
+            }
+        } catch (Exceptions::OdoException& e) {
+            temp->removeSymbol(module_in_table);
+            currentScope = temp;
+            throw e;
         }
 
         currentScope = temp;
