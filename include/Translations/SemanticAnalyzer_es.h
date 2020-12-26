@@ -53,4 +53,7 @@
 #define INVALID_TP_FOR_CONSTR_ARG_EXCP "Tipo invalido para argumento en llamada de constructor. El argumento "
 #define NO_VAL_FOR_CONSTR_ARG_EXCP "La llamada al constructor no tiene valor para el argumento "
 
+#define USE_OF_STA_EXCP "Uso de sentencia '"
+#define OUTS_A_LOOP_EXCP "' fuera de un ciclo."
+
 #endif //ODO_SEMANTICANALYZER_ES_H

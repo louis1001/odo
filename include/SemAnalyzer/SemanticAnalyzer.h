@@ -76,6 +76,8 @@ namespace Odo::Semantics {
         std::map<Interpreting::Symbol*, arg_types> functions_context;
         std::map<Interpreting::Symbol*, std::vector<Interpreting::SymbolTable*>> instance_contexts;
 
+        bool inside_loop{false};
+
         bool can_return {false};
         Interpreting::Symbol* accepted_return_type;
 

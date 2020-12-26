@@ -53,4 +53,7 @@
 #define INVALID_TP_FOR_CONSTR_ARG_EXCP "Invalid type for constructor call argument. Argument "
 #define NO_VAL_FOR_CONSTR_ARG_EXCP "The constructor call has no value for the argument "
 
+#define USE_OF_STA_EXCP "Use of statement '"
+#define OUTS_A_LOOP_EXCP "' outside of a loop."
+
 #endif //ODO_SEMANTICANALYZER_EN_H

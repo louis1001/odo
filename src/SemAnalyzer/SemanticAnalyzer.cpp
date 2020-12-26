@@ -347,13 +347,23 @@ namespace Odo::Semantics {
             case NodeType::Loop:
                  return visit_Loop(Node::as<LoopNode>(node));
             case NodeType::Break:
-                // breaking = true;
-                /* ToRemoveLater */ break;
-                // return null;
+                if (!inside_loop) {
+                    throw Exceptions::SemanticException(
+                        "(SemAn) " USE_OF_STA_EXCP BREAK_TK OUTS_A_LOOP_EXCP,
+                        node->line_number,
+                        node->column_number
+                    );
+                }
+                return {};
             case NodeType::Continue:
-                // continuing = true;
-                /* ToRemoveLater */ break;
-                // return null;
+                if (!inside_loop) {
+                    throw Exceptions::SemanticException(
+                            "(SemAn) " USE_OF_STA_EXCP CONTINUE_TK OUTS_A_LOOP_EXCP,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+                return {};
             case NodeType::Block:
                  return visit_Block(Node::as<BlockNode>(node));
 
@@ -740,7 +750,10 @@ namespace Odo::Semantics {
 
         visit(node->incr);
 
+        bool prev_state = inside_loop;
+        inside_loop = true;
         visit(node->body);
+        inside_loop = prev_state;
 
         currentScope = forScope.getParent();
 
@@ -788,7 +801,10 @@ namespace Odo::Semantics {
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
 
+            bool prev_state = inside_loop;
+            inside_loop = true;
             visit(node->body);
+            inside_loop = prev_state;
 
         } else {
             throw Exceptions::ValueException(
@@ -839,7 +855,10 @@ namespace Odo::Semantics {
             currentScope->findSymbol(node->var.value)->is_initialized = true;
         }
 
+        bool prev_state = inside_loop;
+        inside_loop = true;
         visit(node->body);
+        inside_loop = prev_state;
 
         currentScope = forScope.getParent();
         return {};
@@ -859,7 +878,10 @@ namespace Odo::Semantics {
             );
         }
 
+        bool prev_state = inside_loop;
+        inside_loop = true;
         visit(node->body);
+        inside_loop = prev_state;
 
         currentScope = whileScope.getParent();
 
@@ -867,7 +889,10 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::visit_Loop(const std::shared_ptr<Parsing::LoopNode>& node) {
+        bool prev_state = inside_loop;
+        inside_loop = true;
         visit(node->body);
+        inside_loop = prev_state;
         return {};
     }
 
@@ -1319,6 +1344,9 @@ namespace Odo::Semantics {
         auto could_return = can_return;
         can_return = true;
         accepted_return_type = returnType;
+        // FIXME: Make sure that every branch returns.
+        //  I think maybe adding a field fpr that along with can_return.
+        //  And branching nodes like if or loop check if their branches return.
 
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
