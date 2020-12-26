@@ -49,4 +49,8 @@
 
 #define UNKNWN_CLASS_EXCP "Unknown class: '"
 
+#define CONSTR_CALL_TAKES_EXCP "The constructor takes at max "
+#define INVALID_TP_FOR_CONSTR_ARG_EXCP "Invalid type for constructor call argument. Argument "
+#define NO_VAL_FOR_CONSTR_ARG_EXCP "The constructor call has no value for the argument "
+
 #endif //ODO_SEMANTICANALYZER_EN_H

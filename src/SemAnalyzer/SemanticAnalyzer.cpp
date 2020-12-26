@@ -391,8 +391,7 @@ namespace Odo::Semantics {
                  return visit_ClassBody(Node::as<ClassBodyNode>(node));
 //          Broken or incomplete.
             case NodeType::ConstructorDecl:
-                // return visit_ConstructorDecl(Node::as<ConstructorDeclNode>(node));
-                /* ToRemoveLater */ break;
+                 return visit_ConstructorDecl(Node::as<ConstructorDeclNode>(node));
             case NodeType::ConstructorCall:
                 // return visit_ConstructorCall(Node::as<ConstructorCallNode>(node));
                 /* ToRemoveLater */ break;
@@ -1591,7 +1590,14 @@ namespace Odo::Semantics {
         auto temp = currentScope;
         currentScope = instance_scope;
 
-        visit(instance_body_node);
+        try {
+            visit(instance_body_node);
+        } catch (Exceptions::OdoException& e) {
+            temp->removeSymbol(inTable);
+            temp->removeSymbol(instanceInTable);
+            // TODO: Also remove the raw pointers.
+            throw e;
+        }
 
         currentScope = temp;
 
@@ -1603,6 +1609,69 @@ namespace Odo::Semantics {
             if (st->kind() == NodeType::StaticStatement)
                 visit(Node::as<StaticStatementNode>(st)->statement);
         }
+
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_ConstructorDecl(const std::shared_ptr<Parsing::ConstructorDeclNode>& node) {
+        auto paramTypes = getParamTypes(node->params);
+
+        auto typeName = Interpreting::Symbol::constructFuncTypeName(nullptr, paramTypes);
+
+        auto typeOfFunc = globalScope.findSymbol(typeName);
+
+        Interpreting::SymbolTable func_scope;
+
+        if (!typeOfFunc) {
+            typeOfFunc = globalScope.addFuncType(nullptr, typeName);
+            func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
+            func_scope.setParent(currentScope);
+
+            auto temp = currentScope;
+            currentScope = &func_scope;
+            for (const auto& par : node->params) {
+                visit(par);
+                std::string name;
+                if (par->kind() == NodeType::VarDeclaration) {
+                    name = Node::as<VarDeclarationNode>(par)->name.value;
+                } else {
+                    name = Node::as<ListDeclarationNode>(par)->name.value;
+                }
+                currentScope->findSymbol(name)->is_initialized = true;
+            }
+
+            currentScope = temp;
+        } else {
+            func_scope = *get_semantic_context(typeOfFunc);
+            func_scope.setParent(currentScope);
+        }
+
+        auto func_symbol = currentScope->addSymbol({
+            .tp=typeOfFunc,
+            .name="constructor",
+            .kind=Interpreting::SymbolType::FunctionSymbol
+        });
+        func_symbol->is_initialized = true;
+
+        auto temp = currentScope;
+        currentScope = &func_scope;
+        auto prev_accepted = accepted_return_type;
+        auto could_return = can_return;
+        can_return = true;
+        accepted_return_type = nullptr;
+
+        // This is a little messy.
+        // I don't like doing this kind of error checking inside of the whole module.
+        // But the fact that I just bubble it up means it probably won't change much.
+        try {
+            visit(node->body);
+        } catch (Exceptions::OdoException& e) {
+            temp->removeSymbol(func_symbol);
+            throw e;
+        }
+        currentScope = temp;
+        accepted_return_type = prev_accepted;
+        can_return = could_return;
 
         return {};
     }
@@ -1626,6 +1695,58 @@ namespace Odo::Semantics {
                     node->column_number
             );
         }
+
+        auto template_name = "__$" + class_symbol->name + "_instance_template";
+        auto instance_template = currentScope->findSymbol(template_name);
+
+        auto instance_scope = get_semantic_context(instance_template);
+
+//        auto constr_name = VariableNode::create({Lexing::ID, "constructor"});
+//
+//        auto constr_call = FuncCallNode::create(constr_name, {Lexing::NOTHING, ""}, node->params);
+
+        auto temp = currentScope;
+        currentScope = instance_scope;
+
+        auto constr = currentScope->findSymbol("constructor");
+
+        const auto& parameters_in_template = get_function_semantic_context(constr->tp);
+        auto& call_args = node->params;
+
+        if (call_args.size() > parameters_in_template.size()) {
+            throw Exceptions::SemanticException(
+                    "(SemAn) " CONSTR_CALL_TAKES_EXCP + std::to_string(parameters_in_template.size()) + ARGS_BUT_CALLED_EXCP + std::to_string(call_args.size()),
+                    node->line_number,
+                    node->column_number
+            );
+        }
+
+        for (int i = 0; i < parameters_in_template.size(); i++) {
+            auto param_def = parameters_in_template[i];
+            auto par = param_def.first;
+
+            if (call_args.size() > i) {
+                const auto& argument = call_args.at(i);
+                auto arg_result = visit(argument);
+
+                if (!counts_as(arg_result.type, par)) {
+                    // Error! invalid type for call argument
+                    throw Exceptions::TypeException(
+                            "(SemAn) " INVALID_TP_FOR_CONSTR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->tp->name + BUT_RECVD_EXCP + arg_result.type->name,
+                            node->line_number,
+                            node->column_number
+                    );
+                }
+            } else if (!param_def.second) {
+                // Error! No value for function call argument
+                throw Exceptions::SemanticException(
+                        "(SemAn) " NO_VAL_FOR_CONSTR_ARG_EXCP + std::to_string(i),
+                        node->line_number,
+                        node->column_number
+                );
+            }
+        }
+        currentScope = temp;
 
         return {class_symbol};
     }
