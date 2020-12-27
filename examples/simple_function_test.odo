@@ -1,7 +1,7 @@
-any greetings_func = func (string name, int messages, double temp)->{
+any greetings_func = func (string name, int messages, double temp) {
     println(
-        "Hello, ", name, ". You have ", j,
-        " new messages. The temparature is ", i,
+        "Hello, ", name, ". You have ", messages,
+        " new messages. The temparature is ", temp,
         " degrees."
     )
 }

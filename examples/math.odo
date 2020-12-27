@@ -1,10 +1,10 @@
 double e = 2.718281828459045
 
-func exp(double x) {
+func exp(double x): double {
     return e ^ x
 }
 
-func abs(double x) {
+func abs(double x): double {
     if x > 0 {
         return x
     }
@@ -12,7 +12,7 @@ func abs(double x) {
     return -x
 }
 
-func pow(double x, int p) {
+func pow(double x, int p): double {
     double result = 1.0
     forange _ ~: p {
         result = result * x

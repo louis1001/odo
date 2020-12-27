@@ -26,10 +26,11 @@
  *
  */
 
+module mu {
 
-import "matrix_utils" as mu
+}
 
-func max(int a, int b) {
+func max(int a, int b): int{
     return a > b ? a : b
 }
 
@@ -42,7 +43,7 @@ class Cell {
     int x
     int y
                         # up     right  down   left
-    int walls[] =       [ false, false, false, false]
+    bool walls[] =       [ false, false, false, false]
     Cell neighbors[] =  [ null,  null,  null,  null ]
 
     bool visited = false
@@ -63,6 +64,7 @@ class Maze {
     int width
     int height
 
+# I'm not handling this syntax for bi-dimensional lists.
     Cell cells[][]
 
     init(int w, int h) {

@@ -1,10 +1,10 @@
 module math{
-    double e = 2.71828
-    func sq(int x) {
+    double e = 2.71828183198665
+    func sq(int x): double {
         return x*x
     }
 
-    func exp(double x) {
+    func exp(double x): double {
         return e^x
     }
 

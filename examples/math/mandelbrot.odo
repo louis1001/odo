@@ -1,5 +1,5 @@
 
-func linear_interp(double x, double org_s, double org_e, double end_s, double end_e) {
+func linear_interp(double x, double org_s, double org_e, double end_s, double end_e): double {
     double org_range = org_e-org_s
     double end_range = end_e-end_s
 
@@ -14,7 +14,7 @@ int pal_size = length(pallete)
 int w = 100
 int h = 40
 
-string canvas[] = [[0]*w]*h
+int canvas[] = [[0]*w]*h
 
 int max_iteration = 60
 

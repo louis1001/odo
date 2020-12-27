@@ -1,6 +1,10 @@
 func the_problem_func(): int {
-    println("Look, ma. A NameError problem!")
-    return my_friend
+    # This test literally broke because the language is better now.
+    # Changed the error thrown.
+
+    # The tracebacks are broken for the moment
+    println("Look, ma. A TypeError problem!")
+    return 2/2
 }
 
 func some_other_process() {

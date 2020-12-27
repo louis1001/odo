@@ -17,8 +17,8 @@ string words[] = [
 int picked = randInt(length(words))
 string secret = words[picked]
 int w_length = length(secret)
-string guessed[] = ["_"] * w_length
-string letters_tried[] = []
+string guessed = "_" * w_length
+string letters_tried[] = [""]
 int right_guesses = 0
 int errors = 0
 
@@ -62,7 +62,11 @@ while ((right_guesses < w_length) && (errors < max_errors)) {
     println()
     println("Erros:", errors, "/", max_errors)
 
-    string guess = read()[0]
+    any input = read()
+    while length(input) < 1 {
+        input = read("Please, input a character\n")
+    }
+    string guess = input[0]
 
     if contains(letters_tried, guess) {
         println("You used that letter already")
@@ -90,9 +94,9 @@ while ((right_guesses < w_length) && (errors < max_errors)) {
 }
 
 if errors == max_errors {
-    println("Lo siento!")
+    println("I'm sorry!")
 } else {
-    println("Bien hecho!")
+    println("Well done!")
 }
 
-println("La palabra era:", secret)
+println("The word was: ", secret)

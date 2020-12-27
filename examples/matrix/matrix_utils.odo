@@ -1,10 +1,16 @@
-func choose(any lst[]) {
+#   Not Working
+
+func choose(any lst[]): any {
     int rnd_index = randInt(0, length(lst))
 
     return lst[rnd_index]
 }
 
-func filter(any lst[], bool lambda = func(any x) -> true) {
+# This example is broken for the moment.
+# It was too generic to be useful
+
+# If I find a way of adding generic templating to odo, this will be the example.
+func filter(any lst[], any lambda = func(any x) -> true): any {
     any result[] = []
 
     foreach element : lst {
@@ -51,7 +57,7 @@ func filter_list(any lst[], bool lambda = empty_check) {
     return result
 }
 
-func for_each_in_matrix(any mat[][], any lambda = func(any val)->{}, any row_break = empty_check) {
+func for_each_in_matrix(any mat[][], any lambda = func(any val){}, any row_break = empty_check) {
     foreach row : mat {
         foreach element : row {
             lambda(element)
