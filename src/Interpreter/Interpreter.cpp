@@ -530,11 +530,11 @@ namespace Odo::Interpreting {
                 std::vector<Symbol> lst_syms;
                 for(const auto& f : result) {
                     std::shared_ptr<Value> val = create_literal(f);
-                    lst_syms.emplace_back(
+                    lst_syms.push_back({
                         val->type,
                         "list_element",
                         val
-                    );
+                    });
                 }
 
                 std::shared_ptr<Value> list_value = ListValue::create(globalTable.findSymbol(STRING_TP), std::move(lst_syms));
