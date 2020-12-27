@@ -1030,13 +1030,16 @@ namespace Odo::Semantics {
             );
         }
 
-        Interpreting::Symbol* list_type = inter.globalTable.addListType(base_type);
+        Interpreting::Symbol* list_type = handle_list_type(base_type);
         bool was_init = false;
         bool is_constant = true;
         bool has_side_effects = false;
 
         if (node->initial && node->initial->kind() != NodeType::NoOp) {
+            auto prev_accepted_type = accepted_list_type;
+            accepted_list_type = base_type;
             auto newValue = visit(node->initial);
+            accepted_list_type = prev_accepted_type;
 
             if (!newValue.type) {
                 throw Exceptions::ValueException(
@@ -1108,9 +1111,18 @@ namespace Odo::Semantics {
 
     NodeResult SemanticAnalyzer::visit_Assignment(const std::shared_ptr<Parsing::AssignmentNode>& node) {
         auto varSym = getSymbolFromNode(node->expr);
-        auto newValue = visit(node->val);
 
         if (varSym) {
+            auto is_list_type = varSym->tp->kind == Interpreting::SymbolType::ListType;
+            auto prev_acc_list = accepted_list_type;
+            if (is_list_type) {
+                accepted_list_type = varSym->tp->tp;
+            }
+            auto newValue = visit(node->val);
+            if (is_list_type) {
+                accepted_list_type = prev_acc_list;
+            }
+
             if (!varSym->is_initialized) {
                 if (varSym->tp->name == ANY_TP) {
                     varSym->tp = newValue.type;
@@ -1142,6 +1154,11 @@ namespace Odo::Semantics {
     NodeResult SemanticAnalyzer::visit_ListExpression(const std::shared_ptr<Parsing::ListExpressionNode>& node) {
         NodeResult result{};
         bool is_any = false;
+
+        if (node->elements.empty()) {
+            auto lst_type = handle_list_type(accepted_list_type ? accepted_list_type : inter.any_type());
+            return {lst_type, true, false};
+        }
 
         for (const auto& el : node->elements) {
             auto el_result = visit(el);
