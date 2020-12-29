@@ -277,7 +277,7 @@ for node_type_name in ast_node_names:
 
             param_parts = mem.split(" ")
 
-            mem_name = param_parts[1]
+            mem_name = param_parts[-1]
 
             translation_dict["constructor-param-names"] += "std::move(" + mem_name + "_p)"
             constructor_init += " " + mem_name + "(std::move(" + mem_name + "_p)" + ")"
