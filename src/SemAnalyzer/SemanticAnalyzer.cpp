@@ -1900,7 +1900,7 @@ namespace Odo::Semantics {
         );
 
         // TODO: Add some sort of callstack.
-        auto result = visit(file_module);
+        visit(file_module);
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
