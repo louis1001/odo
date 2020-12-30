@@ -780,16 +780,16 @@ namespace Odo::Semantics {
 
         if (lst_value.type->kind == Interpreting::SymbolType::ListType) {
             std::shared_ptr<Node> iterator_decl;
-            auto empty_initial = std::make_shared<NoOpNode>();
+            auto empty_initial = NoOpNode::create();
             auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value.type->tp->name);
             if (lst_value.type->tp && lst_value.type->tp->kind == Interpreting::SymbolType::ListType) {
-                iterator_decl = std::make_shared<ListDeclarationNode>(
+                iterator_decl = ListDeclarationNode::create(
                         std::move(element_tp),
                         node->var,
                         std::move(empty_initial)
                 );
             } else {
-                iterator_decl = std::make_shared<VarDeclarationNode>(std::move(element_tp), node->var, std::move(empty_initial));
+                iterator_decl = VarDeclarationNode::create(std::move(element_tp), node->var, std::move(empty_initial));
             }
 
             visit(iterator_decl);
@@ -797,10 +797,10 @@ namespace Odo::Semantics {
 
             visit(node->body);
         } else if (lst_value.type->name == STRING_TP) {
-            auto iterator_decl = std::make_shared<VarDeclarationNode>(
+            auto iterator_decl = VarDeclarationNode::create(
                     Lexing::Token(Lexing::TokenType::ID, STRING_TP),
                     node->var,
-                    std::make_shared<NoOpNode>()
+                    NoOpNode::create()
             );
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
@@ -850,10 +850,10 @@ namespace Odo::Semantics {
         bool use_iterator = node->var.tp != Lexing::NOTHING;
 
         if (use_iterator) {
-            std::shared_ptr<Node> iterator_decl = std::make_shared<VarDeclarationNode>(
+            std::shared_ptr<Node> iterator_decl = VarDeclarationNode::create(
                     Lexing::Token(Lexing::TokenType::ID, INT_TP),
                     node->var,
-                    std::make_shared<NoOpNode>()
+                    NoOpNode::create()
             );
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
@@ -1606,7 +1606,7 @@ namespace Odo::Semantics {
             inTable,
             THIS_VAR
         });
-        auto instance_body_node = std::make_shared<InstanceBodyNode>(Node::as<ClassBodyNode>(node->body)->statements);
+        auto instance_body_node = InstanceBodyNode::create(Node::as<ClassBodyNode>(node->body)->statements);
 
         std::vector<Interpreting::SymbolTable*> inheritedScopes{instance_scope};
 
@@ -1974,7 +1974,7 @@ namespace Odo::Semantics {
 
         auto body = pr.program_content();
 
-        auto file_module = std::make_shared<ModuleNode>(
+        auto file_module = ModuleNode::create(
             Lexing::Token(Lexing::STR, filename),
             body
         );

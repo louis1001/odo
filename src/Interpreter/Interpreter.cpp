@@ -915,16 +915,16 @@ namespace Odo::Interpreting {
         auto lst_value = visit(node->lst);
         if (lst_value->kind() == ValueType::ListVal) {
             std::shared_ptr<Node> iterator_decl;
-            auto empty_initial = std::make_shared<NoOpNode>();
+            auto empty_initial = NoOpNode::create();
             auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
             if (lst_value->type->tp && lst_value->type->tp->kind == SymbolType::ListType) {
-                iterator_decl = std::make_shared<ListDeclarationNode>(
+                iterator_decl = ListDeclarationNode::create(
                     std::move(element_tp),
                     node->var,
                     std::move(empty_initial)
                 );
             } else {
-                iterator_decl = std::make_shared<VarDeclarationNode>(std::move(element_tp), node->var, std::move(empty_initial));
+                iterator_decl = VarDeclarationNode::create(std::move(element_tp), node->var, std::move(empty_initial));
             }
 
             // TODO: Add debugging info, like line and column number.
@@ -963,10 +963,10 @@ namespace Odo::Interpreting {
             }
             lst_value->important = false;
         } else if (lst_value->type->name == STRING_TP) {
-            auto iterator_decl = std::make_shared<VarDeclarationNode>(
+            auto iterator_decl = VarDeclarationNode::create(
                 Lexing::Token(Lexing::TokenType::ID, STRING_TP),
                 node->var,
-                std::make_shared<NoOpNode>()
+                NoOpNode::create()
             );
             visit(iterator_decl);
 
@@ -1061,10 +1061,10 @@ namespace Odo::Interpreting {
         Symbol* declared_iter {nullptr};
         std::shared_ptr<NormalValue> iter_as_normal;
         if (use_iterator) {
-            std::shared_ptr<Node> iterator_decl = std::make_shared<VarDeclarationNode>(
+            std::shared_ptr<Node> iterator_decl = VarDeclarationNode::create(
                     Lexing::Token(Lexing::TokenType::ID, INT_TP),
                     node->var,
-                    std::make_shared<NoOpNode>()
+                    NoOpNode::create()
             );
             visit(iterator_decl);
             declared_iter = currentScope->findSymbol(node->var.value);
@@ -1520,7 +1520,7 @@ namespace Odo::Interpreting {
                         Symbol new_symbol = {val->type, "list_element", val};
                         new_elements.push_back(new_symbol);
 
-                        new_list = std::make_shared<ListValue>(
+                        new_list = ListValue::create(
                                 globalTable.addListType(val->type),
                                 std::move(new_elements)
                         );
@@ -2313,7 +2313,7 @@ namespace Odo::Interpreting {
 
             auto currentClass = classVal;
             auto node_as_class_body = Node::as<ClassBodyNode>(currentClass->body);
-            auto myInstanceBody = std::make_shared<InstanceBodyNode>(node_as_class_body->statements);
+            auto myInstanceBody = InstanceBodyNode::create(node_as_class_body->statements);
 
             auto mainScope = new SymbolTable{
                 "inherited-scope-0",
@@ -2328,7 +2328,7 @@ namespace Odo::Interpreting {
                 auto upperValue = currentClass->type->tp->value;
 
                 currentClass = Value::as<ClassValue>(upperValue);
-                auto inherBody = std::make_shared<InstanceBodyNode>(Node::as<ClassBodyNode>(currentClass->body)->statements);
+                auto inherBody = InstanceBodyNode::create(Node::as<ClassBodyNode>(currentClass->body)->statements);
 
                 // This process would break here because setting the parent takes the address of a local object.
                 // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
@@ -2354,7 +2354,7 @@ namespace Odo::Interpreting {
             }
 
             auto initID = Lexing::Token {Lexing::ID, "constructor"};
-            auto initFuncCall = std::make_shared<ConstructorCallNode>(initID);
+            auto initFuncCall = ConstructorCallNode::create(initID);
 
             visit(initFuncCall);
 
@@ -2616,7 +2616,7 @@ namespace Odo::Interpreting {
 
         auto body = pr.program_content();
 
-        auto file_module = std::make_shared<ModuleNode>(
+        auto file_module = ModuleNode::create(
             Lexing::Token(Lexing::STR, filename),
             body
         );
