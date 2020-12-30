@@ -1117,7 +1117,7 @@ namespace Odo::Semantics {
         auto varSym = getSymbolFromNode(node->expr);
 
         if (varSym) {
-            if (!varSym->tp || varSym->tp->isType) {
+            if (!varSym->tp || varSym->isType) {
                 throw Exceptions::SemanticException(
                     "(SemAn) " INVALID_ASS_SYMBOL_NOT_EXCP,
                     node->line_number,
