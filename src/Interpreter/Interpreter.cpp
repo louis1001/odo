@@ -921,6 +921,7 @@ namespace Odo::Interpreting {
                 iterator_decl = ListDeclarationNode::create(
                     std::move(element_tp),
                     node->var,
+                    1, // 1 because the element_tp should already exist as multidimensional if needed.
                     std::move(empty_initial)
                 );
             } else {

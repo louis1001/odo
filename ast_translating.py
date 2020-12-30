@@ -114,6 +114,7 @@ node_members = {
     "ListDeclaration": [
         "Lexing::Token var_type",
         "Lexing::Token name",
+        "int dim",
         "std::shared_ptr<Parsing::Node> initial"
     ],
     "Assignment": [

@@ -134,20 +134,26 @@ namespace Odo::Semantics {
         return false;
     }
 
-    Interpreting::Symbol* SemanticAnalyzer::handle_list_type(Interpreting::Symbol* sym) {
-        auto tp = inter.globalTable.addListType(sym);
+    Interpreting::Symbol* SemanticAnalyzer::handle_list_type(Interpreting::Symbol* sym, int dimensions) {
+        auto prev_sym = sym;
+        Interpreting::Symbol* tp;
+        do {
+            tp = inter.globalTable.addListType(prev_sym);
 
-        auto element_template_name = "__$" + tp->name + "_list_element";
+            auto element_template_name = "__$" + tp->name + "_list_element";
 
-        auto in_table = currentScope->findSymbol(element_template_name);
-        if (!in_table) {
-            auto list_el = currentScope->addSymbol({
-                sym,
-                element_template_name
-            });
+            auto in_table = currentScope->findSymbol(element_template_name);
+            if (!in_table) {
+                auto list_el = currentScope->addSymbol({
+                    prev_sym,
+                    element_template_name
+                });
 
-            list_el->is_initialized = true;
-        }
+                list_el->is_initialized = true;
+            }
+            prev_sym = tp;
+            dimensions--;
+        } while (dimensions > 0);
 
         return tp;
     }
@@ -786,6 +792,7 @@ namespace Odo::Semantics {
                 iterator_decl = ListDeclarationNode::create(
                         std::move(element_tp),
                         node->var,
+                        1,
                         std::move(empty_initial)
                 );
             } else {
@@ -1034,7 +1041,7 @@ namespace Odo::Semantics {
             );
         }
 
-        Interpreting::Symbol* list_type = handle_list_type(base_type);
+        Interpreting::Symbol* list_type = handle_list_type(base_type, node->dim);
         bool was_init = false;
         bool is_constant = true;
         bool has_side_effects = false;

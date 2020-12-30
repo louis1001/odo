@@ -723,13 +723,13 @@ namespace Odo::Parsing{
         bool using_direct_init = false;
 
         if (current_token.tp == LBRA) {
-            auto tp = token;
             eat(LBRA);
             eat(RBRA);
 
+            int dimensions = 1;
             while (current_token.tp == LBRA) {
                 eat(LBRA);
-                tp = Token(ID, tp.value + "[]");
+                dimensions++;
                 eat(RBRA);
             }
 
@@ -738,7 +738,7 @@ namespace Odo::Parsing{
                 assignment = ternary_op();
             }
 
-            auto result = ListDeclarationNode::create(token, varName, assignment);
+            auto result = ListDeclarationNode::create(token, varName, dimensions, assignment);
 
             result->line_number = ln;
             result->column_number = cl;
