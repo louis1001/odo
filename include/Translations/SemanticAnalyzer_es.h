@@ -20,6 +20,7 @@
 #define USI_VAR_NOT_INIT_EXCP "Usando una variable que no ha sido inicializada."
 #define SYM_NOT_DEFINED_EXCP "No se puede conseguir una variable miembro de este simbolo. No ha sido definido."
 #define INDEX_MUST_BE_VALID_EXCP "El valor en el operdor de indice debe ser una expresion valida de tipo ent."
+#define INVALID_ASS_SYMBOL_NOT_EXCP "Asignacion invalida. El simbolo al lado izquierdo no es asignable."
 #define INVALID_ASS_TYPE_EXCP "Asignacion invalida. Asignando a un simbolo de tipo "
 
 #define RIGHT_OP_BIN_NO_VAL_EXCP "El operando derecho en la operacion binaria no tiene un valor."

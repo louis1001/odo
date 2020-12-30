@@ -1117,6 +1117,14 @@ namespace Odo::Semantics {
         auto varSym = getSymbolFromNode(node->expr);
 
         if (varSym) {
+            if (!varSym->tp || varSym->tp->isType) {
+                throw Exceptions::SemanticException(
+                    "(SemAn) " INVALID_ASS_SYMBOL_NOT_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
             auto is_list_type = varSym->tp->kind == Interpreting::SymbolType::ListType;
             auto prev_acc_list = accepted_list_type;
             if (is_list_type) {

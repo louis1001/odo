@@ -20,6 +20,7 @@
 #define USI_VAR_NOT_INIT_EXCP "Using variable that has not been initialized."
 #define SYM_NOT_DEFINED_EXCP "Can't get member variable from this symbol. It hasn't been defined."
 #define INDEX_MUST_BE_VALID_EXCP "Index value must be a valid expression of type integer."
+#define INVALID_ASS_SYMBOL_NOT_EXCP "Invalid assignment. Left hand symbol is not assignable."
 #define INVALID_ASS_TYPE_EXCP "Invalid assignment. Assigning to symbol of type "
 
 #define RIGHT_OP_BIN_NO_VAL_EXCP "Right operand in binary operation has no value."
