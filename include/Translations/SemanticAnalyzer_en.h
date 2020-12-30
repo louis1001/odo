@@ -56,4 +56,8 @@
 #define USE_OF_STA_EXCP "Use of statement '"
 #define OUTS_A_LOOP_EXCP "' outside of a loop."
 
+#define UNKNWN_TP_IN_FUNC_DEF_EXCP "Unknown symbol in function type declaration: "
+#define SYM_IN_FUNC_DEF_EXCP "Symbol in function type definition '"
+#define IS_NOT_TP_EXCP "' is not a type."
+
 #endif //ODO_SEMANTICANALYZER_EN_H

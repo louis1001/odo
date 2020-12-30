@@ -21,6 +21,7 @@
 #define CONTINUE_TK "continue"
 #define MODULE_TK "module"
 #define IMPORT_TK "import"
+#define DEFINE_TK "define"
 #define AS_TK "as"
 #define ENUM_TK "enum"
 #define CLASS_TK "class"

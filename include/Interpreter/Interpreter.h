@@ -87,6 +87,8 @@ namespace Odo::Interpreting {
         INTER_VISITOR(Module);
         INTER_VISITOR(Import);
 
+        INTER_VISITOR(Define);
+
         INTER_VISITOR(FuncExpression);
         INTER_VISITOR(FuncDecl);
         INTER_VISITOR(FuncCall);

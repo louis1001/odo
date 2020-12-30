@@ -32,6 +32,7 @@ namespace Odo::Lexing {
             {CONTINUE_TK, Token(CONTINUE, CONTINUE_TK)},
             {MODULE_TK, Token(MODULE, MODULE_TK)},
             {IMPORT_TK, Token(IMPORT, IMPORT_TK)},
+            {DEFINE_TK, Token(DEFINE, DEFINE_TK)},
             {AS_TK, Token(AS, AS_TK)},
             {ENUM_TK, Token(ENUM, ENUM_TK)},
             {CLASS_TK, Token(CLASS, CLASS_TK)},

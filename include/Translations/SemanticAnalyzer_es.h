@@ -56,4 +56,8 @@
 #define USE_OF_STA_EXCP "Uso de sentencia '"
 #define OUTS_A_LOOP_EXCP "' fuera de un ciclo."
 
+#define UNKNWN_TP_IN_FUNC_DEF_EXCP "Simbolo desconocido en la definicion de un tipo de funcion: "
+#define SYM_IN_FUNC_DEF_EXCP "El simbolo en la definicion de tipo de funcion '"
+#define IS_NOT_TP_EXCP "' no es un tipo de valor."
+
 #endif //ODO_SEMANTICANALYZER_ES_H

@@ -36,6 +36,7 @@
 #include "Parser/AST/LoopNode.h"
 #include "Parser/AST/ModuleNode.h"
 #include "Parser/AST/ImportNode.h"
+#include "Parser/AST/DefineNode.h"
 #include "Parser/AST/EnumNode.h"
 #include "Parser/AST/ClassNode.h"
 #include "Parser/AST/ClassBodyNode.h"
@@ -134,6 +135,8 @@ namespace Odo::Semantics {
 
         ADD_VISITOR(MemberVar);
         ADD_VISITOR(StaticVar);
+
+        ADD_VISITOR(Define);
 
         ADD_VISITOR(Module);
         ADD_VISITOR(Import);

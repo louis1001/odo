@@ -21,6 +21,11 @@ namespace Odo::Parsing {
 
         void eat(Lexing::TokenType tp);
 
+        struct function_type {
+            std::vector<std::pair<Lexing::Token, bool>> args;
+            Lexing::Token retType;
+        };
+
         std::shared_ptr<Node> block();
 
         std::shared_ptr<Node> func_body();
@@ -35,6 +40,9 @@ namespace Odo::Parsing {
         std::shared_ptr<Node> statement(bool with_term = true);
 
         std::shared_ptr<Node> module_statement();
+
+        function_type get_arg_types();
+        std::shared_ptr<Node> define_statement();
 
         std::shared_ptr<Node> enumstatement();
 

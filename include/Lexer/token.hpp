@@ -88,6 +88,7 @@ namespace Odo::Lexing {
 
         MODULE,
         IMPORT,
+        DEFINE,
         AS,
 
         ENUM,

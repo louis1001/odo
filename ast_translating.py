@@ -31,6 +31,7 @@ ast_node_names = [
     "Debug",
     "Module",
     "Import",
+    "Define",
     "Enum",
     "Class",
     "ClassBody",
@@ -128,6 +129,11 @@ node_members = {
     ],
     "ListExpression": [
         "std::vector<std::shared_ptr<Parsing::Node>> elements"
+    ],
+    "Define": [
+        "std::vector<std::pair<Lexing::Token, bool>> args",
+        "Lexing::Token retType",
+        "Lexing::Token name"
     ],
     "Module": [
         "Lexing::Token name",

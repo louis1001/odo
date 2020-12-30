@@ -44,6 +44,7 @@ comma_expression_list = [ternary_op, {",", ternary_op}];
 single_statement = closure
         |  module
         | "import", (string|identifier)
+        | define_statement
         | if_statement
         | enum_statement
         | class_statement
@@ -71,6 +72,12 @@ var_declaration = identifier, identifier, [("(", call_arguments, ")") | (["[]"],
 closure = "{", statement_list,  "}";
 
 module = "module", identifier, closure;
+
+(* This one is a little confusing. *)
+func_argument = identifier, ["?"]
+func_type = "<", [func_argument, {",", func_argument}], [":", identifier], ">"
+
+define_statement = "define", func_type, "as", identifier
 
 
 if_statement = if_expression | if_block, else_block;

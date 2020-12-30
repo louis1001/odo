@@ -36,6 +36,7 @@ namespace Odo::Parsing {
     struct DebugNode;
     struct ModuleNode;
     struct ImportNode;
+    struct DefineNode;
     struct EnumNode;
     struct ClassNode;
     struct ClassBodyNode;

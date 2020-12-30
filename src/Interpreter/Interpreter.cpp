@@ -37,6 +37,7 @@
 #include "Parser/AST/LoopNode.h"
 #include "Parser/AST/ModuleNode.h"
 #include "Parser/AST/ImportNode.h"
+#include "Parser/AST/DefineNode.h"
 #include "Parser/AST/EnumNode.h"
 #include "Parser/AST/ClassNode.h"
 #include "Parser/AST/ClassBodyNode.h"
@@ -717,6 +718,9 @@ namespace Odo::Interpreting {
                 return visit_Module(Node::as<ModuleNode>(node));
             case NodeType::Import:
                 return visit_Import(Node::as<ImportNode>(node));
+
+            case NodeType::Define:
+                return visit_Define(Node::as<DefineNode>(node));
 
             case NodeType::Debug:
                 noop;
@@ -1889,6 +1893,30 @@ namespace Odo::Interpreting {
 
     std::shared_ptr<Value> Interpreter::visit_Import(const std::shared_ptr<ImportNode>& node) {
         interpret_as_module(node->path.value, node->name);
+        return null;
+    }
+
+    std::shared_ptr<Value> Interpreter::visit_Define(const std::shared_ptr<DefineNode>& node) {
+        std::vector<std::pair<Symbol*, bool>> as_function_types;
+        as_function_types.reserve(node->args.size());
+
+        for(const auto& sm : node->args) {
+            // No need to worry if it exists. The SemAn does that.
+            auto found_symbol = currentScope->findSymbol(sm.first.value);
+
+            as_function_types.push_back({found_symbol, sm.second});
+        }
+
+        Interpreting::Symbol* ret_type_symbol{nullptr};
+        if (node->retType.tp != Lexing::NOTHING) {
+            ret_type_symbol = currentScope->findSymbol(node->retType.value);
+        }
+
+        auto func_name = Symbol::constructFuncTypeName(ret_type_symbol, as_function_types);
+        auto func_type = globalTable.addFuncType(ret_type_symbol, func_name);
+
+        currentScope->addAlias(node->name.value, func_type);
+
         return null;
     }
 

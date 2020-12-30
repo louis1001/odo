@@ -427,6 +427,9 @@ namespace Odo::Semantics {
             case NodeType::Import:
                  return visit_Import(Node::as<ImportNode>(node));
 
+            case NodeType::Define:
+                return visit_Define(Node::as<DefineNode>(node));
+
             case NodeType::Debug:
                 // noop;
             case NodeType::Null:
@@ -1862,6 +1865,75 @@ namespace Odo::Semantics {
 
     NodeResult SemanticAnalyzer::visit_Import(const std::shared_ptr<Parsing::ImportNode>& node) {
         analyze_as_module(node->path.value, node->name);
+        return {};
+    }
+
+    NodeResult SemanticAnalyzer::visit_Define(const std::shared_ptr<Parsing::DefineNode>& node) {
+        std::vector<std::pair<Interpreting::Symbol*, bool>> as_function_types;
+        as_function_types.reserve(node->args.size());
+
+        for(const auto& sm : node->args) {
+            auto found_symbol = currentScope->findSymbol(sm.first.value);
+            if (!found_symbol) {
+                throw Exceptions::NameException(
+                    "(SemAn) " UNKNWN_TP_IN_FUNC_DEF_EXCP + sm.first.value,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (!found_symbol->isType) {
+                throw Exceptions::TypeException(
+                    "(SemAn) " SYM_IN_FUNC_DEF_EXCP + sm.first.value + IS_NOT_TP_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            as_function_types.push_back({found_symbol, sm.second});
+        }
+
+        Interpreting::Symbol* ret_type_symbol{nullptr};
+        if (node->retType.tp != Lexing::NOTHING) {
+            ret_type_symbol = currentScope->findSymbol(node->retType.value);
+
+            if (!ret_type_symbol) {
+                throw Exceptions::NameException(
+                    "(SemAn) " UNKNWN_TP_IN_FUNC_DEF_EXCP + node->retType.value,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+
+            if (!ret_type_symbol->isType) {
+                throw Exceptions::TypeException(
+                    "(SemAn) " SYM_IN_FUNC_DEF_EXCP + node->retType.value + IS_NOT_TP_EXCP,
+                    node->line_number,
+                    node->column_number
+                );
+            }
+        }
+
+        auto already_in = currentScope->symbolExists(node->name.value);
+        if (already_in) {
+            throw Exceptions::NameException(
+                SYM_CALLED_EXCP + node->name.value + ALR_EXISTS_IN_SCOPE_EXCP
+            );
+        }
+
+        auto fnName = Interpreting::Symbol::constructFuncTypeName(ret_type_symbol, as_function_types);
+        auto fnType = globalScope.findSymbol(fnName);
+
+        Interpreting::SymbolTable func_scope;
+        if (!fnType) {
+            fnType = globalScope.addFuncType(ret_type_symbol, fnName);
+            func_scope = *add_function_semantic_context(fnType, fnName, as_function_types);
+        } else {
+            func_scope = *get_semantic_context(fnType);
+        }
+
+        currentScope->addAlias(node->name.value, fnType);
+
         return {};
     }
 

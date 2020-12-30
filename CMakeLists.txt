@@ -68,6 +68,7 @@ add_executable(odo
         include/Parser/AST/DebugNode.h
         include/Parser/AST/ModuleNode.h
         include/Parser/AST/ImportNode.h
+        include/Parser/AST/DefineNode.h
         include/Parser/AST/EnumNode.h
         include/Parser/AST/ClassNode.h
         include/Parser/AST/ClassBodyNode.h
@@ -106,6 +107,7 @@ add_executable(odo
         src/Parser/AST/LoopNode.cpp
         src/Parser/AST/ModuleNode.cpp
         src/Parser/AST/ImportNode.cpp
+        src/Parser/AST/DefineNode.cpp
         src/Parser/AST/EnumNode.cpp
         src/Parser/AST/ClassNode.cpp
         src/Parser/AST/ClassBodyNode.cpp

@@ -43,6 +43,7 @@
 #include "Parser/AST/DebugNode.h"
 #include "Parser/AST/ModuleNode.h"
 #include "Parser/AST/ImportNode.h"
+#include "Parser/AST/DefineNode.h"
 #include "Parser/AST/EnumNode.h"
 #include "Parser/AST/ClassNode.h"
 #include "Parser/AST/ClassBodyNode.h"
@@ -174,6 +175,10 @@ namespace Odo::Parsing{
                 ex = ImportNode::create(path, name);
                 break;
             }
+            case DEFINE:
+                eat(DEFINE);
+                ex = define_statement();
+                break;
             case IF:
                 eat(IF);
                 ex = ifstatement();
@@ -272,6 +277,47 @@ namespace Odo::Parsing{
         result->line_number = ln;
         result->column_number = cl;
         return result;
+    }
+
+    Parser::function_type Parser::get_arg_types() {
+        std::vector<std::pair<Token, bool>> arguments;
+        Token retType{NOTHING, ""};
+
+        eat(LT);
+        while (current_token.tp == ID) {
+            auto tp = current_token;
+            eat(ID);
+
+            auto is_optional = false;
+            if (current_token.tp == QUEST) {
+                is_optional = true;
+                eat(QUEST);
+            }
+
+            arguments.push_back({tp, is_optional});
+            if (current_token.tp != COMMA) break;
+            eat(COMMA);
+        }
+
+        if(current_token.tp == COLON) {
+            eat(COLON);
+            retType = current_token;
+            eat(ID);
+        }
+        eat(GT);
+
+        return {arguments, retType};
+    }
+
+    std::shared_ptr<Node> Parser::define_statement() {
+        auto func_type = get_arg_types();
+
+        eat(AS);
+
+        auto name = current_token;
+        eat(ID);
+
+        return DefineNode::create(func_type.args, func_type.retType, name);
     }
 
     std::shared_ptr<Node> Parser::enumstatement() {
