@@ -27,11 +27,16 @@ namespace Odo::Interpreting {
         auto foundS = symbols.find(name);
 
         if (foundS == symbols.end()) {
+            if (!aliases.empty()) {
+                auto in_aliases = aliases.find(name);
+                if(in_aliases != aliases.end()) return in_aliases->second;
+            }
+
             if (and_in_parents && parent != nullptr){
                 return parent->findSymbol(name);
-            } else {
-                return nullptr;
             }
+
+            return nullptr;
         } else {
             return &foundS->second;
         }
@@ -54,6 +59,25 @@ namespace Odo::Interpreting {
         symbols[new_sym_name] = sym;
 
         return &symbols.find(new_sym_name)->second;
+    }
+
+    Symbol* SymbolTable::addAlias(const std::string& name, Symbol* sym) {
+        if (symbolExists(name)) {
+            return nullptr;
+        }
+        aliases.insert({name, sym});
+
+        return sym;
+    }
+
+    Symbol* SymbolTable::addAlias(const std::string& name, const std::string& syn_name) {
+        if (symbolExists(name)) {
+            return nullptr;
+        }
+        auto foundS = aliases.find(name);
+
+        aliases.insert({name, foundS->second});
+        return foundS->second;
     }
 
     void SymbolTable::removeSymbol(Symbol* name) {
@@ -90,7 +114,10 @@ namespace Odo::Interpreting {
     }
 
     bool SymbolTable::symbolExists(const std::string& name) {
-        return symbols.find(name) != symbols.end();
+        auto in_symbols = symbols.find(name);
+
+        if (in_symbols != symbols.end()) return true;
+        return aliases.find(name) != aliases.end();
     }
 
     Symbol *SymbolTable::addFuncType(Symbol *type, const std::vector<std::pair<Symbol*, bool>>& params) {

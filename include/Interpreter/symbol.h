@@ -82,6 +82,8 @@ namespace Odo::Interpreting {
         std::string scopeName = "";
         int level=0;
 
+        std::unordered_map<std::string, Symbol*> aliases{};
+
     public:
         SymbolTable();
         SymbolTable(std::string, std::unordered_map<std::string, Symbol> types, SymbolTable *parent= nullptr);
@@ -90,6 +92,8 @@ namespace Odo::Interpreting {
 
         Symbol* findSymbol(const std::string&, bool and_in_parents=true);
         Symbol* addSymbol(const Symbol&);
+        Symbol* addAlias(const std::string&, Symbol*);
+        Symbol* addAlias(const std::string&, const std::string&);
         void removeSymbol(Symbol*);
         Symbol* addListType(Symbol*);
         bool symbolExists(const std::string&);
