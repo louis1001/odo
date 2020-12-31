@@ -6,6 +6,7 @@
 #define ODO_SEMANTICANALYZER_H
 
 #include "NodeResult.h"
+#include "Modules/NativeModule.h"
 
 #include "Translations/lang.h"
 
@@ -84,7 +85,6 @@ namespace Odo::Semantics {
 
         Interpreting::Symbol* accepted_list_type{nullptr};
 
-        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, const Interpreting::SymbolTable&);
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, std::string);
         Interpreting::SymbolTable* get_semantic_context(Interpreting::Symbol*);
         Interpreting::SymbolTable* add_function_semantic_context(Interpreting::Symbol*, std::string, arg_types);
@@ -155,6 +155,8 @@ namespace Odo::Semantics {
     public:
         explicit SemanticAnalyzer(Interpreting::Interpreter&);
         ~SemanticAnalyzer();
+
+        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, const Interpreting::SymbolTable&);
 
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
         NodeResult from_repl(const std::shared_ptr<Parsing::Node>&);

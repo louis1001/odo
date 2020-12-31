@@ -141,7 +141,12 @@ add_executable(odo
         include/Translations/SemanticAnalyzer_es.h
 
         include/SemAnalyzer/NodeResult.h
-        src/SemAnalyzer/SemanticAnalyzer.cpp)
+        src/SemAnalyzer/SemanticAnalyzer.cpp
+        src/Modules/NativeModule.cpp
+        include/Modules/NativeModule.h
+        include/Modules/IOModule.h
+        src/Modules/IOModule.cpp
+        include/Modules/MathModule.h)
 
 target_compile_definitions(odo PUBLIC LANG_USE_ES=0)
 

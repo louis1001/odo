@@ -4,6 +4,9 @@
 
 #include "Interpreter/Interpreter.h"
 
+#include "Modules/IOModule.h"
+#include "Modules/MathModule.h"
+
 #include"Translations/lang.h"
 
 // This is temporary. I'll research how to bring it back.
@@ -12,6 +15,10 @@
 #define GREEN   ""//"\033[32m"      /* Green */
 #define YELLOW  ""//"\033[33m"        /* Yellow */
 //#define BLUE    "\033[34m"      /* Blue */
+
+template<typename T> void add_module(Odo::Interpreting::Interpreter& inter) {
+    inter.add_module(std::make_shared<T>(inter));
+}
 
 int main(int argc, char* argv[]) {
     std::string logo =
@@ -52,6 +59,10 @@ int main(int argc, char* argv[]) {
     }
 
     Interpreting::Interpreter inter;
+
+    // Investigate what happens when adding two modules with the same name
+    add_module<Modules::IOModule>(inter);
+    add_module<Modules::MathModule>(inter);
 
     // If there's a file to be read
     if (!input_file.empty()) {

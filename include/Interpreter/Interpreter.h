@@ -11,6 +11,7 @@
 #include "symbol.h"
 #include "frame.h"
 #include "SemAnalyzer/SemanticAnalyzer.h"
+#include "Modules/NativeModule.h"
 
 #include <functional>
 #include <vector>
@@ -124,6 +125,10 @@ namespace Odo::Interpreting {
         std::shared_ptr<Value> visit(const std::shared_ptr<Parsing::Node>& node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
+
+        SymbolTable& get_global() { return globalTable; };
+
+        void add_module(std::shared_ptr<Modules::NativeModule>);
         void set_repl_last(std::shared_ptr<Value> v);
 
         std::vector<Frame>& get_call_stack() { return call_stack; };

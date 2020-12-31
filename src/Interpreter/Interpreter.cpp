@@ -739,6 +739,20 @@ namespace Odo::Interpreting {
         return 0;
     }
 
+    void Interpreter::add_module(std::shared_ptr<Modules::NativeModule> moduleValue) {
+        auto mod_table = moduleValue->ownScope;
+        auto modSym = currentScope->addSymbol({
+            nullptr,
+            moduleValue->module_name(),
+            std::move(moduleValue),
+            false,
+            SymbolType::ModuleSymbol,
+            true
+        });
+
+        analyzer->add_semantic_context(modSym, mod_table);
+    }
+
     std::shared_ptr<Value> Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
         std::any newValue;
         if (kind == DOUBLE_TP) {

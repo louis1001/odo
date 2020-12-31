@@ -106,7 +106,7 @@ namespace Odo::Interpreting {
         static std::shared_ptr<FunctionValue> create(Symbol* tp, std::vector<std::shared_ptr<Parsing::Node>> params_, std::shared_ptr<Parsing::Node> body_, SymbolTable* scope_, std::string name="<anonymous>");
     };
 
-    struct ModuleValue final: public Value {
+    struct ModuleValue : public Value {
         SymbolTable ownScope;
         ValueType kind() final { return ValueType::ModuleVal; }
 
