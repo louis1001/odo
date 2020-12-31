@@ -20,8 +20,8 @@
 #define THIS_VAR "yo"
 
 // Global Functions
-#define PRINT_FN "imprimir"
-#define PRINTLN_FN "imprimirln"
+#define WRITE_FN "escribir"
+#define WRITELN_FN "escribirln"
 #define MOVE_CRSR_FN "mover_cursor"
 #define FACTR_FN "factorial"
 #define LENGTH_FN "longitud"

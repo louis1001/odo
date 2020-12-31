@@ -25,8 +25,8 @@ namespace Odo::Semantics {
 
         replScope = { "repl-analyzer", {}, &globalScope };
 
-        native_function_data[PRINT_FN] = {};
-        native_function_data[PRINTLN_FN] = {};
+        native_function_data[WRITE_FN] = {};
+        native_function_data[WRITELN_FN] = {};
         native_function_data[MOVE_CRSR_FN] = {};
         native_function_data[FACTR_FN] = {type_int, true, false};
         native_function_data[LENGTH_FN] = {type_int};

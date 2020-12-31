@@ -105,7 +105,7 @@ namespace Odo::Interpreting {
         });
 #endif
 
-        add_native_function(PRINT_FN, [&](auto values) {
+        add_native_function(WRITE_FN, [&](auto values) {
             for (const auto& v : values) {
                 if (v)
                     std::cout << v->to_string();
@@ -115,7 +115,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(PRINTLN_FN, [&](auto values) {
+        add_native_function(WRITELN_FN, [&](auto values) {
             for (const auto& v : values) {
                 if (v)
                     std::cout << v->to_string();

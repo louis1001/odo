@@ -19,8 +19,8 @@
 #define THIS_VAR "this"
 
 // Global Functions
-#define PRINT_FN "print"
-#define PRINTLN_FN "println"
+#define WRITE_FN "write"
+#define WRITELN_FN "writeln"
 #define MOVE_CRSR_FN "move_cursor"
 #define FACTR_FN "factorial"
 #define LENGTH_FN "length"
