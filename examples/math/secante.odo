@@ -62,7 +62,7 @@ fn = func (double x) {
 
 double x = approx_raiz(-0.5, 3, 0.01)
 
-/* New function definition syntax proposal for function types.
+#{ New function definition syntax proposal for function types.
 double(int, int) div
 
 div = func(int a, int b) {
@@ -72,6 +72,6 @@ div = func(int a, int b) {
 a = func() {
     writeln("Hey")
 }
-*/
+}#
 
 writeln("The result is = ", x)
