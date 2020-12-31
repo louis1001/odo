@@ -8,6 +8,8 @@
 // Keyword tokens
 #define TRUE_TK "true"
 #define FALSE_TK "false"
+#define AND_TK "and"
+#define OR_TK "or"
 #define IF_TK "if"
 #define ELSE_TK "else"
 #define FUNC_TK "func"

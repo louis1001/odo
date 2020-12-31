@@ -19,6 +19,8 @@ namespace Odo::Lexing {
     const std::map<std::string, Token> Lexer::reservedKeywords = {
             {TRUE_TK, Token(BOOL, TRUE_TK)},
             {FALSE_TK, Token(BOOL, FALSE_TK)},
+            {AND_TK, Token(AND, AND_TK)},
+            {OR_TK, Token(OR, OR_TK)},
             {IF_TK, Token(IF, IF_TK)},
             {ELSE_TK, Token(ELSE, ELSE_TK)},
             {FUNC_TK, Token(FUNC, FUNC_TK)},
@@ -351,20 +353,6 @@ namespace Odo::Lexing {
                         return Token(EQU, "==");
                     }
                     return Token(ASS, "=");
-                case '&':
-                    advance();
-                    if (current_char == '&'){
-                        advance();
-                        return Token(AND, "&&");
-                    }
-                    break;
-                case '|':
-                    advance();
-                    if (current_char == '|'){
-                        advance();
-                        return Token(OR, "||");
-                    }
-                    break;
                 case '\n':
                     advance();
 

@@ -46,8 +46,8 @@ namespace Odo::Lexing {
         MOD,            // %
         MODE,           // %=
 
-        AND,            // &&
-        OR,             // ||
+        AND,            // and
+        OR,             // or
 
         POW,            // ^
         POWE,           // ^=

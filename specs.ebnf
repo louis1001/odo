@@ -134,9 +134,9 @@ term_operator = "*" | "/" | "%";
 
 ternary_op = or_comparison, ["?", or_comparison, ":", or_comparison];
 
-or_comparison = and_comparison, ["||", and_comparison];
+or_comparison = and_comparison, ["or", and_comparison];
 
-and_comparison = comparison, ["&&", comparison];
+and_comparison = comparison, ["and", comparison];
 
 comparison = expression, [comparison_operator, expression];
 
