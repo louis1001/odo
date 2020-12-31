@@ -1,32 +1,49 @@
-class Father{
-    string name
-    static int numLegs = 2
-    init() {
-        name = "Whatever"
+
+define <int:int> as int_trans
+
+func process(int vals[], int_trans fn): int[] {
+    int result[] = []
+
+    foreach x : vals {
+        push(result, fn(x))
     }
 
-    func sayHi() {
-        println("Hello! My name is ", name)
+    return result
+}
+
+println(process([20, 30, 40], func(int i)->i*30))
+
+println("Now, generating a matrix:")
+
+define <int, int: int> as flatten_function
+
+func generate_matrix(int w, int h, flatten_function fn): int[][] {
+    int result[][] = []
+
+    forange x : w {
+        int row[] = []
+        forange y : h {
+            push(row, fn(y, x))
+        }
+        push(result, row)
     }
 
-    static func lo_que_sea() {
-        println("Algo que es estatico")
+    return result
+}
+
+func show_matrix(int mat[][]) {
+    foreach row : mat {
+        foreach cell : row {
+            print(cell, " ")
+        }
+        println()
     }
 }
 
-class Child : Father{
-    init(string _name) {
-        name = _name
-    }
-}
+# Solve error when doing int % 0
+# No check for divide by zero.
+any checker = generate_matrix(8, 8,
+    func(int x, int y) -> (x+y+1)%2
+)
 
-println("hey")
-
-/*println(Father::numLegs)
-Child a = new Child("Luis")
-println(a)
-a.sayHi()
-*/
-debug
-println(Child::numLegs)
-Child::lo_que_sea()
+show_matrix(checker)

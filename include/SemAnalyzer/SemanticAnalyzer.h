@@ -144,6 +144,7 @@ namespace Odo::Semantics {
         arg_types getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>& params);
         bool counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2);
 
+        Interpreting::Symbol* string_to_list_type(const std::string&);
         Interpreting::Symbol* handle_list_type(Interpreting::Symbol*, int dimensions = 1);
 
         Interpreting::Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);

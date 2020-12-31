@@ -134,12 +134,28 @@ namespace Odo::Semantics {
         return false;
     }
 
+    Interpreting::Symbol* SemanticAnalyzer::string_to_list_type(const std::string& name) {
+        std::string_view shortened_name = name;
+        int dimensions = 0;
+
+        while (shortened_name.ends_with("[]")) {
+            shortened_name.remove_suffix(2);
+            dimensions++;
+        }
+
+        auto base_type = currentScope->findSymbol(static_cast<std::string>(shortened_name));
+
+
+        return handle_list_type(base_type, dimensions);
+    }
+
     Interpreting::Symbol* SemanticAnalyzer::handle_list_type(Interpreting::Symbol* sym, int dimensions) {
         auto prev_sym = sym;
         Interpreting::Symbol* tp;
+
         do {
             tp = inter.globalTable.addListType(prev_sym);
-
+    
             auto element_template_name = "__$" + tp->name + "_list_element";
 
             auto in_table = currentScope->findSymbol(element_template_name);
@@ -151,6 +167,7 @@ namespace Odo::Semantics {
 
                 list_el->is_initialized = true;
             }
+    
             prev_sym = tp;
             dimensions--;
         } while (dimensions > 0);
@@ -1048,7 +1065,7 @@ namespace Odo::Semantics {
 
         if (node->initial && node->initial->kind() != NodeType::NoOp) {
             auto prev_accepted_type = accepted_list_type;
-            accepted_list_type = base_type;
+            accepted_list_type = list_type->tp;
             auto newValue = visit(node->initial);
             accepted_list_type = prev_accepted_type;
 
@@ -1336,10 +1353,15 @@ namespace Odo::Semantics {
             );
         }
 
-        auto returnType =
-                node->retType.tp == Lexing::NOTHING
-                ? nullptr
-                : currentScope->findSymbol(node->retType.value);
+        Interpreting::Symbol* returnType;
+
+        if (node->retType.tp == Lexing::NOTHING) {
+            returnType = nullptr;
+        } else if (node->retType.value.ends_with("[]")) {
+            returnType = string_to_list_type(node->retType.value);
+        } else {
+            returnType = currentScope->findSymbol(node->retType.value);
+        }
 
         auto paramTypes = getParamTypes(node->params);
 
@@ -1888,21 +1910,27 @@ namespace Odo::Semantics {
         as_function_types.reserve(node->args.size());
 
         for(const auto& sm : node->args) {
-            auto found_symbol = currentScope->findSymbol(sm.first.value);
-            if (!found_symbol) {
-                throw Exceptions::NameException(
-                    "(SemAn) " UNKNWN_TP_IN_FUNC_DEF_EXCP + sm.first.value,
-                    node->line_number,
-                    node->column_number
-                );
-            }
+            Interpreting::Symbol* found_symbol;
 
-            if (!found_symbol->isType) {
-                throw Exceptions::TypeException(
-                    "(SemAn) " SYM_IN_FUNC_DEF_EXCP + sm.first.value + IS_NOT_TP_EXCP,
-                    node->line_number,
-                    node->column_number
-                );
+            if (sm.first.value.ends_with("[]")) {
+                found_symbol = string_to_list_type(sm.first.value);
+            } else {
+                found_symbol = currentScope->findSymbol(sm.first.value);
+                if (!found_symbol) {
+                    throw Exceptions::NameException(
+                        "(SemAn) " UNKNWN_TP_IN_FUNC_DEF_EXCP + sm.first.value,
+                        node->line_number,
+                        node->column_number
+                    );
+                }
+
+                if (!found_symbol->isType) {
+                    throw Exceptions::TypeException(
+                        "(SemAn) " SYM_IN_FUNC_DEF_EXCP + sm.first.value + IS_NOT_TP_EXCP,
+                        node->line_number,
+                        node->column_number
+                    );
+                }
             }
 
             as_function_types.push_back({found_symbol, sm.second});

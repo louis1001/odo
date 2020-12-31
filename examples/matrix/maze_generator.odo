@@ -77,9 +77,9 @@ class Maze {
             forange x: w {
                 row += new Cell(x, y)
             }
-            cells += [row]
         }
 
+# Debug this line. It should be working now.
         foreach row : cells {
             foreach c : row {
                 c.neighbors = this.find_neighbors(c.x, c.y)

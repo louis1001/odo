@@ -287,6 +287,11 @@ namespace Odo::Parsing{
         while (current_token.tp == ID) {
             auto tp = current_token;
             eat(ID);
+            while (current_token.tp == LBRA) {
+                eat(LBRA);
+                tp.value += "[]";
+                eat(RBRA);
+            }
 
             auto is_optional = false;
             if (current_token.tp == QUEST) {
@@ -303,6 +308,11 @@ namespace Odo::Parsing{
             eat(COLON);
             retType = current_token;
             eat(ID);
+            while (current_token.tp == LBRA) {
+                eat(LBRA);
+                retType.value += "[]";
+                eat(RBRA);
+            }
         }
         eat(GT);
 
@@ -662,6 +672,11 @@ namespace Odo::Parsing{
             retType = current_token;
 
             eat(ID);
+            while (current_token.tp == LBRA) {
+                eat(LBRA);
+                retType.value += "[]";
+                eat(RBRA);
+            }
         }
 
         eat(LCUR);
