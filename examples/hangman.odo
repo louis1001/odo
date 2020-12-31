@@ -26,7 +26,7 @@ int max_errors = 5
 
 func changeSub(string str, int index, string repl): string {
     if (index > length(str)-1){
-        println("Index out of range!")
+        writeln("Index out of range!")
         return str
     }
     string result = ""
@@ -55,12 +55,12 @@ func contains(string s[], string val): bool {
 
 while ((right_guesses < w_length) and (errors < max_errors)) {
     clear()
-    println("Current guesses: ")
+    writeln("Current guesses: ")
     foreach char : guessed {
-        print(char, "")
+        write(char, "")
     }
-    println()
-    println("Erros:", errors, "/", max_errors)
+    writeln()
+    writeln("Erros:", errors, "/", max_errors)
 
     any input = read()
     while length(input) < 1 {
@@ -69,7 +69,7 @@ while ((right_guesses < w_length) and (errors < max_errors)) {
     string guess = input[0]
 
     if contains(letters_tried, guess) {
-        println("You used that letter already")
+        writeln("You used that letter already")
         wait()
         continue
     }
@@ -89,14 +89,14 @@ while ((right_guesses < w_length) and (errors < max_errors)) {
         errors++
     }
 
-    println()
+    writeln()
     clear()
 }
 
 if errors == max_errors {
-    println("I'm sorry!")
+    writeln("I'm sorry!")
 } else {
-    println("Well done!")
+    writeln("Well done!")
 }
 
-println("The word was: ", secret)
+writeln("The word was: ", secret)

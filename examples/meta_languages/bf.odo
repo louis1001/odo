@@ -137,7 +137,7 @@ class Parser {
         if currToken.tp == tp {
             currToken = lex.getNextToken()
         } else {
-            println("Error! Expected *", tp, "* but got *", currToken.tp, "*.")
+            writeln("Error! Expected *", tp, "* but got *", currToken.tp, "*.")
             invalid_token = null
         }
     }
@@ -214,7 +214,7 @@ class Interpreter {
             pointer--
             return null
         } else if node.tp == NodeType::dot {
-            print(fromAsciiCode(memory[pointer]))
+            write(fromAsciiCode(memory[pointer]))
             return null
         } else if node.tp == NodeType::com {
             string c = read()[0]
@@ -255,8 +255,8 @@ bool debugging = false
 if debugging {
     forange i : 10{
         forange j : 30 {
-            print(p.memory[j + (30*i)])
+            write(p.memory[j + (30*i)])
         }
-        println()
+        writeln()
     }
 }

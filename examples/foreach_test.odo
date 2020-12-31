@@ -2,8 +2,8 @@
 int sz = 11
 string mat[][] = [["*"]*sz]*sz
 
-println("This is so cool... A little too C++sy or Javascripty.")
-println("Love it tho\n<3\n\n")
+writeln("This is so cool... A little too C++sy or Javascripty.")
+writeln("Love it tho\n<3\n\n")
 
 forange i : 1, sz {
     int counter = 0
@@ -11,13 +11,13 @@ forange i : 1, sz {
     foreach row : mat {
         foreach x : row {
             if counter%i == 0 {
-                print(x, " ")
+                write(x, " ")
             } else {
-                print("  ")
+                write("  ")
             }
             counter++
         }
-        println()
+        writeln()
     }
 
     sleep(300)

@@ -22,12 +22,12 @@ while c < n {
 }
 
 forange i : length(results) {
-    println("[", i, "]:\t", results[i])
+    writeln("[", i, "]:\t", results[i])
 }
 
-println()
-println("Testing a separator")
-println("v^"*50)
+writeln()
+writeln("Testing a separator")
+writeln("v^"*50)
 
-println("Testing a list with some repeating values")
-println([0]*20)
+writeln("Testing a list with some repeating values")
+writeln([0]*20)

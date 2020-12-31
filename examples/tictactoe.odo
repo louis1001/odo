@@ -2,9 +2,9 @@ string characters[] = ["X", ".", "O"]
 
 func print_table(int t[]) {
     forange i: 9{
-        print(t[i], " ")
+        write(t[i], " ")
         if ((i+1) % 3 == 0) {
-            println()
+            writeln()
         }
     }
 }
@@ -18,19 +18,19 @@ bool turn = false
 
 while !has_finished {
     clear()
-    println("Current Table:")
+    writeln("Current Table:")
     print_table(shape)
-    println()
+    writeln()
     print_table(board)
     int move = read_int("Your move: ")
     if (move >= 9) or (move < 0) {
-        println("Please, input a number between 0 and 8")
+        writeln("Please, input a number between 0 and 8")
         read()
         continue
     }
 
     if ((board[move]) != 1) {
-        println("Occupied Space!")
+        writeln("Occupied Space!")
         read()
         continue
     } else {
@@ -40,7 +40,7 @@ while !has_finished {
     turn = !turn
 
     # if  {
-    #     println("Please, input a number between 1 and 9")
+    #     writeln("Please, input a number between 1 and 9")
     #     read()
     #     continue
     # }

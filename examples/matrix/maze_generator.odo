@@ -118,7 +118,7 @@ class Maze {
 
         while length(stack) > 0 {
             Cell current = pop(stack)
-            print("Generating Maze: ", trunc(to_percent(n_visited, max_visit)), "%\r")
+            write("Generating Maze: ", trunc(to_percent(n_visited, max_visit)), "%\r")
 
             Cell possible_neighbors[] = []
 
@@ -150,7 +150,7 @@ class Maze {
     }
 
     func print_maze(int x = 0, int y = 0) {
-        println()
+        writeln()
         int canvas_height = height*2+1
         int canvas_width = width*2+1
 
@@ -187,9 +187,9 @@ class Maze {
 
         foreach row : b {
             foreach char : row {
-                print(char, " ")
+                write(char, " ")
             }
-            println()
+            writeln()
         }
     }
 }

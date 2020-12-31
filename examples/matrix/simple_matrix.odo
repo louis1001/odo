@@ -8,9 +8,9 @@ double mapped[][] = mu::map_matrix(m, func(int x) -> {
     return x+rand(0, 1)
 })
 
-println("\n  |\n  v\n")
+writeln("\n  |\n  v\n")
 
 mu::for_each_in_matrix(mapped, func(double x)-> {
-    print(round(x, 3), "\t")
-}, func() -> println())
+    write(round(x, 3), "\t")
+}, func() -> writeln())
 

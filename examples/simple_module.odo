@@ -16,7 +16,7 @@ module math{
 double a = 3.5
 
 double result = math::exp(a)
-println("E to the ", a, " is ", result)
+writeln("E to the ", a, " is ", result)
 
-println("\nAccessing a value in a nested module:")
-println(math::nested::works)
+writeln("\nAccessing a value in a nested module:")
+writeln(math::nested::works)

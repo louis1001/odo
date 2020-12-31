@@ -11,9 +11,9 @@ func process(int vals[], int_trans fn): int[] {
     return result
 }
 
-println(process([20, 30, 40], func(int i)->i*30))
+writeln(process([20, 30, 40], func(int i)->i*30))
 
-println("Now, generating a matrix:")
+writeln("Now, generating a matrix:")
 
 define <int, int: int> as flatten_function
 
@@ -34,9 +34,9 @@ func generate_matrix(int w, int h, flatten_function fn): int[][] {
 func show_matrix(int mat[][]) {
     foreach row : mat {
         foreach cell : row {
-            print(cell, " ")
+            write(cell, " ")
         }
-        println()
+        writeln()
     }
 }
 

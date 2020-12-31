@@ -23,47 +23,47 @@ class Printer{
     }
 
     func printX(){
-        println(ref.x)
+        writeln(ref.x)
     }
 
     func info() {
-        println("X: \t", ref.x)
-        println("Y: \t", ref.y)
-        println("Len: \t", ref.hypot())
+        writeln("X: \t", ref.x)
+        writeln("Y: \t", ref.y)
+        writeln("Len: \t", ref.hypot())
     }
 }
 
 func printX(Vector v){
-    println(v.x)
+    writeln(v.x)
 }
 
 Vector a(1, 2)
-print("a.x: ")
+write("a.x: ")
 printX(a)
 
 Vector some = a.copy()
-print("some.x: ")
-println(some.x)
+write("some.x: ")
+writeln(some.x)
 
 
 Printer pri(a)
-print("pri.x: ")
+write("pri.x: ")
 pri.printX()
 
-println()
-println("a.x = 4")
+writeln()
+writeln("a.x = 4")
 a.x = 4
-println()
+writeln()
 
-print("a.x: ")
+write("a.x: ")
 printX(a)
 
-print("some.x: ")
-println(some.x)
+write("some.x: ")
+writeln(some.x)
 
-print("pri.x: ")
+write("pri.x: ")
 pri.printX()
-println()
+writeln()
 
-println("A:")
+writeln("A:")
 pri.info()

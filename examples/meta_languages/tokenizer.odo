@@ -105,7 +105,7 @@ class Lexer {
             return new Token(TokenType::Id, id())
         }
 
-        println("Error! Unknown character '", current_char(), "'.")
+        writeln("Error! Unknown character '", current_char(), "'.")
     }
 }
 
@@ -150,7 +150,7 @@ func tokenize(string text) {
 
     Token current_token = lx.get_next_token()
     while current_token.type != TokenType::Eof {
-        println(current_token.to_string())
+        writeln(current_token.to_string())
 
         current_token = lx.get_next_token()
     }
@@ -163,5 +163,5 @@ if user_code != "" {
     code = user_code
 }
 
-println("The tokens in ", code)
+writeln("The tokens in ", code)
 tokenize(code)

@@ -1,54 +1,54 @@
 int a = 10;
 
 while a > 0 {
-    println("Reducing a from ", a, " to ", a - 1);
+    writeln("Reducing a from ", a, " to ", a - 1);
     a--;
 }
 
-println();
-println();
-println();
+writeln();
+writeln();
+writeln();
 
 int size = 10;
 forange i : size{
     forange _ : size-i{
-        print("+");
+        write("+");
     }
 
     forange _ : i*2 {
-        print(" ");
+        write(" ");
     }
 
     forange _ : size-i{
-        print("+");
+        write("+");
     }
-    println();
+    writeln();
 }
 
 forange i : size{
     forange _ : i {
-        print("+");
+        write("+");
     }
 
     forange _ : (size-i)*2 {
-        print(" ");
+        write(" ");
     }
 
     forange _ : i {
-        print("+");
+        write("+");
     }
-    println();
+    writeln();
 }
 
-println("End");
+writeln("End");
 
 int first = 10;
 int second = 12;
 
 if first > second {
-    println("The first number ", first, " is greater than the second ", second);
+    writeln("The first number ", first, " is greater than the second ", second);
 } else if first < second {
-    println("The first number ", first, " is less than the second ", second);
+    writeln("The first number ", first, " is less than the second ", second);
 } else {
-    println("Both numbers are the same: ", first, " = ", second);
+    writeln("Both numbers are the same: ", first, " = ", second);
 }

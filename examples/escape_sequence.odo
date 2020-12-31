@@ -4,8 +4,8 @@
 int MAX_COUNT = 50
 
 forange i : 1, MAX_COUNT+1 {
-    print("\r[", "="*i, ">", " "*(MAX_COUNT-i), "] ", i, "/", MAX_COUNT)
+    write("\r[", "="*i, ">", " "*(MAX_COUNT-i), "] ", i, "/", MAX_COUNT)
     sleep(20)
 }
 
-println()
+writeln()

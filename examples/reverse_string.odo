@@ -1,5 +1,5 @@
 
-println("Testing reversing a string")
+writeln("Testing reversing a string")
 
 string first = "A palindrome is the ideal test for this file" # read()
 
@@ -8,4 +8,4 @@ forange i ~: length(first) {
     result += first[i]
 }
 
-println(result)
+writeln(result)

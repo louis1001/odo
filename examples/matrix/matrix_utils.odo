@@ -36,9 +36,9 @@ func map(any lst[], any lambda = func(any x, int i) -> x) {
 func print_matrix(int mat[][]) {
     foreach row : mat {
         foreach element : row {
-            print(element, " ")
+            write(element, " ")
         }
-        println()
+        writeln()
     }
 }
 

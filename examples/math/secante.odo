@@ -32,8 +32,8 @@ func approx_raiz(double x0, double x1, double min_err=0.001): double {
     double x = x1
 
     for (int i = 0; i < MAX_ITERS; i++) {
-        println("-"*20)
-        println("Iteracion ", i)
+        writeln("-"*20)
+        writeln("Iteracion ", i)
 
         double y = fn(x)
         double dy = (fn(px)-fn(x))/(px-x)
@@ -41,18 +41,18 @@ func approx_raiz(double x0, double x1, double min_err=0.001): double {
 
         x = x - (y/dy)
 
-        println("X: ", x)
+        writeln("X: ", x)
         double curr_err = math::error(x, px)
-        println("Error: ", curr_err)
+        writeln("Error: ", curr_err)
 
         if curr_err < min_err {
             return x
         }
 
-        println("\n\n")
+        writeln("\n\n")
     }
 
-    print("Error! Numero maximo de iteraciones excedido.")
+    write("Error! Numero maximo de iteraciones excedido.")
     return x
 }
 
@@ -70,8 +70,8 @@ div = func(int a, int b) {
 }
 
 a = func() {
-    println("Hey")
+    writeln("Hey")
 }
 */
 
-println("The result is = ", x)
+writeln("The result is = ", x)

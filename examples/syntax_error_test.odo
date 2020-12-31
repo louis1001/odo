@@ -1,4 +1,4 @@
 
 func nothing_wrong_here() {
-    println("Why would I fail? I'm perfect)
+    writeln("Why would I fail? I'm perfect)
 }

@@ -6,7 +6,7 @@ int y = 0
 int z = 1
 
 forange i : n{
-    println(i, ":", z)
+    writeln(i, ":", z)
     x = y
     y = z
     z = z + x

@@ -1,5 +1,5 @@
 any greetings_func = func (string name, int messages, double temp) {
-    println(
+    writeln(
         "Hello, ", name, ". You have ", messages,
         " new messages. The temparature is ", temp,
         " degrees."

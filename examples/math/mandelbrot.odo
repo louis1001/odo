@@ -41,7 +41,7 @@ forange py : h {
 
         int actual_index = (pal_size-1)*(iteration/max_iteration)
 
-        print(pallete[actual_index], " ")
+        write(pallete[actual_index], " ")
     }
-    println()
+    writeln()
 }
