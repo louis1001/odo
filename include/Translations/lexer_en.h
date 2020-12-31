@@ -34,7 +34,7 @@
 #define DEBUG_TK "debug"
 
 // Exceptions
-#define END_COMMENT_EXCP "Missing end of comment: */"
+#define END_COMMENT_EXCP "Missing end of comment: '}#'"
 #define END_STRING_EXCP "Missing end of string: "
 #define UNKWN_CHAR_EXCP "Unknown character '"
 

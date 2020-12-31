@@ -71,15 +71,15 @@ namespace Odo::Lexing {
 
     void Lexer::ignoreMulticomment() {
         while (current_char != NULLCHR) {
-            if (current_char == '*') {
+            if (current_char == '}') {
                 advance();
-                if (current_char == '/') {
+                if (current_char == '#') {
                     advance();
                     break;
                 }
-            } else if (current_char == '/') {
+            } else if (current_char == '#') {
                 advance();
-                if (current_char == '*') {
+                if (current_char == '{') {
                     ignoreMulticomment();
                 }
             }
@@ -202,18 +202,12 @@ namespace Odo::Lexing {
 
         if (current_char != NULLCHR && current_char == '#') {
             advance();
-            ignoreComment();
-        }
-
-        if (current_char == '/') {
-            advance();
-            if (current_char == '*') {
+            if (current_char == '{') {
                 advance();
                 ignoreMulticomment();
                 ignoreWhitespace();
             } else {
-                current_pos -= 2;
-                advance();
+                ignoreComment();
             }
         }
 
