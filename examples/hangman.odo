@@ -53,7 +53,7 @@ func contains(string s[], string val): bool {
     return false
 }
 
-while ((right_guesses < w_length) && (errors < max_errors)) {
+while ((right_guesses < w_length) and (errors < max_errors)) {
     clear()
     println("Current guesses: ")
     foreach char : guessed {

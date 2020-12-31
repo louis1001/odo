@@ -173,13 +173,13 @@ class Maze {
                 if ws[0] {
                     b[y - 1][x + 0] = path_spaces
                 }
-                if ws[1] || (c.x == 0 && c.y == 0){
+                if ws[1] or (c.x == 0 and c.y == 0){
                     b[y + 0][x - 1] = path_spaces
                 }
                 if ws[2] {
                     b[y + 1][x + 0] = path_spaces
                 }
-                if ws[3] || (c.x == width-1 && c.y == height-1){
+                if ws[3] or (c.x == width-1 and c.y == height-1){
                     b[y + 0][x + 1] = path_spaces
                 }
             }

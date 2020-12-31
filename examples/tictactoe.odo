@@ -23,7 +23,7 @@ while !has_finished {
     println()
     print_table(board)
     int move = read_int("Your move: ")
-    if (move >= 9) || (move < 0) {
+    if (move >= 9) or (move < 0) {
         println("Please, input a number between 0 and 8")
         read()
         continue

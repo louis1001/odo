@@ -44,7 +44,7 @@ class Lexer {
     }
 
     func ignore_whitespace() {
-        while current_char() != "" && isWhitespace(current_char()) {
+        while current_char() != "" and isWhitespace(current_char()) {
             advance()
         }
     }
@@ -128,14 +128,14 @@ func isNumber(string char): bool {
 
 func isAlpha(string char, bool check_undescore = false) {
     if check_undescore {
-        return isSomething(char, alpha) || char == "_"
+        return isSomething(char, alpha) or char == "_"
     }
 
     return isSomething(char, alpha)
 }
 
 func isAlphaNum(string char) {
-    return isNumber(char) || isAlpha(char, true)
+    return isNumber(char) or isAlpha(char, true)
 }
 
 func isWhitespace(string char) {

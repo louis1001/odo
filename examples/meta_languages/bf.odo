@@ -59,14 +59,14 @@ class Lexer {
     }
 
     func ignoreAny() {
-        while currChar() != null && !isOperator() {
+        while currChar() != null and !isOperator() {
             pos++
         }
     }
 
     func getNextToken(): Node {
         ignoreAny()
-        if currChar() == null || pos >= length(text) {
+        if currChar() == null or pos >= length(text) {
             return new Token(null)
         }
 
@@ -153,7 +153,7 @@ class Parser {
     func block() {
         TType delimiters[] = [TType::cll, null]
         AST statements[] = []
-        while currToken.tp != null && currToken.tp != TType::cll {
+        while currToken.tp != null and currToken.tp != TType::cll {
             AST n = statement()
             statements += n
         }
