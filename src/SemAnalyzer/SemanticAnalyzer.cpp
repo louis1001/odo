@@ -247,8 +247,6 @@ namespace Odo::Semantics {
                         varSym = module_context->findSymbol(as_static_var->name.value, false);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::ClassType) {
                         varSym = getStaticFromClass(leftHandSym, as_static_var);
-                    } else if (leftHandSym->tp->kind == Interpreting::SymbolType::ClassType) {
-                        varSym = getStaticFromClass(leftHandSym->tp, as_static_var);
                     } else if (leftHandSym->kind == Interpreting::SymbolType::EnumType) {
                         auto context = get_semantic_context(leftHandSym);
                         auto sm = context->findSymbol(as_static_var->name.value, false);
@@ -261,6 +259,8 @@ namespace Odo::Semantics {
                                     mem->column_number
                             );
                         }
+                    } else if (leftHandSym->tp && leftHandSym->tp->kind == Interpreting::SymbolType::ClassType) {
+                        varSym = getStaticFromClass(leftHandSym->tp, as_static_var);
                     } else {
                         throw Exceptions::NameException(
                                 //TODO Change to cannot read static
