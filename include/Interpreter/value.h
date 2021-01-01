@@ -181,17 +181,27 @@ namespace Odo::Interpreting {
     };
 
     class Interpreter;
-    typedef std::function<std::any(std::vector<std::any>)> native_function;
+    typedef std::function<std::any(std::vector<std::any>)> simple_primitives_function_type;
+    typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> handle_values_function_type;
     struct NativeFunctionValue final: public Value {
-        native_function fn;
+        enum class NativeFunctionType {
+            Simple,
+            Values,
+            Nodes
+        };
+        simple_primitives_function_type fn;
+        handle_values_function_type values_fn;
         std::vector<std::pair<Symbol*, bool>> arguments;
         ValueType kind() final { return ValueType::NativeFunctionVal; }
+        NativeFunctionType function_kind;
 
         std::shared_ptr<Value> copy() final;
 
-        NativeFunctionValue(Symbol*, std::vector<std::pair<Symbol*, bool>>, native_function);
+        NativeFunctionValue(Symbol*, std::vector<std::pair<Symbol*, bool>>, simple_primitives_function_type);
+        NativeFunctionValue(Symbol*, std::vector<std::pair<Symbol*, bool>>, handle_values_function_type);
 
-        static std::shared_ptr<NativeFunctionValue> create(Symbol*, std::vector<std::pair<Symbol*, bool>>, native_function);
+        static std::shared_ptr<NativeFunctionValue> create(Symbol*, const std::vector<std::pair<Symbol*, bool>>&, const simple_primitives_function_type&);
+        static std::shared_ptr<NativeFunctionValue> create(Symbol*, const std::vector<std::pair<Symbol*, bool>>& args, const handle_values_function_type&);
     };
 
 }

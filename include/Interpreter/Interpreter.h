@@ -42,7 +42,9 @@ namespace Odo::Interpreting {
         value_t returning_native;
         std::vector<Frame> call_stack;
 
-        void add_function(const std::string&, const std::vector<std::pair<Symbol*, bool>>&, Symbol*, std::function<std::any(std::vector<std::any>)>);
+        void add_function(const std::string&, const std::vector<std::pair<Symbol*, bool>>&, Symbol*, const std::function<std::any(std::vector<std::any>)>&);
+        void add_function(const std::string&, const std::vector<std::pair<Symbol*, bool>>&, Symbol*, const std::function<value_t(
+        std::vector<value_t>)>&);
 
         unsigned int current_line{0};
         unsigned int current_col{0};

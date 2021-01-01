@@ -153,23 +153,15 @@ namespace Odo::Interpreting {
             );
         });
 
-        add_native_function(LENGTH_FN, [&](std::vector<value_t> v){
-            if (!v.empty()) {
-                auto arg = v[0];
-                if (arg->type->name == STRING_TP) {
-                    size_t len = Value::as<NormalValue>(arg)->as_string().size();
-                    return create_literal((int)len);
-                } else if (arg->kind() == ValueType::ListVal) {
-                    size_t len = Value::as<ListValue>(arg)->as_list_value().size();
-                    return create_literal((int)len);
-                }
+        auto lst_of_any = globalTable.addListType(&globalTable.symbols.at(ANY_TP));
+        add_function(
+            LENGTH_FN,
+            {{lst_of_any, false}},
+            &globalTable.symbols.at(INT_TP),
+            [this](const std::vector<value_t>& vals){
+                return create_literal((int)Value::as<ListValue>(vals[0])->elements.size());
             }
-            throw Exceptions::FunctionCallException(
-                LENGTH_REQ_ARGS_EXCP,
-                current_line,
-                current_col
-            );
-        });
+        );
 
         add_native_function(FROM_ASCII_FN, [&](std::vector<value_t> vals){
             if (!vals.empty()) {
@@ -464,14 +456,14 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_function(CLEAR_FN, {}, nullptr, [](auto){std::cout << "\033[2J\033[1;1H"; return nullptr;});
-        add_function(WAIT_FN, {}, nullptr,[](auto){ std::cin.get(); return nullptr; });
+        add_function(CLEAR_FN, {}, nullptr, [](auto){std::cout << "\033[2J\033[1;1H"; return 0;});
+        add_function(WAIT_FN, {}, nullptr,[](auto){ std::cin.get(); return 0; });
 
         add_function(SLEEP_FN, {}, nullptr, [](auto vals){
             auto delay_time = std::any_cast<int>(vals[0]);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_time));
 
-            return nullptr;
+            return 0;
         });
 
         add_native_function(READ_FILE_FN, [&](const auto& vals){
@@ -586,7 +578,7 @@ namespace Odo::Interpreting {
         const std::string& name,
         const std::vector<std::pair<Symbol*, bool>>& args,
         Symbol* ret,
-        std::function<std::any(std::vector<std::any>)> callback
+        const std::function<std::any(std::vector<std::any>)>& callback
     ) {
         auto function_type = globalTable.addFuncType(ret, args);
 
@@ -598,7 +590,29 @@ namespace Odo::Interpreting {
 
         analyzer->get_function_context_map().insert({function_type, args});
 
-        auto func_value = Interpreting::NativeFunctionValue::create(function_type, args, std::move(callback));
+        auto func_value = Interpreting::NativeFunctionValue::create(function_type, args, callback);
+        function_symbol->value = func_value;
+        function_symbol->is_initialized = true;
+    }
+
+    void Interpreter::add_function(
+            const std::string &name,
+            const std::vector<std::pair<Symbol*, bool>>& args,
+            Symbol *ret,
+            const std::function<value_t(
+                    std::vector<value_t>)> &callback
+    ) {
+        auto function_type = globalTable.addFuncType(ret, args);
+
+        auto function_symbol = globalTable.addSymbol({
+            .tp=function_type,
+            .name=name,
+            .kind=Interpreting::SymbolType::FunctionSymbol
+        });
+
+        analyzer->get_function_context_map().insert({function_type, args});
+
+        auto func_value = Interpreting::NativeFunctionValue::create(function_type, args, callback);
         function_symbol->value = func_value;
         function_symbol->is_initialized = true;
     }
@@ -2047,36 +2061,44 @@ namespace Odo::Interpreting {
         auto fVal = visit(node->expr);
         if (fVal->kind() == ValueType::NativeFunctionVal) {
             auto as_native = Value::as<NativeFunctionValue>(fVal);
-            std::vector<std::any> args;
-            auto& function_params = as_native->arguments;
-            for(auto i = 0; i < node->args.size(); i++) {
-                auto arg = node->args[i];
-                auto val = visit(arg);
-                // Really messy. I dont like this.
-                // I'll worry about making it functional right now.
-                // Efficient and good code later.
-                if (function_params.size() > i) {
-                    auto param_type = function_params[i].first;
-                    if (val->type != param_type && param_type->is_numeric()) {
-                        if (param_type->name == INT_TP) {
-                            auto as_double = Value::as<NormalValue>(val)->as_double();
-                            val = create_literal((int)as_double);
-                        } else {
-                            auto as_int = Value::as<NormalValue>(val)->as_int();
-                            val = create_literal((double)as_int);
+            if (as_native->function_kind == NativeFunctionValue::NativeFunctionType::Simple) {
+                std::vector<std::any> args;
+                auto &function_params = as_native->arguments;
+                for (auto i = 0; i < node->args.size(); i++) {
+                    auto arg = node->args[i];
+                    auto val = visit(arg);
+                    // Really messy. I dont like this.
+                    // I'll worry about making it functional right now.
+                    // Efficient and good code later.
+                    if (function_params.size() > i) {
+                        auto param_type = function_params[i].first;
+                        if (val->type != param_type && param_type->is_numeric()) {
+                            if (param_type->name == INT_TP) {
+                                auto as_double = Value::as<NormalValue>(val)->as_double();
+                                val = create_literal((int) as_double);
+                            } else {
+                                auto as_int = Value::as<NormalValue>(val)->as_int();
+                                val = create_literal((double) as_int);
+                            }
                         }
                     }
+                    args.push_back(Value::as<NormalValue>(val)->val);
                 }
-                args.push_back(Value::as<NormalValue>(val)->val);
-            }
-            auto result = as_native->fn(args);
+                auto result = as_native->fn(args);
 
-            // If the function has return type, return something.
-            if (as_native->type->tp) {
-                return NormalValue::create(as_native->type->tp, result);
-            }
+                // If the function has return type, return something.
+                if (as_native->type->tp) {
+                    return NormalValue::create(as_native->type->tp, result);
+                }
 
-            return null;
+                return null;
+            } else if (as_native->function_kind == NativeFunctionValue::NativeFunctionType::Values) {
+                std::vector<value_t> arguments;
+                for (const auto& arg : node->args) {
+                    arguments.push_back(visit(arg));
+                }
+                return as_native->values_fn(arguments);
+            }
         } else if (fVal->kind() == ValueType::FunctionVal) {
             auto as_function_value = Value::as<FunctionValue>(fVal);
 

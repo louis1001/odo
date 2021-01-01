@@ -29,7 +29,6 @@ namespace Odo::Semantics {
         native_function_data[WRITELN_FN] = {};
         native_function_data[MOVE_CRSR_FN] = {};
         native_function_data[FACTR_FN] = {type_int, true, false};
-        native_function_data[LENGTH_FN] = {type_int};
         native_function_data[FROM_ASCII_FN] = {type_string};
         native_function_data[TO_ASCII_FN] = {type_int};
         native_function_data[POW_FN] = {type_double};
@@ -47,9 +46,6 @@ namespace Odo::Semantics {
         native_function_data[POP_FN] = {inter.any_type()};
         native_function_data[PUSH_FN] = {};
         native_function_data[TYPEOF_FN] = {type_string};
-        native_function_data[CLEAR_FN] = {};
-        native_function_data[WAIT_FN] = {};
-        native_function_data[SLEEP_FN] = {};
         native_function_data[ABOUT_FN] = {};
         native_function_data[EXIT_FN] = {};
 
