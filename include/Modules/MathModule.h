@@ -15,8 +15,8 @@ namespace Odo::Modules {
         explicit MathModule(Interpreting::Interpreter& inter)
             : NativeModule(module_name(), inter)
         {
-            add_literal("e", std::numbers::e);
-            add_literal("pi", std::numbers::pi);
+            add_literal(E_CONST, std::numbers::e);
+            add_literal(PI_CONST, std::numbers::pi);
 
             add_function(FACTR_FN, {{int_type, false}}, int_type, [](auto vals){
                 int bound = std::any_cast<int>(vals[0]);
@@ -74,13 +74,13 @@ namespace Odo::Modules {
                 return result;
             });
 
-            add_function("exp", {{double_type, false}}, double_type,
+            add_function(EXP_FN, {{double_type, false}}, double_type,
                 [](auto vals){
                     return exp(std::any_cast<double>(vals[0]));
                 }
             );
         }
-        std::string module_name() final { return "math"; }
+        std::string module_name() final { return MATH_MD; }
     };
 }
 

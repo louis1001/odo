@@ -15,7 +15,7 @@ namespace Odo::Modules {
         explicit IOModule(Interpreting::Interpreter& inter)
         : NativeModule(module_name(), inter)
         {
-            add_function("write_to_file", {{string_type, false}, {string_type, false}}, nullptr,
+            add_function(WRITE_TO_FILE_FN, {{string_type, false}, {string_type, false}}, nullptr,
                 [](auto vals){
                     auto path = std::any_cast<std::string>(vals[0]);
                     auto content = std::any_cast<std::string>(vals[1]);
@@ -25,7 +25,7 @@ namespace Odo::Modules {
                 }
             );
         }
-        std::string module_name() final { return "io"; }
+        std::string module_name() final { return IO_MD; }
     };
 }
 
