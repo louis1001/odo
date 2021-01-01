@@ -151,6 +151,8 @@ namespace Odo::Semantics {
         auto prev_sym = sym;
         Interpreting::Symbol* tp;
 
+        if (dimensions == 0) return sym;
+
         do {
             tp = inter.globalTable.addListType(prev_sym);
     
@@ -803,16 +805,7 @@ namespace Odo::Semantics {
             std::shared_ptr<Node> iterator_decl;
             auto empty_initial = NoOpNode::create();
             auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value.type->tp->name);
-            if (lst_value.type->tp && lst_value.type->tp->kind == Interpreting::SymbolType::ListType) {
-                iterator_decl = ListDeclarationNode::create(
-                        std::move(element_tp),
-                        node->var,
-                        1,
-                        std::move(empty_initial)
-                );
-            } else {
-                iterator_decl = VarDeclarationNode::create(std::move(element_tp), node->var, std::move(empty_initial));
-            }
+            iterator_decl = VarDeclarationNode::create(std::move(element_tp), node->var, std::move(empty_initial));
 
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
