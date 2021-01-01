@@ -41,6 +41,8 @@ namespace Odo::Interpreting {
         std::shared_ptr<Value> returning_native;
         std::vector<Frame> call_stack;
 
+        void add_function(const std::string&, const std::vector<std::pair<Symbol*, bool>>&, Symbol*, std::function<std::any(std::vector<std::any>)>);
+
         unsigned int current_line{0};
         unsigned int current_col{0};
 

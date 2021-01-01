@@ -97,6 +97,8 @@ namespace Odo::Interpreting {
         returning = nullptr;
         returning_native = nullptr;
 
+        analyzer = std::make_shared<Semantics::SemanticAnalyzer>(*this);
+
 #ifdef DEBUG_FUNCTIONS
         add_native_function("valueAt", [&](auto values) {
             int a = values[0]->as_int();
@@ -462,17 +464,14 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(CLEAR_FN, [&](auto){std::cout << "\033[2J\033[1;1H"; return null;});
+        add_function(CLEAR_FN, {}, nullptr, [](auto){std::cout << "\033[2J\033[1;1H"; return nullptr;});
+        add_function(WAIT_FN, {}, nullptr,[](auto){ std::cin.get(); return nullptr; });
 
-        add_native_function(WAIT_FN, [&](auto){ std::cin.get(); return null; });
+        add_function(SLEEP_FN, {}, nullptr, [](auto vals){
+            auto delay_time = std::any_cast<int>(vals[0]);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_time));
 
-        add_native_function(SLEEP_FN, [&](std::vector<std::shared_ptr<Value>> vals){
-            if (!vals.empty()) {
-                auto delay_time = Value::as<NormalValue>(vals[0])->as_int();
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay_time));
-            }
-            return null;
+            return nullptr;
         });
 
         add_native_function(READ_FILE_FN, [&](const auto& vals){
@@ -577,12 +576,31 @@ namespace Odo::Interpreting {
             }
             return null;
         });
-
-        analyzer = std::make_shared<Semantics::SemanticAnalyzer>(*this);
     }
 
     Symbol* Interpreter::any_type() {
         return &globalTable.symbols[ANY_TP];
+    }
+
+    void Interpreter::add_function(
+        const std::string& name,
+        const std::vector<std::pair<Symbol*, bool>>& args,
+        Symbol* ret,
+        std::function<std::any(std::vector<std::any>)> callback
+    ) {
+        auto function_type = globalTable.addFuncType(ret, args);
+
+        auto function_symbol = globalTable.addSymbol({
+            .tp=function_type,
+            .name=name,
+            .kind=Interpreting::SymbolType::FunctionSymbol
+        });
+
+        analyzer->get_function_context_map().insert({function_type, args});
+
+        auto func_value = Interpreting::NativeFunctionValue::create(function_type, args, std::move(callback));
+        function_symbol->value = func_value;
+        function_symbol->is_initialized = true;
     }
 
     std::pair<std::shared_ptr<Value>, std::shared_ptr<Value>>
