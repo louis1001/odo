@@ -1630,8 +1630,9 @@ namespace Odo::Semantics {
         auto instance_scope = add_semantic_context(instanceInTable, instance_scope_temporary);
 
         instance_scope->addSymbol({
-            inTable,
-            THIS_VAR
+            .tp=inTable,
+            .name=THIS_VAR,
+            .is_initialized=true
         });
         auto instance_body_node = InstanceBodyNode::create(Node::as<ClassBodyNode>(node->body)->statements);
 
