@@ -24,7 +24,7 @@
  # ■ • • • ■ • • • • • • • • • • • • • • • •
  # ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
  #
- #}
+ }#
 
 module mu {
 
@@ -61,11 +61,32 @@ class Neighbor {
 }
 
 class Maze {
-    int width
-    int height
+    int width = 1
+    int height = 1
 
 # I'm not handling this syntax for bi-dimensional lists.
-    Cell cells[][]
+    Cell cells[][] = []
+
+    func find_neighbors(int x, int y): Cell[] {
+            Cell ns[] = [null, null, null, null]
+
+            if y > 0 {
+                ns[0] = cells[y-1][x]
+            }
+            if x > 0 {
+                ns[1] = cells[y][x-1]
+            }
+
+            if y < height-1 {
+                ns[2] = cells[y+1][x]
+            }
+
+            if x < width-1 {
+                ns[3] = cells[y][x+1]
+            }
+
+            return ns
+        }
 
     init(int w, int h) {
         width = w
@@ -87,25 +108,10 @@ class Maze {
         }
     }
 
-    func find_neighbors(int x, int y): Cell {
-        Cell ns[] = [null, null, null, null]
+    static func choose(Neighbor lst[]): Neighbor {
+        int rnd_index = randInt(0, length(lst))
 
-        if y > 0 {
-            ns[0] = cells[y-1][x]
-        }
-        if x > 0 {
-            ns[1] = cells[y][x-1]
-        }
-
-        if y < height-1 {
-            ns[2] = cells[y+1][x]
-        }
-
-        if x < width-1 {
-            ns[3] = cells[y][x+1]
-        }
-
-        return ns
+        return lst[rnd_index]
     }
 
     func generate() {
@@ -117,16 +123,17 @@ class Maze {
         int max_visit = width * height
 
         while length(stack) > 0 {
+            # Need to fine a way of knowing what type will pop have
             Cell current = pop(stack)
             write("Generating Maze: ", trunc(to_percent(n_visited, max_visit)), "%\r")
 
-            Cell possible_neighbors[] = []
+            Neighbor possible_neighbors[] = []
 
             int i = 0
             foreach neigh_cell : current.neighbors {
                 if (neigh_cell != null) {
                     if (!neigh_cell.visited) {
-                        possible_neighbors += new Neighbor(neigh_cell, i)
+                        push(possible_neighbors, new Neighbor(neigh_cell, i))
                     }
                 }
 
@@ -137,7 +144,7 @@ class Maze {
 
             if (neigh_amount > 0) {
                 stack += current
-                Neighbor next = mu::choose(possible_neighbors)
+                Neighbor next = this::choose(possible_neighbors)
 
                 current.walls[next.dir] = true
                 next.cell.walls[(next.dir+2)%4] = true
