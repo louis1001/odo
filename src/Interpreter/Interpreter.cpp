@@ -578,7 +578,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        analyzer = std::make_unique<Semantics::SemanticAnalyzer>(*this);
+        analyzer = std::make_shared<Semantics::SemanticAnalyzer>(*this);
     }
 
     Symbol* Interpreter::any_type() {
@@ -2028,7 +2028,37 @@ namespace Odo::Interpreting {
 
         auto fVal = visit(node->expr);
         if (fVal->kind() == ValueType::NativeFunctionVal) {
-            return Value::as<NativeFunctionValue>(fVal)->visit(*this, {});
+            auto as_native = Value::as<NativeFunctionValue>(fVal);
+            std::vector<std::any> args;
+            auto& function_params = as_native->arguments;
+            for(auto i = 0; i < node->args.size(); i++) {
+                auto arg = node->args[i];
+                auto val = visit(arg);
+                // Really messy. I dont like this.
+                // I'll worry about making it functional right now.
+                // Efficient and good code later.
+                if (function_params.size() > i) {
+                    auto param_type = function_params[i].first;
+                    if (val->type != param_type && param_type->is_numeric()) {
+                        if (param_type->name == INT_TP) {
+                            auto as_double = Value::as<NormalValue>(val)->as_double();
+                            val = create_literal((int)as_double);
+                        } else {
+                            auto as_int = Value::as<NormalValue>(val)->as_int();
+                            val = create_literal((double)as_int);
+                        }
+                    }
+                }
+                args.push_back(Value::as<NormalValue>(val)->val);
+            }
+            auto result = as_native->fn(args);
+
+            // If the function has return type, return something.
+            if (as_native->type->tp) {
+                return NormalValue::create(as_native->type->tp, result);
+            }
+
+            return null;
         } else if (fVal->kind() == ValueType::FunctionVal) {
             auto as_function_value = Value::as<FunctionValue>(fVal);
 

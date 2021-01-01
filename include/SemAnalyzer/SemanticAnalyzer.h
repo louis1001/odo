@@ -158,6 +158,8 @@ namespace Odo::Semantics {
 
         Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, const Interpreting::SymbolTable&);
 
+        std::map<Interpreting::Symbol*, arg_types>& get_function_context_map() { return functions_context; }
+
         NodeResult visit(const std::shared_ptr<Parsing::Node>&);
         NodeResult from_repl(const std::shared_ptr<Parsing::Node>&);
     };

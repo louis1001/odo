@@ -181,18 +181,17 @@ namespace Odo::Interpreting {
     };
 
     class Interpreter;
-    typedef std::function<std::shared_ptr<Value>(Interpreter&, std::vector<std::shared_ptr<Value>>)> native_function;
+    typedef std::function<std::any(std::vector<std::any>)> native_function;
     struct NativeFunctionValue final: public Value {
         native_function fn;
+        std::vector<std::pair<Symbol*, bool>> arguments;
         ValueType kind() final { return ValueType::NativeFunctionVal; }
 
         std::shared_ptr<Value> copy() final;
 
-        std::shared_ptr<Value> visit(Interpreter&, std::vector<std::shared_ptr<Value>>) const;
+        NativeFunctionValue(Symbol*, std::vector<std::pair<Symbol*, bool>>, native_function);
 
-        NativeFunctionValue(Symbol*, native_function);
-
-        static std::shared_ptr<NativeFunctionValue> create(Symbol*, native_function);
+        static std::shared_ptr<NativeFunctionValue> create(Symbol*, std::vector<std::pair<Symbol*, bool>>, native_function);
     };
 
 }

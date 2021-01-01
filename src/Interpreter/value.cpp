@@ -246,17 +246,14 @@ namespace Odo::Interpreting {
     }
 
     std::shared_ptr<Value> NativeFunctionValue::copy() {
-        auto copied_value = std::make_shared<NativeFunctionValue>(type, fn);
+        auto copied_value = std::make_shared<NativeFunctionValue>(type, arguments, fn);
         return copied_value;
     }
 
-    NativeFunctionValue::NativeFunctionValue(Symbol* tp, native_function fn_): Value(tp), fn(std::move(fn_)) {}
+    NativeFunctionValue::NativeFunctionValue(Symbol* tp, std::vector<std::pair<Symbol*, bool>> args, native_function fn_)
+        : Value(tp), arguments(args), fn(std::move(fn_)) {}
 
-    std::shared_ptr<NativeFunctionValue> NativeFunctionValue::create(Symbol* tp, native_function fn_) {
-        return std::make_shared<NativeFunctionValue>(tp, fn_);
-    }
-
-    std::shared_ptr<Value> NativeFunctionValue::visit(Interpreter& in, std::vector<std::shared_ptr<Value>> params) const {
-        return fn(in, std::move(params));
+    std::shared_ptr<NativeFunctionValue> NativeFunctionValue::create(Symbol* tp, std::vector<std::pair<Symbol*, bool>> args, native_function fn_) {
+        return std::make_shared<NativeFunctionValue>(tp, args, fn_);
     }
 }

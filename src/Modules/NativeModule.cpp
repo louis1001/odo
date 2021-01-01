@@ -6,10 +6,12 @@
 #include "Modules/NativeModule.h"
 #include "Interpreter/value.h"
 #include "Interpreter/Interpreter.h"
+#include "SemAnalyzer/SemanticAnalyzer.h"
 
 namespace Odo::Modules {
     NativeModule::NativeModule(const std::string& name, Interpreting::Interpreter& inter)
         : ModuleValue(nullptr, {name, {}, &inter.get_global()})
+        , analyzer(inter.get_analyzer())
     {
         int_type = &inter.get_global().symbols[INT_TP];
         double_type = &inter.get_global().symbols[DOUBLE_TP];
@@ -51,5 +53,27 @@ namespace Odo::Modules {
             .value = Interpreting::NormalValue::create(bool_type, value),
             .is_initialized = true
         });
+    }
+
+    void NativeModule::add_function(
+        const std::string &name,
+        const std::vector<std::pair<Interpreting::Symbol *, bool>> &arg_types,
+        Interpreting::Symbol *ret, std::function<std::any(std::vector<std::any>)> callback
+    )
+    {
+        auto function_type = ownScope.addFuncType(ret, arg_types);
+
+        auto function_symbol = ownScope.addSymbol({
+            .tp=function_type,
+            .name=name,
+            .kind=Interpreting::SymbolType::FunctionSymbol
+        });
+
+        auto an = analyzer.lock();
+        an->get_function_context_map().insert({function_type, arg_types});
+
+        auto func_value = Interpreting::NativeFunctionValue::create(function_type, arg_types, std::move(callback));
+        function_symbol->value = func_value;
+        function_symbol->is_initialized = true;
     }
 }

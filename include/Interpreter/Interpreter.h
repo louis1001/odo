@@ -24,7 +24,7 @@ namespace Odo::Interpreting {
     class Interpreter {
         Parsing::Parser parser;
 
-        std::unique_ptr<Semantics::SemanticAnalyzer> analyzer {nullptr};
+        std::shared_ptr<Semantics::SemanticAnalyzer> analyzer {nullptr};
 
         std::vector<std::shared_ptr<Value>> constructorParams;
 
@@ -127,6 +127,8 @@ namespace Odo::Interpreting {
         int add_native_function(const std::string& name, NativeFunction callback);
 
         SymbolTable& get_global() { return globalTable; };
+
+        std::shared_ptr<Semantics::SemanticAnalyzer> get_analyzer() { return analyzer; }
 
         void add_module(std::shared_ptr<Modules::NativeModule>);
         void set_repl_last(std::shared_ptr<Value> v);

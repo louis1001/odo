@@ -7,6 +7,7 @@
 #define ODO_IOMODULE_H
 #include "Interpreter/Interpreter.h"
 #include "NativeModule.h"
+#include "IO/io.h"
 
 namespace Odo::Modules {
     class IOModule : public NativeModule {
@@ -14,8 +15,15 @@ namespace Odo::Modules {
         explicit IOModule(Interpreting::Interpreter& inter)
         : NativeModule(module_name(), inter)
         {
-            add_literal("hostname", std::string("louis1001"));
-            add_literal("working", true);
+            add_function("write_to_file", {{string_type, false}, {string_type, false}}, nullptr,
+                [](auto vals){
+                    auto path = std::any_cast<std::string>(vals[0]);
+                    auto content = std::any_cast<std::string>(vals[1]);
+
+                    io::write_to_file(path, content);
+                    return nullptr;
+                }
+            );
         }
         std::string module_name() final { return "io"; }
     };

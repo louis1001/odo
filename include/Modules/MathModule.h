@@ -17,7 +17,25 @@ namespace Odo::Modules {
             add_literal("e", std::numbers::e);
             add_literal("pi", std::numbers::pi);
 
-            // add_function("pow", arg_types, ret_type, [&](){});
+            add_function(
+                "pow",
+                {{double_type, false}, {double_type, true}},
+                double_type,
+                [&](auto vals){
+                    auto x = std::any_cast<double>(vals[0]);
+                    double y = 2;
+                    if (vals.size() == 2) {
+                        y = std::any_cast<double>(vals[1]);
+                    }
+                    return pow(x, y);
+                }
+            );
+
+            add_function("exp", {{double_type, false}}, double_type,
+                [](auto vals){
+                    return exp(std::any_cast<double>(vals[0]));
+                }
+            );
         }
         std::string module_name() final { return "math"; }
     };
