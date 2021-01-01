@@ -114,6 +114,7 @@ namespace Odo::Semantics {
 
     bool SemanticAnalyzer::counts_as(Interpreting::Symbol* type1, Interpreting::Symbol* type2) {
         if (type2 == inter.any_type()) return true;
+        if (type1 == inter.any_type()) return true;
         if (type1 == inter.null->type && type2->kind == Interpreting::SymbolType::ClassType) return true;
 
         if (type1->is_numeric() && type2->is_numeric()) return true;
