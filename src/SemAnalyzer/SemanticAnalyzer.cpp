@@ -1783,10 +1783,7 @@ namespace Odo::Semantics {
 //
 //        auto constr_call = FuncCallNode::create(constr_name, {Lexing::NOTHING, ""}, node->params);
 
-        auto temp = currentScope;
-        currentScope = instance_scope;
-
-        auto constr = currentScope->findSymbol("constructor");
+        auto constr = instance_scope->findSymbol("constructor");
 
         const auto& parameters_in_template = get_function_semantic_context(constr->tp);
         auto& call_args = node->params;
@@ -1824,7 +1821,6 @@ namespace Odo::Semantics {
                 );
             }
         }
-        currentScope = temp;
 
         return {class_symbol};
     }
