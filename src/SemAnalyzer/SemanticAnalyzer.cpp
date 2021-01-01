@@ -1367,7 +1367,12 @@ namespace Odo::Semantics {
             typeOfFunc = globalScope.addFuncType(returnType, typeName);
             func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
         } else {
-            func_scope = *get_semantic_context(typeOfFunc);
+            auto existing_context = get_semantic_context(typeOfFunc);
+            if (existing_context) {
+                func_scope = *existing_context;
+            } else {
+                func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
+            }
         }
         func_scope.setParent(currentScope);
 
@@ -1699,7 +1704,12 @@ namespace Odo::Semantics {
             typeOfFunc = globalScope.addFuncType(nullptr, typeName);
             func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
         } else {
-            func_scope = *get_semantic_context(typeOfFunc);
+            auto existing_context = get_semantic_context(typeOfFunc);
+            if (existing_context) {
+                func_scope = *existing_context;
+            } else {
+                func_scope = *add_function_semantic_context(typeOfFunc, typeName, paramTypes);
+            }
         }
         func_scope.setParent(currentScope);
 
@@ -1965,7 +1975,12 @@ namespace Odo::Semantics {
             fnType = globalScope.addFuncType(ret_type_symbol, fnName);
             func_scope = *add_function_semantic_context(fnType, fnName, as_function_types);
         } else {
-            func_scope = *get_semantic_context(fnType);
+            auto existing_context = get_semantic_context(fnType);
+            if (existing_context) {
+                func_scope = *existing_context;
+            } else {
+                func_scope = *add_function_semantic_context(fnType, fnName, as_function_types);
+            }
         }
 
         currentScope->addAlias(node->name.value, fnType);
