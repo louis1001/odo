@@ -124,6 +124,10 @@ namespace Odo::Semantics {
 
         if (type1->is_numeric() && type2->is_numeric()) return true;
 
+        if (type1->kind == type2->kind && type1->kind == Interpreting::SymbolType::ListType) {
+            return counts_as(type1->tp, type2->tp);
+        }
+
         auto curr = type1;
         while (curr) {
             if (curr == type2) return true;
@@ -1476,7 +1480,7 @@ namespace Odo::Semantics {
                     if (!counts_as(arg_result.type, par)) {
                         // Error! invalid type for call argument
                         throw Exceptions::TypeException(
-                                "(SemAn) " INVALID_TP_FOR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->tp->name + BUT_RECVD_EXCP + arg_result.type->name,
+                                "(SemAn) " INVALID_TP_FOR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->name + BUT_RECVD_EXCP + arg_result.type->name,
                                 node->line_number,
                                 node->column_number
                         );
