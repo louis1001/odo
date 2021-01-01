@@ -46,8 +46,6 @@ namespace Odo::Semantics {
         native_function_data[POP_FN] = {inter.any_type()};
         native_function_data[PUSH_FN] = {};
         native_function_data[TYPEOF_FN] = {type_string};
-        native_function_data[ABOUT_FN] = {};
-        native_function_data[EXIT_FN] = {};
 
         native_function_data[TO_ABS_PATH_FN] = {type_string};
         native_function_data[GET_CWD_FN] = {type_string};

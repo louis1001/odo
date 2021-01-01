@@ -98,14 +98,12 @@ int main(int argc, char* argv[]) {
     } else {
         bool continuing = true;
 
-        inter.add_native_function(EXIT_FN, [&](auto vals){
+        inter.add_function(EXIT_FN, [&continuing](){
             continuing = false;
-            return inter.get_null();
         });
 
-        inter.add_native_function(ABOUT_FN, [&](auto) {
+        inter.add_function(ABOUT_FN, [logo]() {
             std::cout << logo << std::endl;
-            return inter.get_null();
         });
 
         // NOLINTNEXTLINE

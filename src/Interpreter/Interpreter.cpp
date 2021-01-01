@@ -771,6 +771,10 @@ namespace Odo::Interpreting {
         return 0;
     }
 
+    void Interpreter::add_function(const std::string& name, const std::function<void()> &callback) {
+        add_function(name, {}, nullptr, [callback](auto){ callback(); return 0; });
+    }
+
     void Interpreter::add_module(std::shared_ptr<Modules::NativeModule> moduleValue) {
         auto mod_table = moduleValue->ownScope;
         auto modSym = currentScope->addSymbol({

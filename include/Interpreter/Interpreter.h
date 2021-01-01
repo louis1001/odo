@@ -130,6 +130,7 @@ namespace Odo::Interpreting {
         value_t visit(const std::shared_ptr<Parsing::Node>& node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
+        void add_function(const std::string &name, const std::function<void()> &callback);
 
         SymbolTable& get_global() { return globalTable; };
 
