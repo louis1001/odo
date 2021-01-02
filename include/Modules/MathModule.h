@@ -6,7 +6,7 @@
 #ifndef ODO_MATHMODULE_H
 #define ODO_MATHMODULE_H
 #include "Modules/NativeModule.h"
-#include <numbers>
+// #include <numbers>
 #include <cmath>
 
 namespace Odo::Modules {
@@ -15,8 +15,9 @@ namespace Odo::Modules {
         explicit MathModule(Interpreting::Interpreter& inter)
             : NativeModule(module_name(), inter)
         {
-            add_literal(E_CONST, std::numbers::e);
-            add_literal(PI_CONST, std::numbers::pi);
+            add_literal(E_CONST, 2.718281828459045);
+            add_literal(PI_CONST, 3.141592653589793);
+            add_literal(TAU_CONST, 6.283185307179586);
 
             add_function(FACTR_FN, {{int_type, false}}, int_type, [](auto vals){
                 int bound = std::any_cast<int>(vals[0]);
