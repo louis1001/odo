@@ -1609,7 +1609,13 @@ namespace Odo::Semantics {
         auto prevScope = currentScope;
         currentScope = classScope;
 
-        visit(node->body);
+        try {
+            visit(node->body);
+        } catch (Exceptions::OdoException& e) {
+            prevScope->removeSymbol(inTable);
+            throw e;
+        }
+
         currentScope = prevScope;
 
         inTable->is_initialized = true;
