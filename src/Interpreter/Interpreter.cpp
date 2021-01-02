@@ -126,7 +126,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(MOVE_CRSR_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(MOVE_CRSR_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 auto nv = Value::as<NormalValue>(vals[0]);
                 if (nv) {
@@ -137,7 +137,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(FACTR_FN, [&](std::vector<std::shared_ptr<Value>> v){
+        add_native_function(FACTR_FN, [&](std::vector<value_t> v){
             if (!v.empty() && v[0]->type->name == INT_TP) {
                 int arg1 = Value::as<NormalValue>(v[0])->as_int();
                 int result = 1;
@@ -153,7 +153,7 @@ namespace Odo::Interpreting {
             );
         });
 
-        add_native_function(LENGTH_FN, [&](std::vector<std::shared_ptr<Value>> v){
+        add_native_function(LENGTH_FN, [&](std::vector<value_t> v){
             if (!v.empty()) {
                 auto arg = v[0];
                 if (arg->type->name == STRING_TP) {
@@ -171,7 +171,7 @@ namespace Odo::Interpreting {
             );
         });
 
-        add_native_function(FROM_ASCII_FN, [&](std::vector<std::shared_ptr<Value>> vals){
+        add_native_function(FROM_ASCII_FN, [&](std::vector<value_t> vals){
             if (!vals.empty()) {
                 int val = Value::as<NormalValue>(vals[0])->as_int();
 
@@ -181,7 +181,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(TO_ASCII_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(TO_ASCII_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 char val = Value::as<NormalValue>(vals[0])->as_string()[0];
 
@@ -191,7 +191,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(POW_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(POW_FN, [&](std::vector<value_t> vals) {
             if (vals.size() >= 2) {
                 bool result_as_int = true;
                 double a = 0, b = 0;
@@ -222,7 +222,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(SQRT_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(SQRT_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
@@ -238,7 +238,7 @@ namespace Odo::Interpreting {
             }
             return null;
         });
-        add_native_function(SIN_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(SIN_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
@@ -254,7 +254,7 @@ namespace Odo::Interpreting {
             }
             return null;
         });
-        add_native_function(COS_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(COS_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 double a = 0;
 
@@ -271,7 +271,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(FLOOR_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(FLOOR_FN, [&](std::vector<value_t> vals) {
             if (vals.size() == 1) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
 
@@ -290,7 +290,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(TRUNC_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(TRUNC_FN, [&](std::vector<value_t> vals) {
             if (vals.size() == 1) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
                 double v = 0;
@@ -308,7 +308,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(ROUND_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(ROUND_FN, [&](std::vector<value_t> vals) {
             if (!vals.empty()) {
                 auto v1 = Value::as<NormalValue>(vals[0]);
                 double v = 0;
@@ -346,7 +346,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(READ_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_FN, [&](const std::vector<value_t>& vals) {
             std::string result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -356,7 +356,7 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function(READ_INT_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_INT_FN, [&](const std::vector<value_t>& vals) {
             int result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -366,7 +366,7 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function(READ_DOUBLE_FN, [&](const std::vector<std::shared_ptr<Value>>& vals) {
+        add_native_function(READ_DOUBLE_FN, [&](const std::vector<value_t>& vals) {
             double result;
             for (const auto& v : vals) {
                 std::cout << v->to_string();
@@ -376,7 +376,7 @@ namespace Odo::Interpreting {
             return create_literal(result);
         });
 
-        add_native_function(RAND_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(RAND_FN, [&](std::vector<value_t> vals) {
             double min = 0.0;
             double max = 1.0;
             if (vals.size() == 1) {
@@ -405,7 +405,7 @@ namespace Odo::Interpreting {
             return create_literal(rand_double(min, max));
         });
 
-        add_native_function(RAND_INT_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(RAND_INT_FN, [&](std::vector<value_t> vals) {
             int min = 0;
             int max = INT32_MAX;
             if (vals.size() == 1) {
@@ -418,7 +418,7 @@ namespace Odo::Interpreting {
             return create_literal(rand_int(min, max));
         });
 
-        add_native_function(POP_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(POP_FN, [&](std::vector<value_t> vals) {
             if (vals.size() == 1) {
                 auto& lst = vals[0];
                 if (lst->kind() == ValueType::ListVal) {
@@ -436,7 +436,7 @@ namespace Odo::Interpreting {
             return null;
         });
 
-        add_native_function(PUSH_FN, [&](std::vector<std::shared_ptr<Value>> vals) {
+        add_native_function(PUSH_FN, [&](std::vector<value_t> vals) {
             if (vals.size() == 2) {
                 auto& lst = vals[0];
                 if (lst->kind() == ValueType::ListVal) {
@@ -529,7 +529,7 @@ namespace Odo::Interpreting {
 
                 std::vector<Symbol> lst_syms;
                 for(const auto& f : result) {
-                    std::shared_ptr<Value> val = create_literal(f);
+                    value_t val = create_literal(f);
                     lst_syms.push_back({
                         val->type,
                         "list_element",
@@ -537,7 +537,7 @@ namespace Odo::Interpreting {
                     });
                 }
 
-                std::shared_ptr<Value> list_value = ListValue::create(globalTable.findSymbol(STRING_TP), std::move(lst_syms));
+                value_t list_value = ListValue::create(globalTable.findSymbol(STRING_TP), std::move(lst_syms));
                 return list_value;
             }
             return null;
@@ -603,8 +603,8 @@ namespace Odo::Interpreting {
         function_symbol->is_initialized = true;
     }
 
-    std::pair<std::shared_ptr<Value>, std::shared_ptr<Value>>
-    Interpreter::coerce_type(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs) {
+    std::pair<value_t, value_t>
+    Interpreter::coerce_type(const value_t& lhs, const value_t& rhs) {
         auto result = std::pair{lhs, rhs};
         if (lhs->type->kind != SymbolType::PrimitiveType || rhs->type->kind != SymbolType::PrimitiveType)
             return result;
@@ -630,7 +630,7 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    std::shared_ptr<Value> Interpreter::visit(const std::shared_ptr<Node>& node) {
+    value_t Interpreter::visit(const std::shared_ptr<Node>& node) {
         current_line = node->line_number;
         current_col = node->column_number;
         switch (node->kind()) {
@@ -771,7 +771,7 @@ namespace Odo::Interpreting {
         analyzer->add_semantic_context(modSym, mod_table);
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
+    value_t Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
         std::any newValue;
         if (kind == DOUBLE_TP) {
             newValue = strtod(val.c_str(), nullptr);
@@ -800,43 +800,43 @@ namespace Odo::Interpreting {
         return normal_value;
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal_from_any(const std::any& val, const std::string &kind) {
+    value_t Interpreter::create_literal_from_any(const std::any& val, const std::string &kind) {
         return NormalValue::create(globalTable.findSymbol(kind), val);
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal(std::string val) {
+    value_t Interpreter::create_literal(std::string val) {
         return create_literal_from_any(val, STRING_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal(int val) {
+    value_t Interpreter::create_literal(int val) {
         return create_literal_from_any(val, INT_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal(double val) {
+    value_t Interpreter::create_literal(double val) {
         return create_literal_from_any(val, DOUBLE_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::create_literal(bool val) {
+    value_t Interpreter::create_literal(bool val) {
         return create_literal_from_any(val, BOOL_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Double(const std::shared_ptr<DoubleNode>& node) {
+    value_t Interpreter::visit_Double(const std::shared_ptr<DoubleNode>& node) {
         return create_literal_from_string(node->token.value, DOUBLE_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Int(const std::shared_ptr<IntNode>& node) {
+    value_t Interpreter::visit_Int(const std::shared_ptr<IntNode>& node) {
         return create_literal_from_string(node->token.value, INT_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Bool(const std::shared_ptr<BoolNode>& node) {
+    value_t Interpreter::visit_Bool(const std::shared_ptr<BoolNode>& node) {
         return create_literal_from_string(node->token.value, BOOL_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Str(const std::shared_ptr<StrNode>& node) {
+    value_t Interpreter::visit_Str(const std::shared_ptr<StrNode>& node) {
         return create_literal_from_string(node->token.value, STRING_TP);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Block(const std::shared_ptr<BlockNode>& node) {
+    value_t Interpreter::visit_Block(const std::shared_ptr<BlockNode>& node) {
         auto blockScope = SymbolTable("block_scope", {}, currentScope);
         currentScope = &blockScope;
 
@@ -855,7 +855,7 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_TernaryOp(const std::shared_ptr<TernaryOpNode>& node) {
+    value_t Interpreter::visit_TernaryOp(const std::shared_ptr<TernaryOpNode>& node) {
         auto val_cond = visit(node->cond);
         if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
@@ -875,7 +875,7 @@ namespace Odo::Interpreting {
         return nullptr;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_If(const std::shared_ptr<IfNode>& node) {
+    value_t Interpreter::visit_If(const std::shared_ptr<IfNode>& node) {
         auto val_cond = visit(node->cond);
         if (val_cond->type->name != BOOL_TP) {
             throw Exceptions::TypeException(
@@ -894,7 +894,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_For(const std::shared_ptr<ForNode>& node) {
+    value_t Interpreter::visit_For(const std::shared_ptr<ForNode>& node) {
         auto forScope = SymbolTable("for:loop", {}, currentScope);
         currentScope = &forScope;
 
@@ -940,7 +940,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ForEach(const std::shared_ptr<ForEachNode>& node) {
+    value_t Interpreter::visit_ForEach(const std::shared_ptr<ForEachNode>& node) {
         auto forScope = SymbolTable("foreach:loop", {}, currentScope);
         currentScope = &forScope;
 
@@ -1049,7 +1049,7 @@ namespace Odo::Interpreting {
 
     }
 
-    std::shared_ptr<Value> Interpreter::visit_FoRange(const std::shared_ptr<FoRangeNode>& node){
+    value_t Interpreter::visit_FoRange(const std::shared_ptr<FoRangeNode>& node){
         auto forScope = SymbolTable("forange:loop", {}, currentScope);
         currentScope = &forScope;
 
@@ -1134,7 +1134,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_While(const std::shared_ptr<WhileNode>& node) {
+    value_t Interpreter::visit_While(const std::shared_ptr<WhileNode>& node) {
         auto whileScope = SymbolTable("while:loop", {}, currentScope);
         currentScope = &whileScope;
 
@@ -1170,7 +1170,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Loop(const std::shared_ptr<LoopNode>& node) {
+    value_t Interpreter::visit_Loop(const std::shared_ptr<LoopNode>& node) {
         while(true){
             visit(node->body);
             if (breaking) {
@@ -1189,7 +1189,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_VarDeclaration(const std::shared_ptr<VarDeclarationNode>& node) {
+    value_t Interpreter::visit_VarDeclaration(const std::shared_ptr<VarDeclarationNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
                     VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
@@ -1197,7 +1197,7 @@ namespace Odo::Interpreting {
                     current_col
             );
         } else {
-            std::shared_ptr<Value> newValue;
+            value_t newValue;
             if (node->initial)
                 newValue = visit(node->initial);
             auto type_ = currentScope->findSymbol(node->var_type.value);
@@ -1211,7 +1211,7 @@ namespace Odo::Interpreting {
             }
 
             Symbol newVar;
-            std::shared_ptr<Value> valueReturn;
+            value_t valueReturn;
 
             if (node->initial && node->initial->kind() != NodeType::NoOp) {
                 if (newValue->is_copyable()) {
@@ -1252,7 +1252,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
+    value_t Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
                     VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
@@ -1271,7 +1271,7 @@ namespace Odo::Interpreting {
         }
 
         Symbol* newVar;
-        std::shared_ptr<Value> valueReturn = null;
+        value_t valueReturn = null;
 
         Symbol* list_type;
 
@@ -1314,7 +1314,7 @@ namespace Odo::Interpreting {
         return valueReturn;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Assignment(const std::shared_ptr<AssignmentNode>& node) {
+    value_t Interpreter::visit_Assignment(const std::shared_ptr<AssignmentNode>& node) {
         auto varSym = getSymbolFromNode(node->expr);
         auto newValue = visit(node->val);
 
@@ -1353,7 +1353,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
+    value_t Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
         auto found = currentScope->findSymbol(node->token.value);
 
         if (found != nullptr) {
@@ -1371,7 +1371,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
+    value_t Interpreter::visit_Index(const std::shared_ptr<IndexNode>& node) {
         auto visited_val = visit(node->val);
 
         if (visited_val->type->name == STRING_TP) {
@@ -1436,7 +1436,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ListExpression(const std::shared_ptr<ListExpressionNode>& node) {
+    value_t Interpreter::visit_ListExpression(const std::shared_ptr<ListExpressionNode>& node) {
         Symbol* list_t = nullptr;
         std::vector<Symbol> list_syms;
 
@@ -1456,7 +1456,7 @@ namespace Odo::Interpreting {
                 }
             }
 
-            std::shared_ptr<Value> actual_value;
+            value_t actual_value;
 
             if (visited_element->is_copyable()) {
                 actual_value = visited_element->copy();
@@ -1485,7 +1485,7 @@ namespace Odo::Interpreting {
         return new_list_value;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_BinOp(const std::shared_ptr<BinOpNode>& node) {
+    value_t Interpreter::visit_BinOp(const std::shared_ptr<BinOpNode>& node) {
         auto leftVisited = visit(node->left);
         leftVisited->important = true;
         auto rightVisited = visit(node->right);
@@ -1501,7 +1501,7 @@ namespace Odo::Interpreting {
                 auto right_as_normal = Value::as<NormalValue>(rightVisited);
                 if (leftVisited->kind() == ValueType::ListVal) {
                     auto left_as_list = Value::as<ListValue>(leftVisited);
-                    std::shared_ptr<Value> new_list;
+                    value_t new_list;
 
                     if (rightVisited->kind() == ValueType::ListVal) {
                         auto right_as_list = Value::as<ListValue>(rightVisited);
@@ -1865,7 +1865,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_UnaryOp(const std::shared_ptr<UnaryOpNode>& node) {
+    value_t Interpreter::visit_UnaryOp(const std::shared_ptr<UnaryOpNode>& node) {
         auto result = visit(node->ast);
 
         auto result_as_normal = Value::as<NormalValue>(result);
@@ -1900,7 +1900,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Module(const std::shared_ptr<ModuleNode>& node) {
+    value_t Interpreter::visit_Module(const std::shared_ptr<ModuleNode>& node) {
         SymbolTable module_scope = {
             "module-scope",
             {},
@@ -1924,12 +1924,12 @@ namespace Odo::Interpreting {
         return moduleValue;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Import(const std::shared_ptr<ImportNode>& node) {
+    value_t Interpreter::visit_Import(const std::shared_ptr<ImportNode>& node) {
         interpret_as_module(node->path.value, node->name);
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Define(const std::shared_ptr<DefineNode>& node) {
+    value_t Interpreter::visit_Define(const std::shared_ptr<DefineNode>& node) {
         std::vector<std::pair<Symbol*, bool>> as_function_types;
         as_function_types.reserve(node->args.size());
 
@@ -1953,7 +1953,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_FuncExpression(const std::shared_ptr<FuncExpressionNode>& node){
+    value_t Interpreter::visit_FuncExpression(const std::shared_ptr<FuncExpressionNode>& node){
         auto returnType =
                 node->retType.tp == Lexing::NOTHING
                 ? nullptr
@@ -1974,7 +1974,7 @@ namespace Odo::Interpreting {
         return funcValue;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_FuncDecl(const std::shared_ptr<FuncDeclNode>& node){
+    value_t Interpreter::visit_FuncDecl(const std::shared_ptr<FuncDeclNode>& node){
 
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
@@ -2012,7 +2012,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_FuncCall(const std::shared_ptr<FuncCallNode>& node) {
+    value_t Interpreter::visit_FuncCall(const std::shared_ptr<FuncCallNode>& node) {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
             throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
@@ -2023,7 +2023,7 @@ namespace Odo::Interpreting {
 
             if (found_in_natives != native_functions.end()) {
                 auto num_args = node->args.size();
-                std::vector<std::shared_ptr<Value>> arguments_visited;
+                std::vector<value_t> arguments_visited;
 
                 std::vector<bool> was_important{};
                 for(int i = 0; i < num_args; i++){
@@ -2084,7 +2084,7 @@ namespace Odo::Interpreting {
             auto calleeScope = currentScope;
 
             std::vector<std::shared_ptr<Node>> newDecls;
-            std::vector< std::pair<Lexing::Token, std::shared_ptr<Value>> > initValues;
+            std::vector< std::pair<Lexing::Token, value_t> > initValues;
 
             for (int i = 0; i < as_function_value->params.size(); i++) {
                 auto par = as_function_value->params[i];
@@ -2139,7 +2139,7 @@ namespace Odo::Interpreting {
         throw Exceptions::ValueException(VAL_NOT_FUNC_EXCP, current_line, current_col);
     }
 
-    std::shared_ptr<Value> Interpreter::visit_FuncBody(const std::shared_ptr<FuncBodyNode>& node) {
+    value_t Interpreter::visit_FuncBody(const std::shared_ptr<FuncBodyNode>& node) {
         auto temp = currentScope;
         auto bodyScope = SymbolTable("func-body-scope", {}, currentScope);
 
@@ -2159,13 +2159,13 @@ namespace Odo::Interpreting {
         return ret ? ret : null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Return(const std::shared_ptr<ReturnNode>& node) {
+    value_t Interpreter::visit_Return(const std::shared_ptr<ReturnNode>& node) {
         returning = visit(node->val);
         returning->important = true;
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Enum(const std::shared_ptr<EnumNode>& node) {
+    value_t Interpreter::visit_Enum(const std::shared_ptr<EnumNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
                     VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
@@ -2203,7 +2203,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_Class(const std::shared_ptr<ClassNode>& node) {
+    value_t Interpreter::visit_Class(const std::shared_ptr<ClassNode>& node) {
         Symbol* typeSym = nullptr;
 
         if (node->ty.tp != Lexing::NOTHING) {
@@ -2241,7 +2241,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ClassBody(const std::shared_ptr<ClassBodyNode>& node) {
+    value_t Interpreter::visit_ClassBody(const std::shared_ptr<ClassBodyNode>& node) {
         for (auto& st : node->statements) {
             if (st->kind() == NodeType::StaticStatement)
                 visit(Node::as<StaticStatementNode>(st)->statement);
@@ -2250,7 +2250,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ConstructorDecl(const std::shared_ptr<ConstructorDeclNode>& node) {
+    value_t Interpreter::visit_ConstructorDecl(const std::shared_ptr<ConstructorDeclNode>& node) {
         Symbol* retType = nullptr;
 
         auto paramTypes = getParamTypes(node->params);
@@ -2270,7 +2270,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ConstructorCall(const std::shared_ptr<ConstructorCallNode>& node) {
+    value_t Interpreter::visit_ConstructorCall(const std::shared_ptr<ConstructorCallNode>& node) {
         if (call_stack.size() >= MAX_CALL_DEPTH) {
             throw Exceptions::RecursionException(CALL_DEPTH_EXC_EXCP, current_line, current_col);
         }
@@ -2292,7 +2292,7 @@ namespace Odo::Interpreting {
             auto calleeScope = currentScope;
 
             std::vector<std::shared_ptr<Node>> newDecls;
-            std::vector< std::pair<Lexing::Token, std::shared_ptr<Value>> > initValues;
+            std::vector< std::pair<Lexing::Token, value_t> > initValues;
 
             for (int i = 0; i < as_function_value->params.size(); i++) {
                 auto par = as_function_value->params[i];
@@ -2351,7 +2351,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_ClassInitializer(const std::shared_ptr<ClassInitializerNode>& node) {
+    value_t Interpreter::visit_ClassInitializer(const std::shared_ptr<ClassInitializerNode>& node) {
         if (auto classInit = currentScope->findSymbol(node->name.value);
             auto classVal = Value::as<ClassValue>(classInit->value)) {
 
@@ -2360,7 +2360,7 @@ namespace Odo::Interpreting {
             auto newInstance = InstanceValue::create(classInit, classVal, instanceScope);
             newInstance->important = true;
 
-            std::vector<std::shared_ptr<Value>> newParams;
+            std::vector<value_t> newParams;
             newParams.reserve(node->params.size());
             for (const auto& v : node->params) newParams.push_back(visit(v));
             constructorParams = newParams;
@@ -2435,7 +2435,7 @@ namespace Odo::Interpreting {
         }
     }
 
-    std::shared_ptr<Value> Interpreter::visit_InstanceBody(const std::shared_ptr<InstanceBodyNode>& node){
+    value_t Interpreter::visit_InstanceBody(const std::shared_ptr<InstanceBodyNode>& node){
         for (auto& st : node->statements) {
             if (st->kind() != NodeType::StaticStatement)
                 visit(st);
@@ -2444,7 +2444,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_MemberVar(const std::shared_ptr<MemberVarNode>& node) {
+    value_t Interpreter::visit_MemberVar(const std::shared_ptr<MemberVarNode>& node) {
         auto instance = visit(node->inst);
 
         if (!instance || instance->kind() != ValueType::InstanceVal) {
@@ -2471,7 +2471,7 @@ namespace Odo::Interpreting {
         return null;
     }
 
-    std::shared_ptr<Value> Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
+    value_t Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
         auto symbol = getSymbolFromNode(node);
         if (symbol && symbol->value) {
             return symbol->value;
@@ -2611,7 +2611,7 @@ namespace Odo::Interpreting {
         call_stack.pop_back();
     }
 
-    std::shared_ptr<Value> Interpreter::eval(std::string code) {
+    value_t Interpreter::eval(std::string code) {
 
         call_stack.push_back({"global", 1, 1});
         parser.set_text(std::move(code));
@@ -2641,7 +2641,7 @@ namespace Odo::Interpreting {
         return result;
     }
 
-    void Interpreter::set_repl_last(std::shared_ptr<Value> v) {
+    void Interpreter::set_repl_last(value_t v) {
         auto& last_value_symbol = replScope.symbols.at("_");
         // Note: This may have some mistakes if the value has no references.
         // But by the nature of the repl, there shouldn't be much problems
@@ -2649,7 +2649,7 @@ namespace Odo::Interpreting {
         last_value_symbol.value = std::move(v);
     }
 
-    std::shared_ptr<Value> Interpreter::interpret_as_module(const std::string &path, const Lexing::Token& name) {
+    value_t Interpreter::interpret_as_module(const std::string &path, const Lexing::Token& name) {
         bool has_extension = ends_with(path, ".odo");
 
         std::string full_path = path;

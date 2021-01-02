@@ -16,29 +16,30 @@
 #include <functional>
 #include <vector>
 
-#define INTER_VISITOR(X) std::shared_ptr<Value> visit_ ## X(const std::shared_ptr<Parsing::X ## Node>&)
+#define INTER_VISITOR(X) value_t visit_ ## X(const std::shared_ptr<Parsing::X ## Node>&)
 
 #define MAX_CALL_DEPTH 800
 namespace Odo::Interpreting {
-    typedef std::function<std::shared_ptr<Value>(std::vector<std::shared_ptr<Value>>)> NativeFunction;
+    typedef std::shared_ptr<Value> value_t;
+    typedef std::function<value_t(std::vector<value_t>)> NativeFunction;
     class Interpreter {
         Parsing::Parser parser;
 
         std::shared_ptr<Semantics::SemanticAnalyzer> analyzer {nullptr};
 
-        std::vector<std::shared_ptr<Value>> constructorParams;
+        std::vector<value_t> constructorParams;
 
         SymbolTable globalTable;
         SymbolTable* currentScope;
         SymbolTable replScope;
 
-        std::shared_ptr<Value> null;
+        value_t null;
         Symbol* any_type();
 
         bool breaking = false;
         bool continuing = false;
-        std::shared_ptr<Value> returning;
-        std::shared_ptr<Value> returning_native;
+        value_t returning;
+        value_t returning_native;
         std::vector<Frame> call_stack;
 
         void add_function(const std::string&, const std::vector<std::pair<Symbol*, bool>>&, Symbol*, std::function<std::any(std::vector<std::any>)>);
@@ -48,15 +49,15 @@ namespace Odo::Interpreting {
 
         std::map<std::string, NativeFunction> native_functions;
 
-        std::pair<std::shared_ptr<Value>, std::shared_ptr<Value>>
-        coerce_type(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
+        std::pair<value_t, value_t>
+        coerce_type(const value_t& lhs, const value_t& rhs);
 
-        std::shared_ptr<Value> create_literal_from_string(std::string val, const std::string& kind);
-        std::shared_ptr<Value> create_literal_from_any(const std::any& val, const std::string& kind);
-        std::shared_ptr<Value> create_literal(std::string val);
-        std::shared_ptr<Value> create_literal(int val);
-        std::shared_ptr<Value> create_literal(double val);
-        std::shared_ptr<Value> create_literal(bool val);
+        value_t create_literal_from_string(std::string val, const std::string& kind);
+        value_t create_literal_from_any(const std::any& val, const std::string& kind);
+        value_t create_literal(std::string val);
+        value_t create_literal(int val);
+        value_t create_literal(double val);
+        value_t create_literal(bool val);
 
         INTER_VISITOR(Double);
         INTER_VISITOR(Int);
@@ -114,7 +115,7 @@ namespace Odo::Interpreting {
         INTER_VISITOR(MemberVar);
         INTER_VISITOR(StaticVar);
 
-        std::shared_ptr<Value> interpret_as_module(const std::string &path, const Lexing::Token& name);
+        value_t interpret_as_module(const std::string &path, const Lexing::Token& name);
 
         std::vector<std::pair<Symbol*, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
 
@@ -123,8 +124,8 @@ namespace Odo::Interpreting {
         friend class Semantics::SemanticAnalyzer;
     public:
         void interpret(std::string);
-        std::shared_ptr<Value> eval(std::string);
-        std::shared_ptr<Value> visit(const std::shared_ptr<Parsing::Node>& node);
+        value_t eval(std::string);
+        value_t visit(const std::shared_ptr<Parsing::Node>& node);
         explicit Interpreter(Parsing::Parser p=Parsing::Parser());
         int add_native_function(const std::string& name, NativeFunction callback);
 
@@ -133,10 +134,10 @@ namespace Odo::Interpreting {
         std::shared_ptr<Semantics::SemanticAnalyzer> get_analyzer() { return analyzer; }
 
         void add_module(std::shared_ptr<Modules::NativeModule>);
-        void set_repl_last(std::shared_ptr<Value> v);
+        void set_repl_last(value_t v);
 
         std::vector<Frame>& get_call_stack() { return call_stack; };
-        std::shared_ptr<Value> get_null() { return null; }
+        value_t get_null() { return null; }
     };
 }
 #endif //ODO_PORT_INTERPRETER_H
