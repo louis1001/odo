@@ -11,6 +11,7 @@
 #define MATH_MD "mate"
 #define E_CONST "e"
 #define PI_CONST "pi"
+#define TAU_CONST "tau"
 #define EXP_FN "exp"
 
 #endif //ODO_MODULES_EN_H
