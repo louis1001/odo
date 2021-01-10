@@ -47,6 +47,8 @@ namespace Odo::Interpreting {
         bool content_is_constant{false};
         bool content_has_side_effects{false};
 
+        bool has_been_checked = true;
+
         std::function<void(Symbol*)> ondestruction{nullptr};
 
         [[nodiscard]] bool is_numeric() const { return name == INT_TP || name == DOUBLE_TP; }

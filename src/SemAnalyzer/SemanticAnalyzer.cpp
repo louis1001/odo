@@ -8,6 +8,7 @@
 #include <IO/io.h>
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
+#include <iostream>
 
 #define TEST_SEMANTICS
 
@@ -59,6 +60,8 @@ namespace Odo::Semantics {
         native_function_data[CREATE_FILE_FN] = {};
         native_function_data[WRITE_TO_FILE_FN] = {};
         native_function_data[APPEND_TO_FILE_FN] = {};
+        std::cout << "Constructor finished\n";
+        push_lazy_scope();
     }
 
     SemanticAnalyzer::~SemanticAnalyzer() {
@@ -85,7 +88,54 @@ namespace Odo::Semantics {
     }
 
     void SemanticAnalyzer::add_lazy_check(Interpreting::Symbol* sym, lazy_check check) {
-       // current_lazy_scope->insert({sym, std::move(check)});
+        std::cout << "Adding the check\n";
+        sym->has_been_checked = false;
+        std::cout << "Setting the check flag " << current_lazy_scope->size() << "\n";
+        current_lazy_scope->insert({sym, std::move(check)});
+        std::cout << "Going out of this\n";
+    }
+
+    void SemanticAnalyzer::consume_lazy(Interpreting::Symbol* sym) {
+        std::cout << "About to consume a lazy symbol\n";
+        if (current_lazy_scope) {
+            auto in_scope = current_lazy_scope->find(sym);
+            if (in_scope != current_lazy_scope->end()) {
+                auto& checks = in_scope->second;
+                try {
+                    std::cout << "Consuming the lazy body\n";
+                    checks.body();
+                    std::cout << "Successfully consumed the lazy body\n";
+                } catch (Exceptions::OdoException& e) {
+                    checks.on_error();
+                    throw e;
+                }
+                in_scope->first->has_been_checked = true;
+            }
+        }
+    }
+
+    void SemanticAnalyzer::push_lazy_scope() {
+        lazy_scope_stack.push_back({});
+        current_lazy_scope = &lazy_scope_stack.back();
+    }
+
+    void SemanticAnalyzer::pop_lazy_scope() {
+        std::cout << "Checking the scope\n";
+        if (!lazy_scope_stack.empty() && current_lazy_scope) {
+            for (const auto& symbol_analyzer : *current_lazy_scope) {
+                auto& checks = symbol_analyzer.second;
+                try {
+                    checks.body();
+                } catch (Exceptions::OdoException& e) {
+                    checks.on_error();
+                    throw e;
+                }
+                symbol_analyzer.first->has_been_checked = true;
+            }
+            lazy_scope_stack.pop_back();
+            current_lazy_scope = lazy_scope_stack.empty() ? nullptr : &lazy_scope_stack.back();
+        }
+        std::cout << "Done checking scopes\n";
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
@@ -195,8 +245,11 @@ namespace Odo::Semantics {
     }
 
     Interpreting::Symbol* SemanticAnalyzer::getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem) {
+        std::cout << "Getting a symbol from node\n";
         Interpreting::Symbol* varSym = nullptr;
 
+        // TODO: Fix this to not return early
+        //       Just assign to varSym.
         switch (mem->kind()) {
             case NodeType::Variable:
                 varSym = currentScope->findSymbol(Node::as<VariableNode>(mem)->token.value);
@@ -329,6 +382,10 @@ namespace Odo::Semantics {
             }
             default:
                 break;
+        }
+
+        if (varSym && !varSym->has_been_checked) {
+            consume_lazy(varSym);
         }
 
         return varSym;
@@ -965,10 +1022,13 @@ namespace Odo::Semantics {
     NodeResult SemanticAnalyzer::visit_Block(const std::shared_ptr<Parsing::BlockNode>& node) {
         auto blockScope = Interpreting::SymbolTable("block_scope", {}, currentScope);
         currentScope = &blockScope;
+        push_lazy_scope();
 
         for (const auto& statement : node->statements) {
             visit(statement);
         }
+
+        pop_lazy_scope();
 
         currentScope = blockScope.getParent();
         return {};
@@ -1110,6 +1170,10 @@ namespace Odo::Semantics {
 
         if (found != nullptr) {
                 // Check if initialized!
+            if (!found->has_been_checked) {
+                consume_lazy(found);
+            }
+
             if (found->is_initialized) {
                 return {
                     found->tp,
@@ -1399,10 +1463,6 @@ namespace Odo::Semantics {
             currentScope->findSymbol(name)->is_initialized = true;
         }
 
-        auto prev_accepted = accepted_return_type;
-        auto could_return = can_return;
-        can_return = true;
-        accepted_return_type = returnType;
         // FIXME: Make sure that every branch returns.
         //  I think maybe adding a field fpr that along with can_return.
         //  And branching nodes like if or loop check if their branches return.
@@ -1411,11 +1471,20 @@ namespace Odo::Semantics {
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol,{
-            [this, body=node->body, &fn_scope=func_scope](){
+            [this, body=node->body, &func_scope, returnType](){
+                auto prev_accepted = accepted_return_type;
+                auto could_return = can_return;
+                can_return = true;
+                accepted_return_type = returnType;
                 auto temp = currentScope;
-                currentScope = &fn_scope;
+                currentScope = &func_scope;
+                std::cout << "About to visit it (" << returnType << ")\n";
                 visit(body);
                 currentScope = temp;
+
+                accepted_return_type = prev_accepted;
+                can_return = could_return;
+                std::cout << "Visited it\n";
             },
             [&func_scope, func_symbol](){
                 if (auto par = func_scope.getParent())
@@ -1423,15 +1492,15 @@ namespace Odo::Semantics {
             }
         });
 
-        try {
-            visit(node->body);
-        } catch (Exceptions::OdoException& e) {
-            temp->removeSymbol(func_symbol);
-            throw e;
-        }
+        // try {
+        //     visit(node->body);
+        // } catch (Exceptions::OdoException& e) {
+        //     temp->removeSymbol(func_symbol);
+        //     throw e;
+        // }
         currentScope = temp;
-        accepted_return_type = prev_accepted;
-        can_return = could_return;
+        // accepted_return_type = prev_accepted;
+        // can_return = could_return;
 
         return {};
     }
@@ -1755,17 +1824,21 @@ namespace Odo::Semantics {
             currentScope->findSymbol(name)->is_initialized = true;
         }
 
-        auto prev_accepted = accepted_return_type;
-        auto could_return = can_return;
-        can_return = true;
-        accepted_return_type = nullptr;
-
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol, {
-            [this, body=node->body](){
+            [this, body=node->body, &func_scope](){
+                auto temp = currentScope;
+                currentScope = &func_scope;
+                auto prev_accepted = accepted_return_type;
+                auto could_return = can_return;
+                can_return = true;
+                accepted_return_type = nullptr;
                 visit(body);
+                currentScope = temp;
+                accepted_return_type = prev_accepted;
+                can_return = could_return;
             },
             [&func_scope, func_symbol](){
                 if(auto par = func_scope.getParent()){
@@ -1774,15 +1847,15 @@ namespace Odo::Semantics {
             }
         });
 
-        try {
-            visit(node->body);
-        } catch (Exceptions::OdoException& e) {
-            temp->removeSymbol(func_symbol);
-            throw e;
-        }
-        currentScope = temp;
-        accepted_return_type = prev_accepted;
-        can_return = could_return;
+        // try {
+        //     visit(node->body);
+        // } catch (Exceptions::OdoException& e) {
+        //     temp->removeSymbol(func_symbol);
+        //     throw e;
+        // }
+        // currentScope = temp;
+        // accepted_return_type = prev_accepted;
+        // can_return = could_return;
 
         return {};
     }
