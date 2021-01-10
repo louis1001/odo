@@ -80,7 +80,8 @@ namespace Odo::Semantics {
 
         struct lazy_check {
             std::function<void()> body;
-            std::function<void()> on_error;
+            Interpreting::SymbolTable* parent = nullptr;
+            std::function<void()> on_error = nullptr;
         };
         typedef std::unordered_map<Interpreting::Symbol*, lazy_check> lazy_scope;
         std::vector<lazy_scope> lazy_scope_stack{};

@@ -106,7 +106,12 @@ namespace Odo::Semantics {
                     checks.body();
                     std::cout << "Successfully consumed the lazy body\n";
                 } catch (Exceptions::OdoException& e) {
-                    checks.on_error();
+                    if (checks.on_error) {
+                        checks.on_error();
+                    }
+                    if (checks.parent) {
+                        checks.parent->removeSymbol(sym);
+                    }
                     throw e;
                 }
                 in_scope->first->has_been_checked = true;
@@ -1471,14 +1476,13 @@ namespace Odo::Semantics {
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol,{
-            [this, body=node->body, &func_scope, returnType](){
+            [this, body=node->body, func_scope, returnType](){
                 auto prev_accepted = accepted_return_type;
                 auto could_return = can_return;
                 can_return = true;
                 accepted_return_type = returnType;
                 auto temp = currentScope;
-                currentScope = &func_scope;
-                std::cout << "About to visit it (" << returnType << ")\n";
+                currentScope = const_cast<Interpreting::SymbolTable*>(&func_scope);
                 visit(body);
                 currentScope = temp;
 
@@ -1486,10 +1490,7 @@ namespace Odo::Semantics {
                 can_return = could_return;
                 std::cout << "Visited it\n";
             },
-            [&func_scope, func_symbol](){
-                if (auto par = func_scope.getParent())
-                    par->removeSymbol(func_symbol);
-            }
+            temp
         });
 
         // try {
@@ -1828,9 +1829,9 @@ namespace Odo::Semantics {
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol, {
-            [this, body=node->body, &func_scope](){
+            [this, body=node->body, func_scope](){
                 auto temp = currentScope;
-                currentScope = &func_scope;
+                currentScope = const_cast<Interpreting::SymbolTable*>(&func_scope);
                 auto prev_accepted = accepted_return_type;
                 auto could_return = can_return;
                 can_return = true;
@@ -1840,11 +1841,7 @@ namespace Odo::Semantics {
                 accepted_return_type = prev_accepted;
                 can_return = could_return;
             },
-            [&func_scope, func_symbol](){
-                if(auto par = func_scope.getParent()){
-                    par->removeSymbol(func_symbol);
-                }
-            }
+            temp
         });
 
         // try {
