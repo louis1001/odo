@@ -84,6 +84,10 @@ namespace Odo::Semantics {
         return &semantic_contexts.find(sym)->second;
     }
 
+    void SemanticAnalyzer::add_lazy_check(Interpreting::Symbol* sym, lazy_check check) {
+       // current_lazy_scope->insert({sym, std::move(check)});
+    }
+
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
         return add_semantic_context(sym, {std::move(name), {}, currentScope});
     }
@@ -1406,6 +1410,19 @@ namespace Odo::Semantics {
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
+        add_lazy_check(func_symbol,{
+            [this, body=node->body, &fn_scope=func_scope](){
+                auto temp = currentScope;
+                currentScope = &fn_scope;
+                visit(body);
+                currentScope = temp;
+            },
+            [&func_scope, func_symbol](){
+                if (auto par = func_scope.getParent())
+                    par->removeSymbol(func_symbol);
+            }
+        });
+
         try {
             visit(node->body);
         } catch (Exceptions::OdoException& e) {
@@ -1746,6 +1763,17 @@ namespace Odo::Semantics {
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
+        add_lazy_check(func_symbol, {
+            [this, body=node->body](){
+                visit(body);
+            },
+            [&func_scope, func_symbol](){
+                if(auto par = func_scope.getParent()){
+                    par->removeSymbol(func_symbol);
+                }
+            }
+        });
+
         try {
             visit(node->body);
         } catch (Exceptions::OdoException& e) {

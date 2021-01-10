@@ -78,6 +78,16 @@ namespace Odo::Semantics {
         std::map<Interpreting::Symbol*, arg_types> functions_context;
         std::map<Interpreting::Symbol*, std::vector<Interpreting::SymbolTable*>> instance_contexts;
 
+        typedef std::function<void()> symbol_content_check;
+        struct lazy_check {
+            symbol_content_check body;
+            std::function<void()> on_error;
+        };
+        typedef std::unordered_map<Interpreting::Symbol*, lazy_check> lazy_scope;
+        std::vector<lazy_scope> lazy_scope_stack;
+        lazy_scope* current_lazy_scope;
+        void add_lazy_check(Interpreting::Symbol*, lazy_check);
+
         bool inside_loop{false};
 
         bool can_return {false};
