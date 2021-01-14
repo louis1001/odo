@@ -100,7 +100,8 @@ namespace Odo::Semantics {
         if (current_lazy_scope) {
             auto in_scope = current_lazy_scope->find(sym);
             if (in_scope != current_lazy_scope->end()) {
-                auto& checks = in_scope->second;
+                auto checks = std::move(in_scope->second);
+                current_lazy_scope->erase(in_scope);
                 try {
                     std::cout << "Consuming the lazy body\n";
                     checks.body();
@@ -114,21 +115,21 @@ namespace Odo::Semantics {
                     }
                     throw e;
                 }
-                in_scope->first->has_been_checked = true;
+                sym->has_been_checked = true;
             }
         }
     }
 
     void SemanticAnalyzer::push_lazy_scope() {
-        lazy_scope_stack.push_back({});
+        lazy_scope_stack.emplace_back();
         current_lazy_scope = &lazy_scope_stack.back();
     }
 
     void SemanticAnalyzer::pop_lazy_scope() {
         std::cout << "Checking the scope\n";
         if (!lazy_scope_stack.empty() && current_lazy_scope) {
-            for (const auto& symbol_analyzer : *current_lazy_scope) {
-                auto& checks = symbol_analyzer.second;
+            for (auto symbol_analyzer : *current_lazy_scope) {
+                auto checks = std::move(symbol_analyzer.second);
                 try {
                     checks.body();
                 } catch (Exceptions::OdoException& e) {
@@ -520,7 +521,7 @@ namespace Odo::Semantics {
                 return visit_Define(Node::as<DefineNode>(node));
 
             case NodeType::Debug:
-                // noop;
+                std::cout << "In a debugging statement\n";
             case NodeType::Null:
                 return {inter.get_null()->type, true, false};
         }
