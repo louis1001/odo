@@ -1751,7 +1751,7 @@ namespace Odo::Semantics {
                 add_lazy_check(instanceInTable, {
                     [this, instance_scope, instance_body_node](auto) {
                         auto temp = currentScope;
-                        currentScope = const_cast<Interpreting::SymbolTable*>(instance_scope);
+                        currentScope = instance_scope;
                         visit(instance_body_node);
                         currentScope = temp;
                     },
@@ -1898,6 +1898,8 @@ namespace Odo::Semantics {
 //        auto constr_call = FuncCallNode::create(constr_name, {Lexing::NOTHING, ""}, node->params);
 
         auto constr = instance_scope->findSymbol("constructor");
+        if (!constr->has_been_checked)
+            consume_lazy(constr);
 
         const auto& parameters_in_template = get_function_semantic_context(constr->tp);
         auto& call_args = node->params;
