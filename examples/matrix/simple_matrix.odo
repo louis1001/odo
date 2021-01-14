@@ -4,13 +4,11 @@ int m[][] = mu::create_matrix(5, 4, func()->randInt(0, 9))
 
 mu::print_matrix(m)
 
-double mapped[][] = mu::map_matrix(m, func(int x) -> {
-    return x+rand(0, 1)
-})
+double mapped[][] = mu::map_matrix(m, func(int x) -> x+rand(0, 1))
 
 writeln("\n  |\n  v\n")
 
-mu::for_each_in_matrix(mapped, func(double x)-> {
+mu::for_each_in_matrix(mapped, func(double x) {
     write(round(x, 3), "\t")
 }, func() -> writeln())
 
