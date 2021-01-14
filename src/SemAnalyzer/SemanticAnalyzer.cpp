@@ -120,7 +120,8 @@ namespace Odo::Semantics {
 
     void SemanticAnalyzer::pop_lazy_scope() {
         if (!lazy_scope_stack.empty() && current_lazy_scope) {
-            for (auto symbol_analyzer : *current_lazy_scope) {
+            auto lz_scope = *current_lazy_scope;
+            for (const auto& symbol_analyzer : lz_scope) {
                 // Copy. Unnecessary? Probably not if there's an error.
                 auto sym = symbol_analyzer.first;
                 auto checks = symbol_analyzer.second;
