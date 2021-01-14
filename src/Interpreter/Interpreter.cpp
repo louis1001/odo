@@ -459,7 +459,7 @@ namespace Odo::Interpreting {
         add_function(CLEAR_FN, {}, nullptr, [](auto){std::cout << "\033[2J\033[1;1H"; return 0;});
         add_function(WAIT_FN, {}, nullptr,[](auto){ std::cin.get(); return 0; });
 
-        add_function(SLEEP_FN, {}, nullptr, [](auto vals){
+        add_function(SLEEP_FN, {{&globalTable.symbols.at(INT_TP), false}}, nullptr, [](auto vals){
             auto delay_time = std::any_cast<int>(vals[0]);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_time));
 
