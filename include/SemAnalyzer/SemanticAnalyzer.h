@@ -79,7 +79,7 @@ namespace Odo::Semantics {
         std::map<Interpreting::Symbol*, std::vector<Interpreting::SymbolTable*>> instance_contexts;
 
         struct lazy_check {
-            std::function<void()> body;
+            std::function<void(Interpreting::SymbolTable*)> body;
             Interpreting::SymbolTable* parent = nullptr;
             std::function<void()> on_error = nullptr;
         };

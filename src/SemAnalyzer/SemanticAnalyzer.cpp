@@ -94,10 +94,11 @@ namespace Odo::Semantics {
         if (current_lazy_scope) {
             auto in_scope = current_lazy_scope->find(sym);
             if (in_scope != current_lazy_scope->end()) {
-                auto checks = std::move(in_scope->second);
+                sym->has_been_checked = true;
+                auto checks = in_scope->second;
                 current_lazy_scope->erase(in_scope);
                 try {
-                    checks.body();
+                    checks.body(checks.parent);
                 } catch (Exceptions::OdoException& e) {
                     if (checks.on_error) {
                         checks.on_error();
@@ -119,14 +120,22 @@ namespace Odo::Semantics {
     void SemanticAnalyzer::pop_lazy_scope() {
         if (!lazy_scope_stack.empty() && current_lazy_scope) {
             for (auto symbol_analyzer : *current_lazy_scope) {
-                auto checks = std::move(symbol_analyzer.second);
+                // Copy. Unnecessary? Probably not if there's an error.
+                auto sym = symbol_analyzer.first;
+                auto checks = symbol_analyzer.second;
+                // Do it before so that recursive calls don't consider themselves not checked
+                symbol_analyzer.first->has_been_checked = true;
                 try {
-                    checks.body();
+                    checks.body(checks.parent);
                 } catch (Exceptions::OdoException& e) {
-                    checks.on_error();
+                    if (checks.on_error) {
+                        checks.on_error();
+                    }
+                    if (checks.parent) {
+                        checks.parent->removeSymbol(sym);
+                    }
                     throw e;
                 }
-                symbol_analyzer.first->has_been_checked = true;
             }
             lazy_scope_stack.pop_back();
             current_lazy_scope = lazy_scope_stack.empty() ? nullptr : &lazy_scope_stack.back();
@@ -1045,6 +1054,8 @@ namespace Odo::Semantics {
                     node->line_number,
                     node->column_number
             );
+        } else if (!type_->has_been_checked) {
+            consume_lazy(type_);
         }
 
         Interpreting::Symbol newVar = Interpreting::Symbol{
@@ -1465,7 +1476,7 @@ namespace Odo::Semantics {
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol,{
-            [this, body=node->body, func_scope, returnType](){
+            [this, body=node->body, func_scope, returnType](auto){
                 auto prev_accepted = accepted_return_type;
                 auto could_return = can_return;
                 can_return = true;
@@ -1681,83 +1692,87 @@ namespace Odo::Semantics {
 
         auto classScope = add_semantic_context(inTable, "class-" + node->name.value + "-scope");
 
-        auto prevScope = currentScope;
-        currentScope = classScope;
+        add_lazy_check(inTable, {
+            [this, inTable, node, classScope](Interpreting::SymbolTable* parentScope){
+                auto prevScope = currentScope;
+                currentScope = classScope;
+                visit(node->body);
+                currentScope = parentScope;
 
-        try {
-            visit(node->body);
-        } catch (Exceptions::OdoException& e) {
-            prevScope->removeSymbol(inTable);
-            throw e;
-        }
+                Interpreting::SymbolTable instance_scope_temporary {"instance_"+node->name.value+"_scope", {}, currentScope};
 
-        currentScope = prevScope;
+                auto inst_template_name = "__$" + inTable->name + "_instance_template";
+                Interpreting::Symbol inst_template {
+                    inTable,
+                    inst_template_name
+                };
+                inst_template.is_initialized = true;
+
+                auto instanceInTable = currentScope->addSymbol(inst_template);
+                auto instance_scope = add_semantic_context(instanceInTable, instance_scope_temporary);
+
+                instance_scope->addSymbol({
+                    .tp=inTable,
+                    .name=THIS_VAR,
+                    .is_initialized=true
+                });
+                auto instance_body_node = InstanceBodyNode::create(Node::as<ClassBodyNode>(node->body)->statements);
+
+                std::vector<Interpreting::SymbolTable*> inheritedScopes{instance_scope};
+
+                auto currentClass = inTable;
+                while (currentClass->tp != nullptr) {
+                    auto upperClass = currentClass->tp;
+
+                    currentClass = upperClass;
+
+                    auto this_template_name = "__$" + currentClass->name + "_instance_template";
+                    auto currentClassInstanceTemplate = currentScope->findSymbol(this_template_name);
+
+                    auto currentInstanceScope = get_semantic_context(currentClassInstanceTemplate);
+
+                    auto inherScope =new Interpreting::SymbolTable{
+                            "inherited-scope-" + currentClass->name,
+                            currentInstanceScope->symbols
+                    };
+
+                    inherScope->setParent(inheritedScopes.back()->getParent());
+                    inheritedScopes.back()->setParent(inherScope);
+                    inheritedScopes.push_back(inherScope);
+                }
+
+                instance_contexts[instanceInTable] = std::move(inheritedScopes);
+                instanceInTable->ondestruction = [&] (auto sym) {
+                    if(!deactivate_cleanup) {
+                        instance_contexts.erase(sym);
+                    }
+                };
+
+                add_lazy_check(instanceInTable, {
+                    [this, instance_scope, instance_body_node](auto) {
+                        auto temp = currentScope;
+                        currentScope = const_cast<Interpreting::SymbolTable*>(instance_scope);
+                        visit(instance_body_node);
+                        currentScope = temp;
+                    },
+                    currentScope
+                });
+
+                currentScope = prevScope;
+            },
+            currentScope
+        });
+
+//        try {
+//            visit(node->body);
+//        } catch (Exceptions::OdoException& e) {
+//            prevScope->removeSymbol(inTable);
+//            throw e;
+//        }
 
         inTable->is_initialized = true;
 
         // Generate the instance template and visit the body
-        Interpreting::SymbolTable instance_scope_temporary {"instance_"+node->name.value+"_scope", {}, currentScope};
-
-        auto inst_template_name = "__$" + inTable->name + "_instance_template";
-        Interpreting::Symbol inst_template {
-            inTable,
-            inst_template_name
-        };
-        inst_template.is_initialized = true;
-
-        auto instanceInTable = currentScope->addSymbol(inst_template);
-        auto instance_scope = add_semantic_context(instanceInTable, instance_scope_temporary);
-
-        instance_scope->addSymbol({
-            .tp=inTable,
-            .name=THIS_VAR,
-            .is_initialized=true
-        });
-        auto instance_body_node = InstanceBodyNode::create(Node::as<ClassBodyNode>(node->body)->statements);
-
-        std::vector<Interpreting::SymbolTable*> inheritedScopes{instance_scope};
-
-        auto currentClass = inTable;
-        while (currentClass->tp != nullptr) {
-            auto upperClass = currentClass->tp;
-
-            currentClass = upperClass;
-
-            auto this_template_name = "__$" + currentClass->name + "_instance_template";
-            auto currentClassInstanceTemplate = currentScope->findSymbol(this_template_name);
-
-            auto currentInstanceScope = get_semantic_context(currentClassInstanceTemplate);
-
-            auto inherScope =new Interpreting::SymbolTable{
-                "inherited-scope-" + currentClass->name,
-                currentInstanceScope->symbols
-            };
-
-            inherScope->setParent(inheritedScopes.back()->getParent());
-            inheritedScopes.back()->setParent(inherScope);
-            inheritedScopes.push_back(inherScope);
-        }
-
-        instance_contexts[instanceInTable] = std::move(inheritedScopes);
-        instanceInTable->ondestruction = [&] (auto sym) {
-            if(!deactivate_cleanup) {
-                instance_contexts.erase(sym);
-            }
-        };
-
-        auto temp = currentScope;
-        currentScope = instance_scope;
-
-        try {
-            visit(instance_body_node);
-        } catch (Exceptions::OdoException& e) {
-            temp->removeSymbol(inTable);
-            temp->removeSymbol(instanceInTable);
-            // TODO: Also remove the raw pointers.
-            throw e;
-        }
-
-        currentScope = temp;
 
         return {};
     }
@@ -1817,7 +1832,7 @@ namespace Odo::Semantics {
         // I don't like doing this kind of error checking inside of the whole module.
         // But the fact that I just bubble it up means it probably won't change much.
         add_lazy_check(func_symbol, {
-            [this, body=node->body, func_scope](){
+            [this, body=node->body, func_scope](auto){
                 auto temp = currentScope;
                 currentScope = const_cast<Interpreting::SymbolTable*>(&func_scope);
                 auto prev_accepted = accepted_return_type;
@@ -1863,10 +1878,17 @@ namespace Odo::Semantics {
                     node->line_number,
                     node->column_number
             );
+        } else if (!class_symbol->has_been_checked) {
+            consume_lazy(class_symbol);
         }
 
         auto template_name = "__$" + class_symbol->name + "_instance_template";
         auto instance_template = currentScope->findSymbol(template_name);
+
+        // Annoying to have to put this in every symbol check.
+        if (!instance_template->has_been_checked) {
+            consume_lazy(instance_template);
+        }
 
         auto instance_scope = get_semantic_context(instance_template);
 

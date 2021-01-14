@@ -1,49 +1,26 @@
-
-define <int:int> as int_trans
-
-func process(int vals[], int_trans fn): int[] {
-    int result[] = []
-
-    foreach x : vals {
-        push(result, fn(x))
+class A {
+    static func static_function() {
+        writeln("Calling a static function")
+        # This is it. The whole point of lazy checking.
+        A temp()
+        writeln(temp)
     }
 
-    return result
-}
-
-writeln(process([20, 30, 40], func(int i)->i*30))
-
-writeln("Now, generating a matrix:")
-
-define <int, int: int> as flatten_function
-
-func generate_matrix(int w, int h, flatten_function fn): int[][] {
-    int result[][] = []
-
-    forange x : w {
-        int row[] = []
-        forange y : h {
-            push(row, fn(y, x))
-        }
-        push(result, row)
-    }
-
-    return result
-}
-
-func show_matrix(int mat[][]) {
-    foreach row : mat {
-        foreach cell : row {
-            write(cell, " ")
-        }
-        writeln()
+    init() {
+        writeln("Hey! You constructed an A")
     }
 }
 
-# Solve error when doing int % 0
-# No check for divide by zero.
-any checker = generate_matrix(8, 8,
-    func(int x, int y) -> (x+y+1)%2
-)
+func main() {
+    writeln("Starting the program")
+    test_class()
+}
 
-show_matrix(checker)
+func test_class() {
+    writeln("Gonna test the class' lazy initializer.")
+
+    A a()
+    a::static_function()
+}
+
+main()
