@@ -8,7 +8,6 @@
 #include <IO/io.h>
 #include "Exceptions/exception.h"
 #include "Interpreter/Interpreter.h"
-#include <iostream>
 
 #define TEST_SEMANTICS
 
@@ -60,7 +59,6 @@ namespace Odo::Semantics {
         native_function_data[CREATE_FILE_FN] = {};
         native_function_data[WRITE_TO_FILE_FN] = {};
         native_function_data[APPEND_TO_FILE_FN] = {};
-        std::cout << "Constructor finished\n";
         push_lazy_scope();
     }
 
@@ -88,24 +86,18 @@ namespace Odo::Semantics {
     }
 
     void SemanticAnalyzer::add_lazy_check(Interpreting::Symbol* sym, lazy_check check) {
-        std::cout << "Adding the check\n";
         sym->has_been_checked = false;
-        std::cout << "Setting the check flag " << current_lazy_scope->size() << "\n";
         current_lazy_scope->insert({sym, std::move(check)});
-        std::cout << "Going out of this\n";
     }
 
     void SemanticAnalyzer::consume_lazy(Interpreting::Symbol* sym) {
-        std::cout << "About to consume a lazy symbol\n";
         if (current_lazy_scope) {
             auto in_scope = current_lazy_scope->find(sym);
             if (in_scope != current_lazy_scope->end()) {
                 auto checks = std::move(in_scope->second);
                 current_lazy_scope->erase(in_scope);
                 try {
-                    std::cout << "Consuming the lazy body\n";
                     checks.body();
-                    std::cout << "Successfully consumed the lazy body\n";
                 } catch (Exceptions::OdoException& e) {
                     if (checks.on_error) {
                         checks.on_error();
@@ -115,7 +107,6 @@ namespace Odo::Semantics {
                     }
                     throw e;
                 }
-                sym->has_been_checked = true;
             }
         }
     }
@@ -126,7 +117,6 @@ namespace Odo::Semantics {
     }
 
     void SemanticAnalyzer::pop_lazy_scope() {
-        std::cout << "Checking the scope\n";
         if (!lazy_scope_stack.empty() && current_lazy_scope) {
             for (auto symbol_analyzer : *current_lazy_scope) {
                 auto checks = std::move(symbol_analyzer.second);
@@ -141,7 +131,6 @@ namespace Odo::Semantics {
             lazy_scope_stack.pop_back();
             current_lazy_scope = lazy_scope_stack.empty() ? nullptr : &lazy_scope_stack.back();
         }
-        std::cout << "Done checking scopes\n";
     }
 
     Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, std::string name) {
@@ -251,7 +240,6 @@ namespace Odo::Semantics {
     }
 
     Interpreting::Symbol* SemanticAnalyzer::getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem) {
-        std::cout << "Getting a symbol from node\n";
         Interpreting::Symbol* varSym = nullptr;
 
         // TODO: Fix this to not return early
@@ -521,7 +509,7 @@ namespace Odo::Semantics {
                 return visit_Define(Node::as<DefineNode>(node));
 
             case NodeType::Debug:
-                std::cout << "In a debugging statement\n";
+                (void)0;
             case NodeType::Null:
                 return {inter.get_null()->type, true, false};
         }
@@ -1489,7 +1477,6 @@ namespace Odo::Semantics {
 
                 accepted_return_type = prev_accepted;
                 can_return = could_return;
-                std::cout << "Visited it\n";
             },
             temp
         });
