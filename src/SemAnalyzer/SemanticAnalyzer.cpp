@@ -1827,6 +1827,7 @@ namespace Odo::Semantics {
             }
             currentScope->findSymbol(name)->is_initialized = true;
         }
+        currentScope = temp;
 
         // This is a little messy.
         // I don't like doing this kind of error checking inside of the whole module.
