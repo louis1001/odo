@@ -153,15 +153,23 @@ namespace Odo::Interpreting {
             );
         });
 
-        auto lst_of_any = globalTable.addListType(&globalTable.symbols.at(ANY_TP));
-        add_function(
-            LENGTH_FN,
-            {{lst_of_any, false}},
-            &globalTable.symbols.at(INT_TP),
-            [this](const std::vector<value_t>& vals){
-                return create_literal((int)Value::as<ListValue>(vals[0])->elements.size());
+        add_native_function(LENGTH_FN, [&](std::vector<value_t> v){
+            if (!v.empty()) {
+                auto arg = v[0];
+                if (arg->type->name == STRING_TP) {
+                    size_t len = Value::as<NormalValue>(arg)->as_string().size();
+                    return create_literal((int)len);
+                } else if (arg->kind() == ValueType::ListVal) {
+                    size_t len = Value::as<ListValue>(arg)->as_list_value().size();
+                    return create_literal((int)len);
+                }
             }
-        );
+            throw Exceptions::FunctionCallException(
+                    LENGTH_REQ_ARGS_EXCP,
+                    current_line,
+                    current_col
+            );
+        });
 
         add_native_function(FROM_ASCII_FN, [&](std::vector<value_t> vals){
             if (!vals.empty()) {

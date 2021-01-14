@@ -29,6 +29,7 @@ namespace Odo::Semantics {
         native_function_data[WRITELN_FN] = {};
         native_function_data[MOVE_CRSR_FN] = {};
         native_function_data[FACTR_FN] = {type_int, true, false};
+        native_function_data[LENGTH_FN] = {type_int};
         native_function_data[FROM_ASCII_FN] = {type_string};
         native_function_data[TO_ASCII_FN] = {type_int};
         native_function_data[POW_FN] = {type_double};
