@@ -26,14 +26,6 @@
  #
  }#
 
-module mu {
-
-}
-
-func max(int a, int b): int{
-    return a > b ? a : b
-}
-
 func to_percent(int n, int m): double {
     double cn = n / (m+0.0)
     return cn * 100
@@ -68,25 +60,25 @@ class Maze {
     Cell cells[][] = []
 
     func find_neighbors(int x, int y): Cell[] {
-            Cell ns[] = [null, null, null, null]
+        Cell ns[] = [null, null, null, null]
 
-            if y > 0 {
-                ns[0] = cells[y-1][x]
-            }
-            if x > 0 {
-                ns[1] = cells[y][x-1]
-            }
-
-            if y < height-1 {
-                ns[2] = cells[y+1][x]
-            }
-
-            if x < width-1 {
-                ns[3] = cells[y][x+1]
-            }
-
-            return ns
+        if y > 0 {
+            ns[0] = cells[y-1][x]
         }
+        if x > 0 {
+            ns[1] = cells[y][x-1]
+        }
+
+        if y < height-1 {
+            ns[2] = cells[y+1][x]
+        }
+
+        if x < width-1 {
+            ns[3] = cells[y][x+1]
+        }
+
+        return ns
+    }
 
     init(int w, int h) {
         width = w
@@ -96,8 +88,9 @@ class Maze {
         forange y: h {
             Cell row[] = []
             forange x: w {
-                row += new Cell(x, y)
+                push(row, new Cell(x, y))
             }
+            push(cells, row)
         }
 
 # Debug this line. It should be working now.
