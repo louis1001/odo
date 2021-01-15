@@ -1696,6 +1696,7 @@ namespace Odo::Semantics {
 
         add_lazy_check(inTable, {
             [this, inTable, node, classScope](Interpreting::SymbolTable* parentScope){
+                push_lazy_scope();
                 auto prevScope = currentScope;
                 currentScope = classScope;
                 visit(node->body);
@@ -1761,6 +1762,7 @@ namespace Odo::Semantics {
                 });
 
                 currentScope = prevScope;
+                pop_lazy_scope();
             },
             currentScope
         });
