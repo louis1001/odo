@@ -18,7 +18,7 @@ class Token {
         name = m
     }
 
-    func to_string() {
+    func to_string(): string {
         return "Token(" + type + ", '" + name + "')"
     }
 }
@@ -112,7 +112,7 @@ class Lexer {
 string numbers = "0123456789"
 string alpha = "abcdefghijklmnopqrstuvwxyz"
 
-func isSomething (string val, string lst) {
+func isSomething (string val, string lst): bool {
     for (int i = 0; i < length(lst); i++) {
         if val == lst[i] {
             return true
@@ -126,7 +126,7 @@ func isNumber(string char): bool {
     return isSomething(char, numbers)
 }
 
-func isAlpha(string char, bool check_undescore = false) {
+func isAlpha(string char, bool check_undescore = false): bool {
     if check_undescore {
         return isSomething(char, alpha) or char == "_"
     }
@@ -134,11 +134,11 @@ func isAlpha(string char, bool check_undescore = false) {
     return isSomething(char, alpha)
 }
 
-func isAlphaNum(string char) {
+func isAlphaNum(string char): bool {
     return isNumber(char) or isAlpha(char, true)
 }
 
-func isWhitespace(string char) {
+func isWhitespace(string char): bool {
     return isSomething(char, " \n\t\r")
 }
 
