@@ -1,0 +1,62 @@
+class Color{
+    int r
+    int g
+    int b
+
+    init(int _r, int _g, int _b){
+        r = _r
+        g = _g
+        b = _b
+    }
+
+    func toString(): string{
+        return "RGB("+r+", "+g+", "+b+")"
+    }
+}
+
+class Animal{
+    string name = "generic"
+
+    static string furry
+    init(string _name){
+        name = _name
+    }
+
+    func talk(){
+        writeln("Hello. I'm an animal. My name is", name)
+    }
+}
+
+class Cat: Animal{
+    Color color
+
+    init(string _name, Color col){
+        name = _name
+        color = col
+    }
+
+    func talk(){
+        write("My name is ", name, ". I'm hijacking this request. Because i'm ")
+        if (this.color != null){
+            writeln("a ", color.toString(), " Cat")
+        } else {
+            writeln("invisible 0_0")
+        }
+    }
+}
+
+class Siamese : Cat{
+
+}
+
+func rgb(int r, int g, int b): Color{
+    return new Color(r, g, b)
+}
+
+Color black = rgb(0, 0, 0)
+
+Siamese a = new Siamese("Whiskers", black)
+a::furry = "little"
+writeln(Cat::furry)
+
+a.talk()
