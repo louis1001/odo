@@ -92,22 +92,26 @@ namespace Odo::Semantics {
     }
 
     void SemanticAnalyzer::consume_lazy(Interpreting::Symbol* sym) {
-        if (current_lazy_scope) {
-            auto in_scope = current_lazy_scope->find(sym);
-            if (in_scope != current_lazy_scope->end()) {
-                sym->has_been_checked = true;
-                auto checks = in_scope->second;
-                current_lazy_scope->erase(in_scope);
-                try {
-                    checks.body(checks.parent);
-                } catch (Exceptions::OdoException& e) {
-                    if (checks.on_error) {
-                        checks.on_error();
+        if (!lazy_scope_stack.empty()) {
+            // Travel backwards through the
+            for(auto cur = lazy_scope_stack.rbegin(); cur != lazy_scope_stack.rend(); ++cur) {
+                auto in_scope = cur->find(sym);
+                if (in_scope != cur->end()) {
+                    sym->has_been_checked = true;
+                    auto checks = in_scope->second;
+                    cur->erase(in_scope);
+                    try {
+                        checks.body(checks.parent);
+                    } catch (Exceptions::OdoException& e) {
+                        if (checks.on_error) {
+                            checks.on_error();
+                        }
+                        if (checks.parent) {
+                            checks.parent->removeSymbol(sym);
+                        }
+                        throw e;
                     }
-                    if (checks.parent) {
-                        checks.parent->removeSymbol(sym);
-                    }
-                    throw e;
+                    return;
                 }
             }
         }
@@ -1726,6 +1730,8 @@ namespace Odo::Semantics {
                 auto currentClass = inTable;
                 while (currentClass->tp != nullptr) {
                     auto upperClass = currentClass->tp;
+                    if (!upperClass->has_been_checked)
+                        consume_lazy(upperClass);
 
                     currentClass = upperClass;
 
