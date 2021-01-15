@@ -124,23 +124,27 @@ namespace Odo::Semantics {
 
     void SemanticAnalyzer::pop_lazy_scope() {
         if (!lazy_scope_stack.empty() && current_lazy_scope) {
+            // I am doing a copy of the scope, so if there's any change inside of it while iterating
+            // This copy will have no knowledge of it.
             auto lz_scope = *current_lazy_scope;
             for (const auto& symbol_analyzer : lz_scope) {
                 // Copy. Unnecessary? Probably not if there's an error.
                 auto sym = symbol_analyzer.first;
-                auto checks = symbol_analyzer.second;
-                // Do it before so that recursive calls don't consider themselves not checked
-                symbol_analyzer.first->has_been_checked = true;
-                try {
-                    checks.body(checks.parent);
-                } catch (Exceptions::OdoException& e) {
-                    if (checks.on_error) {
-                        checks.on_error();
+                if (!sym->has_been_checked){
+                    auto checks = symbol_analyzer.second;
+                    // Do it before so that recursive calls don't consider themselves not checked
+                    symbol_analyzer.first->has_been_checked = true;
+                    try {
+                        checks.body(checks.parent);
+                    } catch (Exceptions::OdoException& e) {
+                        if (checks.on_error) {
+                            checks.on_error();
+                        }
+                        if (checks.parent) {
+                            checks.parent->removeSymbol(sym);
+                        }
+                        throw e;
                     }
-                    if (checks.parent) {
-                        checks.parent->removeSymbol(sym);
-                    }
-                    throw e;
                 }
             }
             lazy_scope_stack.pop_back();
