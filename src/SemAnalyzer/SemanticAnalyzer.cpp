@@ -293,7 +293,7 @@ namespace Odo::Semantics {
                         }
                     }
                     throw Exceptions::NameException(
-                        NO_MEM_CALLED_EXCP + as_member_node->name.value + IN_THE_INST_EXCP,
+                        "(SemAn) " NO_MEM_CALLED_EXCP + as_member_node->name.value + IN_THE_INST_EXCP,
                         as_member_node->line_number,
                         as_member_node->column_number
                     );
@@ -324,7 +324,7 @@ namespace Odo::Semantics {
                             return sm;
                         } else {
                             throw Exceptions::NameException(
-                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
+                                    "(SemAn) '" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
                                     mem->line_number,
                                     mem->column_number
                             );
@@ -334,14 +334,14 @@ namespace Odo::Semantics {
                     } else {
                         throw Exceptions::NameException(
                                 //TODO Change to cannot read static
-                                INVALID_STATIC_OP_EXCP,
+                                "(SemAn) " INVALID_STATIC_OP_EXCP,
                                 mem->line_number,
                                 mem->column_number
                         );
                     }
                 } else {
                     throw Exceptions::NameException(
-                            UNKWN_VAL_IN_STATIC_EXCP,
+                            "(SemAn) " UNKWN_VAL_IN_STATIC_EXCP,
                             mem->line_number,
                             mem->column_number
                     );
@@ -510,7 +510,7 @@ namespace Odo::Semantics {
                  return visit_ClassInitializer(Node::as<ClassInitializerNode>(node));
             case NodeType::StaticStatement:
                  throw Exceptions::SemanticException(
-                        STATIC_ONLY_CLASS_EXCP,
+                        "(SemAn) " STATIC_ONLY_CLASS_EXCP,
                         node->line_number,
                         node->column_number
                 );
@@ -1315,7 +1315,7 @@ namespace Odo::Semantics {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
                         throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                "(SemAn) " UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -1329,7 +1329,7 @@ namespace Odo::Semantics {
                         is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
                         throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                "(SemAn) " UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -1339,7 +1339,7 @@ namespace Odo::Semantics {
                 default:
                     // Error! Expected variable declaration inside function parenthesis.
                     throw Exceptions::SyntaxException(
-                            EXPCT_DECL_IN_PAR_EXCP,
+                            "(SemAn) " EXPCT_DECL_IN_PAR_EXCP,
                             par->line_number,
                             par->column_number
                     );
@@ -1421,7 +1421,7 @@ namespace Odo::Semantics {
     NodeResult SemanticAnalyzer::visit_FuncDecl(const std::shared_ptr<Parsing::FuncDeclNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                "(SemAn) " VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -1586,7 +1586,11 @@ namespace Odo::Semantics {
             return {functionType->tp};
         }
 
-        throw Exceptions::ValueException(VAL_NOT_FUNC_EXCP, node->line_number, node->column_number);
+        throw Exceptions::ValueException(
+            "(SemAn) " VAL_NOT_FUNC_EXCP,
+            node->line_number,
+            node->column_number
+        );
     }
 
     NodeResult SemanticAnalyzer::visit_FuncBody(const std::shared_ptr<Parsing::FuncBodyNode>& node) {
@@ -1641,7 +1645,7 @@ namespace Odo::Semantics {
     NodeResult SemanticAnalyzer::visit_Enum(const std::shared_ptr<Parsing::EnumNode>& node) {
         if (currentScope->symbolExists(node->name.value)) {
             throw Exceptions::NameException(
-                VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
+                "(SemAn) " VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -1683,9 +1687,9 @@ namespace Odo::Semantics {
             auto sym = currentScope->findSymbol(node->ty.value);
             if (!sym || !sym->isType || sym->kind != Interpreting::SymbolType::ClassType) {
                 throw Exceptions::TypeException(
-                        CLASS_MUST_INH_TYPE_EXCP + node->ty.value + IS_INVALID_EXCP,
-                        node->line_number,
-                        node->column_number
+                    "(SemAn) " CLASS_MUST_INH_TYPE_EXCP + node->ty.value + IS_INVALID_EXCP,
+                    node->line_number,
+                    node->column_number
                 );
             }
 
@@ -1960,7 +1964,7 @@ namespace Odo::Semantics {
 
         if (!instance.type || instance.type->kind != Interpreting::SymbolType::ClassType) {
             throw Exceptions::ValueException(
-                INVALID_INS_MEM_OP_EXCP,
+                "(SemAn) " INVALID_INS_MEM_OP_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -1995,7 +1999,7 @@ namespace Odo::Semantics {
             };
         } else {
             throw Exceptions::NameException(
-                NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
+                "(SemAn) " NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
                 node->line_number,
                 node->column_number
             );
@@ -2089,7 +2093,7 @@ namespace Odo::Semantics {
         auto already_in = currentScope->symbolExists(node->name.value);
         if (already_in) {
             throw Exceptions::NameException(
-                SYM_CALLED_EXCP + node->name.value + ALR_EXISTS_IN_SCOPE_EXCP
+                "(SemAn) " SYM_CALLED_EXCP + node->name.value + ALR_EXISTS_IN_SCOPE_EXCP
             );
         }
 
@@ -2127,7 +2131,7 @@ namespace Odo::Semantics {
 
         if (currentScope->findSymbol(filename)) {
             throw Exceptions::NameException(
-                    SYM_CALLED_EXCP + filename + ALR_EXISTS_IN_SCOPE_EXCP
+                "(SemAn) " SYM_CALLED_EXCP + filename + ALR_EXISTS_IN_SCOPE_EXCP
             );
         }
 
@@ -2136,7 +2140,9 @@ namespace Odo::Semantics {
             code = io::read_file(full_path);
         } catch (Exceptions::IOException&) {
             std::string msg = CANNOT_IMPORT_MODULE_EXCP + full_path + "'.";
-            throw Exceptions::FileException(msg);
+            throw Exceptions::FileException(
+                "(SemAn) " + msg
+            );
         }
         Parsing::Parser pr;
         pr.set_text(code);
