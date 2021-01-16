@@ -866,30 +866,20 @@ namespace Odo::Interpreting {
         auto blockScope = SymbolTable("block_scope", {}, currentScope);
         currentScope = &blockScope;
 
-        auto result = null;
         for (const auto& st : node->statements) {
-            result = visit(st);
+            visit(st);
             if (breaking || continuing || returning) {
                 break;
             }
         }
 
-        result->important = true;
         currentScope = blockScope.getParent();
-        result->important = false;
 
-        return result;
+        return null;
     }
 
     value_t Interpreter::visit_TernaryOp(const std::shared_ptr<TernaryOpNode>& node) {
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != BOOL_TP) {
-            throw Exceptions::TypeException(
-                    COND_TERN_MUST_BOOL_EXCP,
-                    node->cond->line_number,
-                    node->cond->column_number
-            );
-        }
 
         bool real_condition = Value::as<NormalValue>(val_cond)->as_bool();
 
@@ -903,13 +893,7 @@ namespace Odo::Interpreting {
 
     value_t Interpreter::visit_If(const std::shared_ptr<IfNode>& node) {
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != BOOL_TP) {
-            throw Exceptions::TypeException(
-                    COND_IF_MUST_BOOL_EXCP,
-                    node->cond->line_number,
-                    node->cond->column_number
-            );
-        }
+
         bool real_condition = Value::as<NormalValue>(val_cond)->as_bool();
 
         if (real_condition) {
@@ -927,13 +911,6 @@ namespace Odo::Interpreting {
         visit(node->ini);
 
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != BOOL_TP) {
-            throw Exceptions::TypeException(
-                    COND_FOR_MUST_BOOL_EXCP,
-                    node->cond->line_number,
-                    node->cond->column_number
-            );
-        }
 
         auto actual_cond = Value::as<NormalValue>(val_cond)->as_bool();
         while(actual_cond){
@@ -1060,13 +1037,6 @@ namespace Odo::Interpreting {
                     break;
                 }
             }
-
-        } else {
-            throw Exceptions::ValueException(
-                    FOREACH_ONLY_LIST_STR_EXCP,
-                    current_line,
-                    current_col
-            );
         }
 
         currentScope = forScope.getParent();
@@ -1081,13 +1051,6 @@ namespace Odo::Interpreting {
 
         int max_in_range = 0;
         auto first_visited = visit(node->first);
-        if (!first_visited->is_numeric()) {
-            throw Exceptions::ValueException(
-                VAL_RANGE_NUM_EXCP,
-                current_line,
-                current_col
-            );
-        }
 
         if (first_visited->type->name == INT_TP)
             max_in_range = Value::as<NormalValue>(first_visited)->as_int();
@@ -1100,13 +1063,6 @@ namespace Odo::Interpreting {
             min_in_range = max_in_range;
 
             auto second_visited = visit(node->second);
-            if (!second_visited->is_numeric()) {
-                throw Exceptions::ValueException(
-                    VAL_RANGE_NUM_EXCP,
-                    current_line,
-                    current_col
-                );
-            }
 
             if (second_visited->type->name == INT_TP)
                 max_in_range = Value::as<NormalValue>(second_visited)->as_int();
@@ -1165,13 +1121,6 @@ namespace Odo::Interpreting {
         currentScope = &whileScope;
 
         auto val_cond = visit(node->cond);
-        if (val_cond->type->name != BOOL_TP) {
-            throw Exceptions::TypeException(
-                    COND_WHILE_MUST_BOOL_EXCP,
-                    node->cond->line_number,
-                    node->cond->column_number
-            );
-        }
 
         auto actual_cond = Value::as<NormalValue>(val_cond)->as_bool();
         while(actual_cond){
@@ -1216,86 +1165,53 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_VarDeclaration(const std::shared_ptr<VarDeclarationNode>& node) {
-        if (currentScope->symbolExists(node->name.value)) {
-            throw Exceptions::NameException(
-                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
-                    current_line,
-                    current_col
-            );
-        } else {
-            value_t newValue;
-            if (node->initial)
-                newValue = visit(node->initial);
-            auto type_ = currentScope->findSymbol(node->var_type.value);
+        value_t newValue;
+        if (node->initial)
+            newValue = visit(node->initial);
+        auto type_ = currentScope->findSymbol(node->var_type.value);
 
-            if (type_ == nullptr) {
-                throw Exceptions::NameException(
-                        UNKWN_TYPE_EXCP + node->var_type.value + "'.",
-                        current_line,
-                        current_col
-                );
+        Symbol newVar;
+        value_t valueReturn;
+
+        if (node->initial && node->initial->kind() != NodeType::NoOp) {
+            if (newValue->is_copyable()) {
+                newValue = newValue->copy();
             }
 
-            Symbol newVar;
-            value_t valueReturn;
-
-            if (node->initial && node->initial->kind() != NodeType::NoOp) {
-                if (newValue->is_copyable()) {
-                    newValue = newValue->copy();
-                }
-
-                if (type_->name == ANY_TP) {
-                    type_ = newValue->type;
-                } else {
-                    if (type_->name == INT_TP && newValue->type->name == DOUBLE_TP) {
-                        newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
-                    } else if (type_->name == DOUBLE_TP && newValue->type->name == INT_TP) {
-                        newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
-                    }
-                }
-
-                newVar = {
-                    type_,
-                    node->name.value,
-                    newValue
-                };
-
-                valueReturn = std::move(newValue);
+            if (type_->name == ANY_TP) {
+                type_ = newValue->type;
             } else {
-                newVar = {
-                    type_,
-                    node->name.value
-                };
-
-                valueReturn = null;
+                if (type_->name == INT_TP && newValue->type->name == DOUBLE_TP) {
+                    newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
+                } else if (type_->name == DOUBLE_TP && newValue->type->name == INT_TP) {
+                    newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
+                }
             }
 
-            currentScope->addSymbol(newVar);
-            if (valueReturn != null) {
-            }
-            return valueReturn;
+            newVar = {
+                type_,
+                node->name.value,
+                newValue
+            };
+
+            valueReturn = std::move(newValue);
+        } else {
+            newVar = {
+                type_,
+                node->name.value
+            };
+
+            valueReturn = null;
         }
-        return null;
+
+        currentScope->addSymbol(newVar);
+        if (valueReturn != null) {
+        }
+        return valueReturn;
     }
 
     value_t Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
-        if (currentScope->symbolExists(node->name.value)) {
-            throw Exceptions::NameException(
-                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
-                    current_line,
-                    current_col
-            );
-        }
-
         auto base_type = currentScope->findSymbol(node->var_type.value);
-        if (!(base_type && base_type->isType)) {
-            throw Exceptions::TypeException(
-                    INVALID_TYPE_EXCP + node->var_type.value + "'.",
-                    current_line,
-                    current_col
-            );
-        }
-
         Symbol* newVar;
         value_t valueReturn = null;
 
@@ -1315,11 +1231,6 @@ namespace Odo::Interpreting {
 
         if (node->initial && node->initial->kind() != NodeType::NoOp) {
             auto newValue = visit(node->initial);
-
-            // Well... Given the nature of my language right now
-            // I shouldn't care about this.
-            // TODO: But this is surely a warning.
-            if (newValue->kind() != ValueType::ListVal) noop;
 
             newVar = currentScope->addSymbol({
                 list_type,
@@ -1344,56 +1255,39 @@ namespace Odo::Interpreting {
         auto varSym = getSymbolFromNode(node->expr);
         auto newValue = visit(node->val);
 
-        if (varSym) {
-            if (varSym->value) {
-                auto theValue = varSym->value;
+        if (varSym->value) {
+            auto theValue = varSym->value;
 
-
-                if (newValue->is_copyable()) {
-                    newValue = newValue->copy();
-                }
-            } else {
-                if (newValue->is_copyable()) {
-                    newValue = newValue->copy();
-                }
-
-                if (varSym->tp->name == ANY_TP) {
-                    varSym->tp = newValue->type;
-                } else {
-                    if (varSym->tp->name == INT_TP && newValue->type->name == DOUBLE_TP) {
-                        newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
-                    } else if (varSym->tp->name == DOUBLE_TP && newValue->type->name == INT_TP) {
-                        newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
-                    }
-                }
+            if (newValue->is_copyable()) {
+                newValue = newValue->copy();
+            }
+        } else {
+            if (newValue->is_copyable()) {
+                newValue = newValue->copy();
             }
 
-            varSym->value = newValue;
-        } else {
-            throw Exceptions::NameException(
-                    ASS_TO_UNKWN_VAR_EXCP,
-                    current_line,
-                    current_col
-            );
+            if (varSym->tp->name == ANY_TP) {
+                varSym->tp = newValue->type;
+            } else {
+                if (varSym->tp->name == INT_TP && newValue->type->name == DOUBLE_TP) {
+                    newValue = create_literal((int) Value::as<NormalValue>(newValue)->as_double());
+                } else if (varSym->tp->name == DOUBLE_TP && newValue->type->name == INT_TP) {
+                    newValue = create_literal((double) Value::as<NormalValue>(newValue)->as_int());
+                }
+            }
         }
+
+        varSym->value = newValue;
         return null;
     }
 
     value_t Interpreter::visit_Variable(const std::shared_ptr<VariableNode>& node) {
         auto found = currentScope->findSymbol(node->token.value);
 
-        if (found != nullptr) {
-            if (found->value) {
-                return (found->value == nullptr) ? null : found->value;
-            } else {
-                return null;
-            }
+        if (found->value) {
+            return (found->value == nullptr) ? null : found->value;
         } else {
-            throw Exceptions::NameException(
-                    VAR_CALLED_EXCP + node->token.value + NOT_DEFINED_EXCP,
-                    current_line,
-                    current_col
-            );
+            return null;
         }
     }
 
@@ -1404,62 +1298,47 @@ namespace Odo::Interpreting {
             auto str = Value::as<NormalValue>(visited_val)->as_string();
 
             auto visited_indx = visit(node->expr);
-            if (visited_indx->type->name == INT_TP) {
-                auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
+            auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
 
-                if (int_indx >= 0 && int_indx < str.size()) {
-                    std::string result(1, str[int_indx]);
-                    return create_literal_from_string(result, STRING_TP);
-                } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
-                    size_t actual_indx = str.size() - int_indx;
-                    std::string result(1, str[actual_indx]);
-                    return create_literal_from_string(result, STRING_TP);
-                } else {
-                    throw Exceptions::ValueException(
-                            INDX_STR_OB_EXCP,
-                            current_line,
-                            current_col
-                    );
-                }
+            if (int_indx >= 0 && int_indx < str.size()) {
+                std::string result(1, str[int_indx]);
+                return create_literal_from_string(result, STRING_TP);
+            } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
+                size_t actual_indx = str.size() - int_indx;
+                std::string result(1, str[actual_indx]);
+                return create_literal_from_string(result, STRING_TP);
             } else {
-                throw Exceptions::TypeException(
-                        STR_ONLY_INDX_NUM_EXCP,
-                        current_line,
-                        current_col
-                );
-            }
-        } else if (visited_val->kind() == ValueType::ListVal){
-            auto list_value = Value::as<ListValue>(visited_val)->as_list_value();
-            auto visited_indx = visit(node->expr);
-            if (visited_indx->type->name == INT_TP) {
-                auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
-
-                if (int_indx >= 0 && int_indx < list_value.size()) {
-                    return list_value[int_indx];
-                } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
-                    size_t actual_indx = list_value.size() - int_indx;
-                    return list_value[actual_indx];
-                } else {
-                    throw Exceptions::ValueException(
-                            INDX_LST_OB_EXCP,
-                            current_line,
-                            current_col
-                    );
-                }
-            } else {
-                throw Exceptions::TypeException(
-                        LST_ONLY_INDX_NUM_EXCP,
+                throw Exceptions::ValueException(
+                        INDX_LST_OB_EXCP,
                         current_line,
                         current_col
                 );
             }
         } else {
-            throw Exceptions::ValueException(
-                    INDX_ONLY_LST_STR_EXCP,
+            auto list_value = Value::as<ListValue>(visited_val)->as_list_value();
+            auto visited_indx = visit(node->expr);
+            auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
+
+            if (int_indx >= 0 && int_indx < list_value.size()) {
+                return list_value[int_indx];
+            } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
+                size_t actual_indx = list_value.size() - int_indx;
+                return list_value[actual_indx];
+            }                if (int_indx >= 0 && int_indx < list_value.size()) {
+                return list_value[int_indx];
+            } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
+                size_t actual_indx = list_value.size() - int_indx;
+                return list_value[actual_indx];
+            } else {
+                throw Exceptions::ValueException(
+                    INDX_LST_OB_EXCP,
                     current_line,
                     current_col
-            );
+                );
+            }
         }
+
+        return null;
     }
 
     value_t Interpreter::visit_ListExpression(const std::shared_ptr<ListExpressionNode>& node) {
@@ -1512,6 +1391,8 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_BinOp(const std::shared_ptr<BinOpNode>& node) {
+        // TODO: Add shortcut-circuit evaluation now that I don't need
+        //       to check the exact types of the values at runtime.
         auto leftVisited = visit(node->left);
         leftVisited->important = true;
         auto rightVisited = visit(node->right);
@@ -1597,12 +1478,6 @@ namespace Odo::Interpreting {
                         auto result = left_as_normal->as_double() + right_as_normal->as_double();
                         return create_literal(result);
                     }
-                } else {
-                    throw Exceptions::TypeException(
-                            ADD_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
                 }
                 break;
             }
@@ -1617,12 +1492,6 @@ namespace Odo::Interpreting {
                         auto result = left_as_normal->as_double() - right_as_normal->as_double();
                         return create_literal(result);
                     }
-                } else {
-                    throw Exceptions::TypeException(
-                            SUB_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
                 }
                 break;
             case Lexing::MUL: {
@@ -1667,18 +1536,13 @@ namespace Odo::Interpreting {
 
                     auto new_val = create_literal(new_string);
                     return new_val;
-                } else {
-                    throw Exceptions::TypeException(
-                            MUL_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
                 }
                 break;
             }
             case Lexing::DIV: {
                 if (leftVisited->type == rightVisited->type && leftVisited->type->name == DOUBLE_TP) {
-                    auto result = Value::as<NormalValue>(leftVisited)->as_double() / Value::as<NormalValue>(rightVisited)->as_double();
+                    auto result = Value::as<NormalValue>(leftVisited)->as_double() /
+                                  Value::as<NormalValue>(rightVisited)->as_double();
                     return create_literal(result);
                 } else {
                     throw Exceptions::TypeException(
@@ -1691,9 +1555,10 @@ namespace Odo::Interpreting {
             }
             case Lexing::MOD:
                 if (leftVisited->type == rightVisited->type && leftVisited->type->name == INT_TP) {
-                    auto result = Value::as<NormalValue>(leftVisited)->as_int() % Value::as<NormalValue>(rightVisited)->as_int();
+                    auto result = Value::as<NormalValue>(leftVisited)->as_int() %
+                                  Value::as<NormalValue>(rightVisited)->as_int();
                     return create_literal(result);
-                }else {
+                } else {
                     throw Exceptions::TypeException(
                             MOD_ONLY_INT_EXCP,
                             current_line,
@@ -1707,183 +1572,128 @@ namespace Odo::Interpreting {
                     auto right_as_normal = Value::as<NormalValue>(rightVisited);
                     if (leftVisited->type->name == INT_TP) {
                         auto result = powl(left_as_normal->as_int(), right_as_normal->as_int());
-                        return create_literal((double)result);
+                        return create_literal((double) result);
                     } else if (leftVisited->type->name == DOUBLE_TP) {
                         auto result = powl(left_as_normal->as_double(), right_as_normal->as_double());
-                        return create_literal((double)result);
+                        return create_literal((double) result);
                     }
-                } else {
-                    throw Exceptions::TypeException(
-                            POW_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
                 }
                 break;
-            case Lexing::EQU:
+            case Lexing::EQU: {
                 if (leftVisited == rightVisited)
                     return create_literal(true);
 
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() == right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() == right_as_normal->as_double();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == BOOL_TP) {
-                        auto result = left_as_normal->as_bool() == right_as_normal->as_bool();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == STRING_TP) {
-                        auto result = left_as_normal->as_string() == right_as_normal->as_string();
-                        return create_literal(result);
-                    } else {
-                        return create_literal(false);
-                    }
-                } else if (leftVisited->type == null->type || rightVisited->type == null->type) {
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+
+                if (leftVisited->type == null->type || rightVisited->type == null->type) {
                     return create_literal(false);
+                }
+
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() == right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() == right_as_normal->as_double();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == BOOL_TP) {
+                    auto result = left_as_normal->as_bool() == right_as_normal->as_bool();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == STRING_TP) {
+                    auto result = left_as_normal->as_string() == right_as_normal->as_string();
+                    return create_literal(result);
                 } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+                    return create_literal(false);
                 }
                 break;
-            case Lexing::NEQ:
+            }
+            case Lexing::NEQ: {
                 if (leftVisited == rightVisited)
                     return create_literal(false);
 
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() != right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() != right_as_normal->as_double();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == BOOL_TP) {
-                        auto result = left_as_normal->as_bool() != right_as_normal->as_bool();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == STRING_TP) {
-                        auto result = left_as_normal->as_string() != right_as_normal->as_string();
-                        return create_literal(result);
-                    } else {
-                        return create_literal(true);
-                    }
-                } else if (leftVisited->type == null->type || rightVisited->type == null->type) {
+                if (leftVisited->type == null->type || rightVisited->type == null->type) {
                     return create_literal(true);
+                }
+
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() != right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() != right_as_normal->as_double();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == BOOL_TP) {
+                    auto result = left_as_normal->as_bool() != right_as_normal->as_bool();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == STRING_TP) {
+                    auto result = left_as_normal->as_string() != right_as_normal->as_string();
+                    return create_literal(result);
                 } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+                    return create_literal(true);
                 }
                 break;
-            case Lexing::LT:
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() < right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() < right_as_normal->as_double();
-                        return create_literal(result);
-                    }
-                } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+            }
+            case Lexing::LT: {
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() < right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() < right_as_normal->as_double();
+                    return create_literal(result);
                 }
                 break;
-            case Lexing::GT:
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() > right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() > right_as_normal->as_double();
-                        return create_literal(result);
-                    }
-                } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+            }
+            case Lexing::GT: {
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() > right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() > right_as_normal->as_double();
+                    return create_literal(result);
                 }
                 break;
+            }
             case Lexing::LET:
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() <= right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() <= right_as_normal->as_double();
-                        return create_literal(result);
-                    }
-                } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+            {
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() <= right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() <= right_as_normal->as_double();
+                    return create_literal(result);
                 }
                 break;
+            }
             case Lexing::GET:
-                if (leftVisited->type == rightVisited->type) {
-                    auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                    auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                    if (leftVisited->type->name == INT_TP) {
-                        auto result = left_as_normal->as_int() >= right_as_normal->as_int();
-                        return create_literal(result);
-                    } else if (leftVisited->type->name == DOUBLE_TP) {
-                        auto result = left_as_normal->as_double() >= right_as_normal->as_double();
-                        return create_literal(result);
-                    }
-                } else {
-                    throw Exceptions::TypeException(
-                            COM_ONLY_SAME_TP_EXCP,
-                            current_line,
-                            current_col
-                    );
+            {
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+                if (leftVisited->type->name == INT_TP) {
+                    auto result = left_as_normal->as_int() >= right_as_normal->as_int();
+                    return create_literal(result);
+                } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto result = left_as_normal->as_double() >= right_as_normal->as_double();
+                    return create_literal(result);
                 }
                 break;
+            }
             case Lexing::AND:
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == BOOL_TP) {
-                    auto result = Value::as<NormalValue>(leftVisited)->as_bool() && Value::as<NormalValue>(rightVisited)->as_bool();
-                    return create_literal(result);
-                }else {
-                    throw Exceptions::TypeException(
-                            LOG_ONLY_BOOL_EXCP,
-                            current_line,
-                            current_col
-                    );
-                }
-                break;
+            {
+                auto result = Value::as<NormalValue>(leftVisited)->as_bool() && Value::as<NormalValue>(rightVisited)->as_bool();
+                return create_literal(result);
+            }
             case Lexing::OR:
-                if (leftVisited->type == rightVisited->type && leftVisited->type->name == BOOL_TP) {
-                    auto result = Value::as<NormalValue>(leftVisited)->as_bool() || Value::as<NormalValue>(rightVisited)->as_bool();
-                    return create_literal(result);
-                }else {
-                    throw Exceptions::TypeException(
-                            LOG_ONLY_BOOL_EXCP,
-                            current_line,
-                            current_col
-                    );
-                }
-                break;
+            {
+                auto result = Value::as<NormalValue>(leftVisited)->as_bool() || Value::as<NormalValue>(rightVisited)->as_bool();
+                return create_literal(result);
+            }
             default:
                 break;
         }
@@ -1905,20 +1715,12 @@ namespace Odo::Interpreting {
 
                     result_as_normal->val = actual_value * -1;
                     return result;
-                }
-
-                if (result->type->name == DOUBLE_TP) {
+                } else {
                     auto actual_value = result_as_normal->as_double();
 
                     result_as_normal->val = actual_value * -1;
                     return result;
                 }
-
-                throw Exceptions::TypeException(
-                        UNA_ONLY_NUM_EXCP,
-                        current_line,
-                        current_col
-                );
             default:
                 break;
         }
@@ -2001,15 +1803,6 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_FuncDecl(const std::shared_ptr<FuncDeclNode>& node){
-
-        if (currentScope->symbolExists(node->name.value)) {
-            throw Exceptions::NameException(
-                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
-                    current_line,
-                    current_col
-            );
-        }
-
         auto returnType =
                 node->retType.tp == Lexing::NOTHING
                 ? nullptr
@@ -2103,7 +1896,6 @@ namespace Odo::Interpreting {
                     return NormalValue::create(as_native->type->tp, result);
                 }
 
-                return null;
             } else if (as_native->function_kind == NativeFunctionValue::NativeFunctionType::Values) {
                 std::vector<value_t> arguments;
                 for (const auto& arg : node->args) {
@@ -2111,7 +1903,8 @@ namespace Odo::Interpreting {
                 }
                 return as_native->values_fn(arguments);
             }
-        } else if (fVal->kind() == ValueType::FunctionVal) {
+            return null;
+        } else {
             auto as_function_value = Value::as<FunctionValue>(fVal);
 
             auto funcScope = SymbolTable("func-scope", {}, as_function_value->parentScope);
@@ -2169,8 +1962,6 @@ namespace Odo::Interpreting {
             call_stack.pop_back();
             return result;
         }
-
-        throw Exceptions::ValueException(VAL_NOT_FUNC_EXCP, current_line, current_col);
     }
 
     value_t Interpreter::visit_FuncBody(const std::shared_ptr<FuncBodyNode>& node) {
@@ -2200,14 +1991,6 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_Enum(const std::shared_ptr<EnumNode>& node) {
-        if (currentScope->symbolExists(node->name.value)) {
-            throw Exceptions::NameException(
-                    VAR_CALLED_EXCP + node->name.value + ALR_EXISTS_EXCP,
-                    current_line,
-                    current_col
-            );
-        }
-
         Symbol newEnumSym = {
             .name=node->name.value,
             .isType=true,
@@ -2242,13 +2025,6 @@ namespace Odo::Interpreting {
 
         if (node->ty.tp != Lexing::NOTHING) {
             auto sym = currentScope->findSymbol(node->ty.value);
-            if (!sym || !sym->isType) {
-                throw Exceptions::TypeException(
-                        CLASS_MUST_INH_TYPE_EXCP + node->name.value + IS_INVALID_EXCP,
-                        current_line,
-                        current_col
-                );
-            }
 
             typeSym = sym;
         }
@@ -2320,65 +2096,57 @@ namespace Odo::Interpreting {
             return null;
         }
 
-        if (fVal->kind() == ValueType::FunctionVal) {
-            auto as_function_value = Value::as<FunctionValue>(fVal);
-            SymbolTable funcScope = {"constructor-scope", {}, as_function_value->parentScope};
-            auto calleeScope = currentScope;
+        auto as_function_value = Value::as<FunctionValue>(fVal);
+        SymbolTable funcScope = {"constructor-scope", {}, as_function_value->parentScope};
+        auto calleeScope = currentScope;
 
-            std::vector<std::shared_ptr<Node>> newDecls;
-            std::vector< std::pair<Lexing::Token, value_t> > initValues;
+        std::vector<std::shared_ptr<Node>> newDecls;
+        std::vector< std::pair<Lexing::Token, value_t> > initValues;
 
-            for (int i = 0; i < as_function_value->params.size(); i++) {
-                auto par = as_function_value->params[i];
-                if (constructorParams.size() > i) {
-                    Lexing::Token tok{Lexing::NOTHING, ""};
-                    switch (par->kind()) {
-                        case NodeType::VarDeclaration:
-                            tok = Node::as<VarDeclarationNode>(par)->name;
-                            break;
-                        case NodeType::ListDeclaration:
-                            tok = Node::as<ListDeclarationNode>(par)->name;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    if (tok.tp != Lexing::NOTHING) {
-                        auto newValue = constructorParams[i];
-                        if (newValue->is_copyable()) {
-                            newValue = newValue->copy();
-                        }
-                        initValues.emplace_back(tok, newValue);
-                    }
+        for (int i = 0; i < as_function_value->params.size(); i++) {
+            auto par = as_function_value->params[i];
+            if (constructorParams.size() > i) {
+                Lexing::Token tok{Lexing::NOTHING, ""};
+                switch (par->kind()) {
+                    case NodeType::VarDeclaration:
+                        tok = Node::as<VarDeclarationNode>(par)->name;
+                        break;
+                    case NodeType::ListDeclaration:
+                        tok = Node::as<ListDeclarationNode>(par)->name;
+                        break;
+                    default:
+                        break;
                 }
 
-                newDecls.push_back(par);
-            }
-
-            currentScope = &funcScope;
-
-            call_stack.push_back({"<constructor>", current_line, current_col});
-
-            for (int i = 0; i < newDecls.size(); i++) {
-                visit(newDecls[i]);
-
-                if (i < initValues.size()) {
-                    auto newVar = currentScope->findSymbol(initValues[i].first.value);
-                    newVar->value = initValues[i].second;
+                if (tok.tp != Lexing::NOTHING) {
+                    auto newValue = constructorParams[i];
+                    if (newValue->is_copyable()) {
+                        newValue = newValue->copy();
+                    }
+                    initValues.emplace_back(tok, newValue);
                 }
             }
 
-            visit(as_function_value->body);
-            currentScope = calleeScope;
-            call_stack.pop_back();
-        } else {
-            // Error.
-            throw Exceptions::ValueException(
-                    INVALID_CONS_EXCP,
-                current_line,
-                current_col
-            );
+            newDecls.push_back(par);
         }
+
+        currentScope = &funcScope;
+
+        call_stack.push_back({"<constructor>", current_line, current_col});
+
+        for (int i = 0; i < newDecls.size(); i++) {
+            visit(newDecls[i]);
+
+            if (i < initValues.size()) {
+                auto newVar = currentScope->findSymbol(initValues[i].first.value);
+                newVar->value = initValues[i].second;
+            }
+        }
+
+        visit(as_function_value->body);
+        currentScope = calleeScope;
+        call_stack.pop_back();
+
         constructorParams.clear();
         constructorParams.shrink_to_fit();
 
@@ -2386,87 +2154,80 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_ClassInitializer(const std::shared_ptr<ClassInitializerNode>& node) {
-        if (auto classInit = currentScope->findSymbol(node->name.value);
-            auto classVal = Value::as<ClassValue>(classInit->value)) {
+        auto classInit = currentScope->findSymbol(node->name.value);
+        auto classVal = Value::as<ClassValue>(classInit->value);
 
-            SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
+        SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
 
-            auto newInstance = InstanceValue::create(classInit, classVal, instanceScope);
-            newInstance->important = true;
+        auto newInstance = InstanceValue::create(classInit, classVal, instanceScope);
+        newInstance->important = true;
 
-            std::vector<value_t> newParams;
-            newParams.reserve(node->params.size());
-            for (const auto& v : node->params) newParams.push_back(visit(v));
-            constructorParams = newParams;
+        std::vector<value_t> newParams;
+        newParams.reserve(node->params.size());
+        for (const auto& v : node->params) newParams.push_back(visit(v));
+        constructorParams = newParams;
 
-            auto tempScope = currentScope;
-            currentScope = &newInstance->ownScope;
+        auto tempScope = currentScope;
+        currentScope = &newInstance->ownScope;
 
-            auto thisSym = currentScope->addSymbol({
-               classInit,
-               THIS_VAR,
-               newInstance
-            });
+        auto thisSym = currentScope->addSymbol({
+           classInit,
+           THIS_VAR,
+           newInstance
+        });
 
-            auto currentClass = classVal;
-            auto node_as_class_body = Node::as<ClassBodyNode>(currentClass->body);
-            auto myInstanceBody = InstanceBodyNode::create(node_as_class_body->statements);
+        auto currentClass = classVal;
+        auto node_as_class_body = Node::as<ClassBodyNode>(currentClass->body);
+        auto myInstanceBody = InstanceBodyNode::create(node_as_class_body->statements);
 
-            auto mainScope = new SymbolTable{
-                "inherited-scope-0",
+        auto mainScope = new SymbolTable{
+            "inherited-scope-0",
+            {{THIS_VAR, *thisSym}},
+            classVal->parentScope
+        };
+        std::vector<std::shared_ptr<Node>> inheritedBody = {std::move(myInstanceBody)};
+        std::vector<SymbolTable*> inheritedScopes = {mainScope};
+
+        int level = 1;
+        while (currentClass->type->tp != nullptr) {
+            auto upperValue = currentClass->type->tp->value;
+
+            currentClass = Value::as<ClassValue>(upperValue);
+            auto inherBody = InstanceBodyNode::create(Node::as<ClassBodyNode>(currentClass->body)->statements);
+
+            // This process would break here because setting the parent takes the address of a local object.
+            // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
+            auto inherScope =new SymbolTable{
+                "inherited-scope-" + std::to_string(level++),
                 {{THIS_VAR, *thisSym}},
-                classVal->parentScope
+                inheritedScopes[0]
             };
-            std::vector<std::shared_ptr<Node>> inheritedBody = {std::move(myInstanceBody)};
-            std::vector<SymbolTable*> inheritedScopes = {mainScope};
 
-            int level = 1;
-            while (currentClass->type->tp != nullptr) {
-                auto upperValue = currentClass->type->tp->value;
-
-                currentClass = Value::as<ClassValue>(upperValue);
-                auto inherBody = InstanceBodyNode::create(Node::as<ClassBodyNode>(currentClass->body)->statements);
-
-                // This process would break here because setting the parent takes the address of a local object.
-                // I need to clean this up. Raw pointers are gonna be a memory leak for a while.
-                auto inherScope =new SymbolTable{
-                    "inherited-scope-" + std::to_string(level++),
-                    {{THIS_VAR, *thisSym}},
-                    inheritedScopes[0]
-                };
-
-                inheritedBody.push_back(inherBody);
-                inheritedScopes.insert(inheritedScopes.begin(), inherScope);
-            }
-
-            newInstance->ownScope.setParent(inheritedScopes[0]);
-
-            for (auto i = (long)inheritedBody.size()-1; i >= 0; i--) {
-                auto prev = currentScope;
-
-                currentScope = inheritedScopes[i];
-                visit(inheritedBody[i]);
-
-                currentScope = prev;
-            }
-
-            auto initID = Lexing::Token {Lexing::ID, "constructor"};
-            auto initFuncCall = ConstructorCallNode::create(initID);
-
-            visit(initFuncCall);
-
-            currentScope = tempScope;
-
-            newInstance->important = false;
-
-            return newInstance;
-        } else {
-            throw Exceptions::NameException(
-                node->name.value + NOT_VALID_CONS_EXCP,
-                current_line,
-                current_col
-            );
+            inheritedBody.push_back(inherBody);
+            inheritedScopes.insert(inheritedScopes.begin(), inherScope);
         }
+
+        newInstance->ownScope.setParent(inheritedScopes[0]);
+
+        for (auto i = (long)inheritedBody.size()-1; i >= 0; i--) {
+            auto prev = currentScope;
+
+            currentScope = inheritedScopes[i];
+            visit(inheritedBody[i]);
+
+            currentScope = prev;
+        }
+
+        auto initID = Lexing::Token {Lexing::ID, "constructor"};
+        auto initFuncCall = ConstructorCallNode::create(initID);
+
+        visit(initFuncCall);
+
+        currentScope = tempScope;
+
+        newInstance->important = false;
+
+        return newInstance;
     }
 
     value_t Interpreter::visit_InstanceBody(const std::shared_ptr<InstanceBodyNode>& node){
@@ -2480,43 +2241,16 @@ namespace Odo::Interpreting {
 
     value_t Interpreter::visit_MemberVar(const std::shared_ptr<MemberVarNode>& node) {
         auto instance = visit(node->inst);
-
-        if (!instance || instance->kind() != ValueType::InstanceVal) {
-            throw Exceptions::ValueException(
-                INVALID_INS_MEM_OP_EXCP,
-                current_line,
-                current_col
-            );
-        }
-
         auto as_instance_value = Value::as<InstanceValue>(instance);
 
         auto foundSymbol = as_instance_value->ownScope.findSymbol(node->name.value);
-        if (foundSymbol) {
-            if (foundSymbol->value) return foundSymbol->value;
-        } else {
-            throw Exceptions::NameException(
-                   NO_MEM_CALLED_EXCP + node->name.value + IN_THE_INST_EXCP,
-                current_line,
-                current_col
-            );
-        }
 
-        return null;
+        return foundSymbol->value ? foundSymbol->value : null;
     }
 
     value_t Interpreter::visit_StaticVar(const std::shared_ptr<StaticVarNode>& node) {
         auto symbol = getSymbolFromNode(node);
-        if (symbol && symbol->value) {
-            return symbol->value;
-        } else {
-            throw Exceptions::NameException(
-                NO_STATIC_CALLED_EXCP + node->name.value + IN_CLASS_EXCP,
-                current_line,
-                current_col
-            );
-        }
-        return null;
+        return symbol->value ? symbol->value : null;
     }
 
     Symbol* Interpreter::getSymbolFromNode(const std::shared_ptr<Node>& mem) {
@@ -2533,14 +2267,6 @@ namespace Odo::Interpreting {
 
                 if (leftHandSym && leftHandSym->value) {
                     auto theValue = leftHandSym->value;
-                    if (theValue->kind() != ValueType::InstanceVal) {
-                        throw Exceptions::ValueException(
-                            "'" + leftHandSym->name + NOT_VALID_INST_EXCP,
-                            current_line,
-                            current_col
-                        );
-                    }
-
                     auto as_instance_value = Value::as<InstanceValue>(theValue);
 
                     varSym = as_instance_value->ownScope.findSymbol(as_member_node->name.value);
@@ -2552,42 +2278,17 @@ namespace Odo::Interpreting {
                 auto as_static_var = Node::as<StaticVarNode>(mem);
                 auto leftHandSym = getSymbolFromNode(as_static_var->inst);
 
-                if (leftHandSym && leftHandSym->value) {
-                    auto theValue = leftHandSym->value;
-                    if (theValue->kind() == ValueType::ModuleVal) {
-                        varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
-                    } else if (theValue->kind() == ValueType::ClassVal) {
-                        varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
-                    } else if (theValue->kind() == ValueType::InstanceVal) {
-                        varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
-                    } else if (theValue->kind() == ValueType::EnumVal) {
-                        auto as_enum_value = Value::as<EnumValue>(theValue);
-                        auto sm = as_enum_value->ownScope.findSymbol(as_static_var->name.value, false);
-                        if (sm) {
-                            if (sm->value)
-                                return sm;
-                            return nullptr;
-                        } else {
-                            throw Exceptions::NameException(
-                                    "'" + as_static_var->name.value + NOT_VARIANT_IN_ENUM_EXCP,
-                                    current_line,
-                                    current_col
-                            );
-                        }
-                    } else {
-                        throw Exceptions::NameException(
-                                //TODO Change to cannot read static
-                                INVALID_STATIC_OP_EXCP,
-                                current_line,
-                                current_col
-                        );
-                    }
-                } else {
-                    throw Exceptions::NameException(
-                            UNKWN_VAL_IN_STATIC_EXCP,
-                            current_line,
-                            current_col
-                    );
+                auto theValue = leftHandSym->value;
+                if (theValue->kind() == ValueType::ModuleVal) {
+                    varSym = Value::as<ModuleValue>(theValue)->ownScope.findSymbol(as_static_var->name.value, false);
+                } else if (theValue->kind() == ValueType::ClassVal) {
+                    varSym = Value::as<ClassValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+                } else if (theValue->kind() == ValueType::InstanceVal) {
+                    varSym = Value::as<InstanceValue>(theValue)->getStaticVarSymbol(as_static_var->name.value);
+                } else if (theValue->kind() == ValueType::EnumVal) {
+                    auto as_enum_value = Value::as<EnumValue>(theValue);
+                    auto sm = as_enum_value->ownScope.findSymbol(as_static_var->name.value, false);
+                    return sm;
                 }
 
                 break;
@@ -2596,35 +2297,18 @@ namespace Odo::Interpreting {
             {
                 auto as_index_node = Node::as<IndexNode>(mem);
                 auto visited_source = visit(as_index_node->val);
-
-                if (visited_source->kind() == ValueType::ListVal) {
-                    auto visited_indx = visit(as_index_node->expr);
-                    if (visited_indx->type->name == INT_TP) {
-                        auto& as_list = Value::as<ListValue>(visited_source)->elements;
-                        auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
-                        // TODO: Add funcionality of reverse indexing.
-                        if (as_int > as_list.size()-1 || as_int < 0) {
-                            throw Exceptions::ValueException(
-                                    INDX_STR_OB_EXCP,
-                                    current_line,
-                                    current_col
-                            );
-                        }
-                        return &as_list[as_int];
-                    } else {
-                        throw Exceptions::TypeException(
-                            LST_ONLY_INDX_NUM_EXCP,
-                            current_line,
-                            current_col
-                        );
-                    }
-                } else {
+                auto visited_indx = visit(as_index_node->expr);
+                auto& as_list = Value::as<ListValue>(visited_source)->elements;
+                auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
+                // TODO: Add funcionality of reverse indexing.
+                if (as_int > as_list.size()-1 || as_int < 0) {
                     throw Exceptions::ValueException(
-                            ASS_TO_INVALID_INDX_EXCP,
+                            INDX_STR_OB_EXCP,
                             current_line,
                             current_col
                     );
                 }
+                return &as_list[as_int];
             }
             default:
                 break;
@@ -2693,21 +2377,7 @@ namespace Odo::Interpreting {
         if (name.tp != Lexing::NOTHING)
             filename = name.value;
 
-        if (currentScope->findSymbol(filename)) {
-            throw Exceptions::NameException(
-                SYM_CALLED_EXCP + filename + ALR_EXISTS_IN_SCOPE_EXCP,
-                current_line,
-                current_col
-            );
-        }
-
-        std::string code;
-        try {
-            code = io::read_file(full_path);
-        } catch (Exceptions::IOException&) {
-            std::string msg = CANNOT_IMPORT_MODULE_EXCP + full_path + "'.";
-            throw Exceptions::FileException(msg, current_line, current_col);
-        }
+        std::string code = io::read_file(full_path);
         Parsing::Parser pr;
         pr.set_text(code);
 
@@ -2733,41 +2403,20 @@ namespace Odo::Interpreting {
             switch (par->kind()) {
                 case NodeType::VarDeclaration: {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
-                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(ft, is_not_optional);
-                    } else {
-                        // TODO: Handle Error
-                        // Error! Unknown type par.type.value
-                        throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
-                                par->line_number,
-                                par->column_number
-                        );
-                    }
+                    auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                    ts.emplace_back(ft, is_not_optional);
                     break;
                 }
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
-                    if (auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value)) {
-                        auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
-                        ts.emplace_back(ft, is_not_optional);
-                    } else {
-                        throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
-                                par->line_number,
-                                par->column_number
-                        );
-                    }
+                    auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
+                    ts.emplace_back(ft, is_not_optional);
+
                     break;
                 }
                 default:
-                    // Error! Expected variable declaration inside function parenthesis.
-                    throw Exceptions::SyntaxException(
-                            EXPCT_DECL_IN_PAR_EXCP,
-                            par->line_number,
-                            par->column_number
-                    );
                     break;
             }
         }
