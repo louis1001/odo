@@ -1,33 +1,17 @@
-module math {
-    double e = 2.718281828
-    func abs(double x): double {
-        if (x >= 0){
-            return x
-        }
-        return -x
-    }
+func get_error(double XrAct, double XrAnt): double {
+    return abs((XrAct-XrAnt)/XrAct)
+}
 
-    func exp(double x): double {
-        return e ^ x
-    }
-
-    func error(double XrAct, double XrAnt): double {
-        return abs((XrAct-XrAnt)/XrAct)
-    }
+func abs(double x): double {
+    return x > 0 ? x : -x
 }
 
 int MAX_ITERS = 200
 
-# I need to define a placeholder for the function at the moment
-# Because I have no way of declaring an argument with function type.
-# So even if the interpreter can handle it, the Semantic Analyzer doesn't
-# know that the argument will be callable.
+# New way of aliasing function types
+define <double:double> as linear_fn
 
-# TODO: Find a way of declaring variables with a function type.
-#   what should be the syntax?
-func fn(double x): double{}
-
-func approx_raiz(double x0, double x1, double min_err=0.001): double {
+func approx_raiz(double x0, double x1, linear_fn fn, double min_err=0.001): double {
     double px = x0
     double x = x1
 
@@ -42,7 +26,7 @@ func approx_raiz(double x0, double x1, double min_err=0.001): double {
         x = x - (y/dy)
 
         writeln("X: ", x)
-        double curr_err = math::error(x, px)
+        double curr_err = get_error(x, px)
         writeln("Error: ", curr_err)
 
         if curr_err < min_err {
@@ -56,22 +40,12 @@ func approx_raiz(double x0, double x1, double min_err=0.001): double {
     return x
 }
 
-fn = func (double x) {
-    return math::exp(-pow(x, 2))-x
-}
-
-double x = approx_raiz(-0.5, 3, 0.01)
-
-#{ New function definition syntax proposal for function types.
-double(int, int) div
-
-div = func(int a, int b) {
-    return a/b
-}
-
-a = func() {
-    writeln("Hey")
-}
-}#
+double x = approx_raiz(
+    -0.5, 3,
+    func (double x) {
+        return math::exp(-pow(x, 2))-x
+    },
+    0.01
+)
 
 writeln("The result is = ", x)
