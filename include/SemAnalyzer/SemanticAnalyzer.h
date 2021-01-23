@@ -85,7 +85,7 @@ namespace Odo::Semantics {
         };
         typedef std::unordered_map<Interpreting::Symbol*, lazy_check> lazy_scope;
         std::vector<lazy_scope> lazy_scope_stack{};
-        lazy_scope* current_lazy_scope;
+        lazy_scope* current_lazy_scope {nullptr};
         void add_lazy_check(Interpreting::Symbol*, lazy_check);
         void consume_lazy(Interpreting::Symbol*);
 
@@ -96,7 +96,7 @@ namespace Odo::Semantics {
         bool inside_loop{false};
 
         bool can_return {false};
-        Interpreting::Symbol* accepted_return_type;
+        Interpreting::Symbol* accepted_return_type {nullptr};
 
         Interpreting::Symbol* accepted_list_type{nullptr};
 

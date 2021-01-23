@@ -1300,10 +1300,10 @@ namespace Odo::Interpreting {
             auto visited_indx = visit(node->expr);
             auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
 
-            if (int_indx >= 0 && int_indx < str.size()) {
+            if (int_indx >= 0 && static_cast<size_t>(int_indx) < str.size()) {
                 std::string result(1, str[int_indx]);
                 return create_literal_from_string(result, STRING_TP);
-            } else if (int_indx < 0 && abs(int_indx) <= str.size()) {
+            } else if (int_indx < 0 && static_cast<size_t>(abs(int_indx)) <= str.size()) {
                 size_t actual_indx = str.size() - int_indx;
                 std::string result(1, str[actual_indx]);
                 return create_literal_from_string(result, STRING_TP);
@@ -1319,14 +1319,14 @@ namespace Odo::Interpreting {
             auto visited_indx = visit(node->expr);
             auto int_indx = Value::as<NormalValue>(visited_indx)->as_int();
 
-            if (int_indx >= 0 && int_indx < list_value.size()) {
+            if (int_indx >= 0 && static_cast<size_t>(int_indx) < list_value.size()) {
                 return list_value[int_indx];
-            } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
+            } else if (int_indx < 0 && static_cast<size_t>(abs(int_indx)) <= list_value.size()) {
                 size_t actual_indx = list_value.size() - int_indx;
                 return list_value[actual_indx];
-            }                if (int_indx >= 0 && int_indx < list_value.size()) {
+            } if (int_indx >= 0 && static_cast<size_t>(int_indx) < list_value.size()) {
                 return list_value[int_indx];
-            } else if (int_indx < 0 && abs(int_indx) <= list_value.size()) {
+            } else if (int_indx < 0 && static_cast<size_t>(abs(int_indx)) <= list_value.size()) {
                 size_t actual_indx = list_value.size() - int_indx;
                 return list_value[actual_indx];
             } else {
@@ -1841,7 +1841,7 @@ namespace Odo::Interpreting {
             auto found_in_natives = native_functions.find(node->fname.value);
 
             if (found_in_natives != native_functions.end()) {
-                auto num_args = node->args.size();
+                int num_args = node->args.size();
                 std::vector<value_t> arguments_visited;
 
                 std::vector<bool> was_important{};
@@ -1854,7 +1854,7 @@ namespace Odo::Interpreting {
                 }
 
                 auto result = found_in_natives->second(arguments_visited);
-                for (int i = 0; i < arguments_visited.size(); i++) {
+                for (size_t i = 0; i < arguments_visited.size(); i++) {
                     if (!was_important[i])
                         arguments_visited[i]->important = false;
                 }
@@ -1869,7 +1869,7 @@ namespace Odo::Interpreting {
             if (as_native->function_kind == NativeFunctionValue::NativeFunctionType::Simple) {
                 std::vector<std::any> args;
                 auto &function_params = as_native->arguments;
-                for (auto i = 0; i < node->args.size(); i++) {
+                for (size_t i = 0; i < node->args.size(); i++) {
                     auto arg = node->args[i];
                     auto val = visit(arg);
                     // Really messy. I dont like this.
@@ -1913,7 +1913,7 @@ namespace Odo::Interpreting {
             std::vector<std::shared_ptr<Node>> newDecls;
             std::vector< std::pair<Lexing::Token, value_t> > initValues;
 
-            for (int i = 0; i < as_function_value->params.size(); i++) {
+            for (size_t i = 0; i < as_function_value->params.size(); i++) {
                 auto par = as_function_value->params[i];
                 if (node->args.size() > i) {
                     switch (par->kind()) {
@@ -1944,7 +1944,7 @@ namespace Odo::Interpreting {
 
             call_stack.push_back({as_function_value->name, current_line, current_col});
 
-            for (int i = 0; i < newDecls.size(); i++) {
+            for (size_t i = 0; i < newDecls.size(); i++) {
                 visit(newDecls[i]);
 
                 if (i < initValues.size()) {
@@ -2103,7 +2103,7 @@ namespace Odo::Interpreting {
         std::vector<std::shared_ptr<Node>> newDecls;
         std::vector< std::pair<Lexing::Token, value_t> > initValues;
 
-        for (int i = 0; i < as_function_value->params.size(); i++) {
+        for (size_t i = 0; i < as_function_value->params.size(); i++) {
             auto par = as_function_value->params[i];
             if (constructorParams.size() > i) {
                 Lexing::Token tok{Lexing::NOTHING, ""};
@@ -2134,7 +2134,7 @@ namespace Odo::Interpreting {
 
         call_stack.push_back({"<constructor>", current_line, current_col});
 
-        for (int i = 0; i < newDecls.size(); i++) {
+        for (size_t i = 0; i < newDecls.size(); i++) {
             visit(newDecls[i]);
 
             if (i < initValues.size()) {
@@ -2301,7 +2301,7 @@ namespace Odo::Interpreting {
                 auto& as_list = Value::as<ListValue>(visited_source)->elements;
                 auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
                 // TODO: Add funcionality of reverse indexing.
-                if (as_int > as_list.size()-1 || as_int < 0) {
+                if (as_int < 0 || static_cast<size_t>(as_int) > as_list.size()-1) {
                     throw Exceptions::ValueException(
                             INDX_STR_OB_EXCP,
                             current_line,

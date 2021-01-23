@@ -67,7 +67,7 @@ namespace Odo::Semantics {
         for (const auto& instance_context_entry : instance_contexts) {
             auto table = instance_context_entry.second;
             // Skip the fist cause it was not created with new.
-            for (int i = 1; i < table.size(); i++) {
+            for (size_t i = 1; i < table.size(); i++) {
                 auto the_table = table[i];
                 delete the_table;
             }
@@ -1557,7 +1557,7 @@ namespace Odo::Semantics {
                 );
             }
 
-            for (int i = 0; i < parameters_in_template.size(); i++) {
+            for (size_t i = 0; i < parameters_in_template.size(); i++) {
                 auto param_def = parameters_in_template[i];
                 auto par = param_def.first;
 
@@ -1930,7 +1930,7 @@ namespace Odo::Semantics {
             );
         }
 
-        for (int i = 0; i < parameters_in_template.size(); i++) {
+        for (size_t i = 0; i < parameters_in_template.size(); i++) {
             auto param_def = parameters_in_template[i];
             auto par = param_def.first;
 
