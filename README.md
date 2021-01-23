@@ -1,5 +1,5 @@
 # Odo
-[![Generic badge](https://img.shields.io/badge/version-0.3_beta-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-0.4_beta-blue.svg)](https://shields.io/)
 
 My personal programming language. Written in C++.
 
@@ -39,39 +39,46 @@ all my favorite real languages. Many of the decisions were taking on the premise
 because it's practical, or because of the limitations of the time that language was designed?". For example,
 `;` at the end of statements (in Odo they're optional). Or parenthesis surrounding the conditions in `if` or `while`.
 
+Lately I've also renamed the `print` function to `write`, since the meaning of printing has changed considerably since
+the time that function was originally named.
+
+Another change done to odo's syntax was removing the double operators `&&` and `||`, and instead using the actual words
+they describe.
+
 ## Example Code
 
 Some example code written in odo:
 
-```GO
-/* fibonacci.odo */
+### \> fibonacci.odo
+```
+#{ fibonacci.odo }#
 int n = 45
 
 int x = 0
 int y = 0
 int z = 1
 
-for(int i = 0; i < n; i++){
-    println(i, ":", z)
+forange i: n{
+    writeln(i, ":", z)
     x = y
     y = z
     z = z + x
 }
 ```
-(In this one it looks really similar to C. It could compile, except for the lack of semicolons.)
 
 ---
-```GO
-println("Testing reversing a string")
+### \> string_reversed.odo
+```
+writeln("Testing reversing a string")
 
 string first = read()
 
 string result = ""
-for(int i = length(first)-1; i >= 0; i--) {
-    result += first[i]
+foreach char ~: first {
+    result += char
 }
 
-println(result)
+writeln(result)
 ```
 
 ## Some current problems
@@ -79,6 +86,5 @@ println(result)
 Maybe using shared_ptr everywhere isn't the best. I'll work on this, 
 maybe getting weak pointers here and there.
 
-I have to work on separating the interpreter from the native functions. I also want to make a
-standard library with different modules. Now that I have each kind of value by itself, I can
-make one kind of value that runs C++ code.
+I want to make a standard library with different modules.
+For the moment, the native module section of odo is a little barebones.

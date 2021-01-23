@@ -16,6 +16,8 @@
 #define YELLOW  ""//"\033[33m"        /* Yellow */
 //#define BLUE    "\033[34m"      /* Blue */
 
+#define ODO_VERSION "v0.4-beta"
+
 template<typename T> void add_module(Odo::Interpreting::Interpreter& inter) {
     inter.add_module(std::make_shared<T>(inter));
 }
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
        (((((((((((((((((((((
           (((((((((((((((
 
-        odo(-lang) v0.3-beta
+        odo(-lang) )" ODO_VERSION R"(
       Luis Gonzalez (louis1001)
              2019-2020
 
