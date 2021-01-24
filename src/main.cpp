@@ -7,13 +7,15 @@
 #include "Modules/IOModule.h"
 #include "Modules/MathModule.h"
 
+#include "external/rang.hpp"
+
 #include"Translations/lang.h"
 
 // This is temporary. I'll research how to bring it back.
-#define RESET   ""//"\033[0m"
-#define RED     ""//"\033[31m"      /* Red */
-#define GREEN   ""//"\033[32m"      /* Green */
-#define YELLOW  ""//"\033[33m"        /* Yellow */
+//#define RESET   ""//"\033[0m"
+//#define RED     ""//"\033[31m"      /* Red */
+//#define GREEN   ""//"\033[32m"      /* Green */
+//#define YELLOW  ""//"\033[33m"        /* Yellow */
 //#define BLUE    "\033[34m"      /* Blue */
 
 #define ODO_VERSION "v0.4-beta"
@@ -84,7 +86,7 @@ int main(int argc, char* argv[]) {
         try {
             inter.interpret(code);
         } catch(Odo::Exceptions::OdoException& e) {
-            std::cout << std::endl << RED;
+            std::cout << std::endl << rang::fg::red;
             auto& calls = inter.get_call_stack();
             if (e.should_show_traceback()) {
                 for (const auto& frame : calls) {
@@ -93,7 +95,7 @@ int main(int argc, char* argv[]) {
             }
             calls.clear();
 
-            std::cerr << e.msg() << RESET << std::flush;
+            std::cerr << e.msg() << rang::style::reset << std::flush;
             exit(1);
         }
     // Else
@@ -114,9 +116,9 @@ int main(int argc, char* argv[]) {
             // Show an interactive prompt
             std::cout << "> " << std::flush;
             std::string code;
-            std::cout << YELLOW;
+            std::cout << rang::fg::yellow;
             std::getline(std::cin, code);
-            std::cout << RESET;
+            std::cout << rang::style::reset;
 
             // Handle potential errors
             try {
@@ -126,12 +128,12 @@ int main(int argc, char* argv[]) {
                 // Show the result
                 if (result != inter.get_null()){
                     auto as_str = result->to_string();
-                    std::cout << GREEN << as_str << RESET << "\n";
+                    std::cout << rang::fg::green << as_str << rang::style::reset << "\n";
                 }
 
                 inter.set_repl_last(result);
             } catch (Odo::Exceptions::OdoException& e) {
-                std::cout << std::endl << RED;
+                std::cout << std::endl << rang::fg::red;
                 if (e.should_show_traceback()) {
                     auto& calls = inter.get_call_stack();
                     for (const auto& frame : calls) {
@@ -141,7 +143,7 @@ int main(int argc, char* argv[]) {
                 }
 
                 std::string msg = e.msg();
-                std::cout << msg << RESET << std::endl;
+                std::cout << msg << rang::style::reset << std::endl;
             }
         }
         std::cout << BYE_MSG "! :)\n";
