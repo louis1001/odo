@@ -1,4 +1,5 @@
 #include <iostream>
+#include <signal.h>
 #include <IO/io.h>
 #include "Exceptions/exception.h"
 
@@ -8,6 +9,7 @@
 #include "Modules/MathModule.h"
 
 #include "external/rang.hpp"
+#include "external/flags.h"
 
 #include"Translations/lang.h"
 
@@ -24,7 +26,9 @@ template<typename T> void add_module(Odo::Interpreting::Interpreter& inter) {
     inter.add_module(std::make_shared<T>(inter));
 }
 
-int main(int argc, char* argv[]) {
+int entry(int argc, char* argv[]) {
+    auto args = flags::args(argc, argv);
+
     std::string logo =
 #if DEBUG_MODE
 "               debug\n"
@@ -52,14 +56,25 @@ int main(int argc, char* argv[]) {
         odo(-lang) )" ODO_VERSION R"(
       Luis Gonzalez (louis1001)
              2019-2020
-
-    )";
+)";
     using namespace Odo;
+
+    if (args.get<bool>("version", false) || args.get<bool>("v", false)) {
+        std::cout << "odo " << ODO_VERSION;
+        return 0;
+    }
+
+    if (args.get<bool>("about", false)) {
+        std::cout << logo;
+        return 0;
+    }
+
+    const auto& pos_args = args.positional();
 
     std::string input_file;
 
-    if (argc > 1) {
-        input_file = argv[1];
+    if (pos_args.size() == 1) {
+        input_file = pos_args.at(0);
     }
 
     Interpreting::Interpreter inter;
@@ -77,7 +92,7 @@ int main(int argc, char* argv[]) {
         } catch (Odo::Exceptions::IOException& e) {
             std::cout << std::endl;
             std::cerr << e.msg() << "\n" << std::flush;
-            exit(1);
+            return 1;
         }
 
         // Handle potential errors
@@ -96,7 +111,7 @@ int main(int argc, char* argv[]) {
             calls.clear();
 
             std::cerr << e.msg() << rang::style::reset << std::flush;
-            exit(1);
+            return 1;
         }
     // Else
     } else {
@@ -149,4 +164,28 @@ int main(int argc, char* argv[]) {
         std::cout << BYE_MSG "! :)\n";
     }
     return 0;
+}
+
+int main(int argc, char* argv[]) {
+    auto exit_cleanup = [](int e){
+        std::cout << rang::style::reset << std::flush;
+        exit(e);
+    };
+    // Taken from this answer https://stackoverflow.com/a/33668651
+    //^C
+    signal(SIGINT, exit_cleanup);
+    //abort()
+    signal(SIGABRT, exit_cleanup);
+    //sent by "kill" command
+    signal(SIGTERM, exit_cleanup);
+
+    try {
+        // Actual program!
+        int result = entry(argc, argv);
+        exit_cleanup(result);
+        return result;
+    } catch(std::exception& e) {
+        exit_cleanup(1);
+        throw e;
+    }
 }
