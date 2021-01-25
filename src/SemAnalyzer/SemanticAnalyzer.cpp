@@ -2015,20 +2015,21 @@ namespace Odo::Semantics {
 
         auto module_context = add_semantic_context(module_in_table, "module_" + module_in_table->name + "_scope");
 
-        auto temp = currentScope;
-        currentScope = module_context;
-        try {
-            for (const auto& st : node->statements) {
-                visit(st);
-            }
-        } catch (Exceptions::OdoException& e) {
-            temp->removeSymbol(module_in_table);
-            currentScope = temp;
-            throw e;
-        }
-
-        currentScope = temp;
         module_in_table->is_initialized = true;
+
+        add_lazy_check(module_in_table, {
+            [this, node, module_context](auto){
+                auto temp = currentScope;
+                currentScope = module_context;
+                push_lazy_scope();
+                for (const auto& st : node->statements) {
+                    visit(st);
+                }
+                pop_lazy_scope();
+                currentScope = temp;
+            },
+            currentScope
+        });
 
         return {};
     }
