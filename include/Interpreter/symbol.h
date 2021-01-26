@@ -35,6 +35,7 @@ namespace Odo::Interpreting {
      *  *Abandon all hope, ye who enter here*
      */
 
+    class SymbolTable;
 
     struct Symbol {
         Symbol *tp = nullptr;
@@ -48,6 +49,8 @@ namespace Odo::Interpreting {
         bool content_has_side_effects{false};
 
         bool has_been_checked = true;
+
+        SymbolTable* table {nullptr};
 
         std::function<void(Symbol*)> ondestruction{nullptr};
 

@@ -58,7 +58,9 @@ namespace Odo::Interpreting {
 
         symbols[new_sym_name] = sym;
 
-        return &symbols.find(new_sym_name)->second;
+        auto added = &symbols.find(new_sym_name)->second;
+        added->table = this;
+        return added;
     }
 
     Symbol* SymbolTable::addAlias(const std::string& name, Symbol* sym) {
@@ -110,7 +112,9 @@ namespace Odo::Interpreting {
             .kind=SymbolType::ListType,
         };
 
-        return &symbols.find(new_sym_name)->second;
+        auto added = &symbols.find(new_sym_name)->second;
+
+        return added;
     }
 
     bool SymbolTable::symbolExists(const std::string& name) {
