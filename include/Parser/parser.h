@@ -41,6 +41,8 @@ namespace Odo::Parsing {
 
         std::shared_ptr<Node> module_statement();
 
+        std::shared_ptr<Node> get_type();
+
         function_type get_arg_types();
         std::shared_ptr<Node> define_statement();
 

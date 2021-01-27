@@ -186,7 +186,7 @@ node_members = {
         "Lexing::Token t"
     ],
     "ClassInitializer": [
-        "Lexing::Token name",
+        "std::shared_ptr<Parsing::Node> cls",
         "std::vector<std::shared_ptr<Parsing::Node>> params"
     ],
     "InstanceBody": [

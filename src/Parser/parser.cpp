@@ -279,6 +279,19 @@ namespace Odo::Parsing{
         return result;
     }
 
+    std::shared_ptr<Node> Parser::get_type() {
+        auto nd = VariableNode::create(current_token);
+        eat(ID);
+        // Don't mind the member variables.
+        // Those should not be types any ways. Right?
+        while (current_token.tp == DCOLON) {
+            eat(DCOLON);
+            nd = StaticVarNode::create(nd, current_token);
+            eat(ID);
+        }
+        return nd;
+    }
+
     Parser::function_type Parser::get_arg_types() {
         std::vector<std::pair<Token, bool>> arguments;
         Token retType{NOTHING, ""};
@@ -391,8 +404,7 @@ namespace Odo::Parsing{
     std::shared_ptr<Node> Parser::newInitializer() {
         auto ln = line();
         auto cl = column();
-        auto name = current_token;
-        eat(ID);
+        auto clss = get_type();
 
         std::vector<std::shared_ptr<Node>> argList;
         if (current_token.tp == LPAR) {
@@ -403,7 +415,7 @@ namespace Odo::Parsing{
             eat(RPAR);
         }
 
-        auto result = ClassInitializerNode::create(name, argList);
+        auto result = ClassInitializerNode::create(clss, argList);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -764,7 +776,7 @@ namespace Odo::Parsing{
             eat(LPAR);
             auto pars = call_args();
             eat(RPAR);
-            assignment = ClassInitializerNode::create(token, pars);
+            assignment = ClassInitializerNode::create(VariableNode::create(token), pars);
         }
 
         if (current_token.tp == ASS) {

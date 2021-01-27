@@ -2154,10 +2154,10 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_ClassInitializer(const std::shared_ptr<ClassInitializerNode>& node) {
-        auto classInit = currentScope->findSymbol(node->name.value);
+        auto classInit = getSymbolFromNode(node->cls);
         auto classVal = Value::as<ClassValue>(classInit->value);
 
-        SymbolTable instanceScope{"instance-" + node->name.value + "-scope", {}, classVal->parentScope};
+        SymbolTable instanceScope{"instance-" + classInit->name + "-scope", {}, classVal->parentScope};
 
         auto newInstance = InstanceValue::create(classInit, classVal, instanceScope);
         newInstance->important = true;

@@ -249,7 +249,8 @@ namespace Odo::Semantics {
             auto class_context = get_semantic_context(current_class);
             auto in_class = class_context->findSymbol(var->name.value, false);
             if (in_class) {
-                var->inst = VariableNode::create({Lexing::TokenType::ID, current_class->name});
+                // FixMe: optimize this without having scoping errors.
+//                var->inst = VariableNode::create({Lexing::TokenType::ID, current_class->name});
                 return in_class;
             }
             current_class = current_class->tp;
@@ -282,7 +283,8 @@ namespace Odo::Semantics {
                     }
 
                     auto template_name = "__$" + leftHandSym->tp->name + "_instance_template";
-                    auto instance_template = currentScope->findSymbol(template_name);
+                    auto parentScope = leftHandSym->tp->table;
+                    auto instance_template = parentScope->findSymbol(template_name);
 
                     auto instance_scopes = instance_contexts.at(instance_template);
 
@@ -1096,7 +1098,8 @@ namespace Odo::Semantics {
 
             if (type_->name == ANY_TP) {
                 newVar.tp = newValue.type;
-                node->var_type = Lexing::Token(Lexing::TokenType::ID, newValue.type->name);
+                // For the moment. I might need to add  it later just in case
+//                node->var_type = Lexing::Token(Lexing::TokenType::ID, newValue.type->name);
             }
 
             // For the moment, type coercion happens at runtime. Will work on that when I figure out
@@ -1892,11 +1895,12 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::visit_ClassInitializer(const std::shared_ptr<Parsing::ClassInitializerNode>& node) {
-        auto class_symbol = currentScope->findSymbol(node->name.value);
+        auto class_symbol = getSymbolFromNode(node->cls);
         if (!class_symbol) {
             // Error! Unknown type node->name.value
             throw Exceptions::NameException(
-                    UNKNWN_CLASS_EXCP + node->name.value + "'.",
+                    // TODO: Get the class' name
+                    UNKNWN_CLASS_EXCP "?'.",
                     node->line_number,
                     node->column_number
             );
@@ -1905,7 +1909,14 @@ namespace Odo::Semantics {
         }
 
         auto template_name = "__$" + class_symbol->name + "_instance_template";
-        auto instance_template = currentScope->findSymbol(template_name);
+        Interpreting::Symbol* instance_template;
+        if (node->cls->kind() == Parsing::NodeType::StaticVar) {
+            auto as_static = Node::as<StaticVarNode>(node->cls);
+            auto instance_getter = Parsing::StaticVarNode::create(as_static->inst, {Lexing::ID, template_name});
+            instance_template = getSymbolFromNode(instance_getter);
+        } else {
+            instance_template = currentScope->findSymbol(template_name);
+        }
 
         // Annoying to have to put this in every symbol check.
         if (!instance_template->has_been_checked) {
@@ -1974,7 +1985,8 @@ namespace Odo::Semantics {
         }
 
         auto template_name = "__$" + instance.type->name + "_instance_template";
-        auto instance_template = currentScope->findSymbol(template_name);
+        auto parentScope = instance.type->table;
+        auto instance_template = parentScope->findSymbol(template_name);
 
         auto instance_scopes = instance_contexts.at(instance_template);
 
