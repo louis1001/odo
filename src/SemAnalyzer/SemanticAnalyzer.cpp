@@ -2173,12 +2173,15 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
+        auto temp_repl_parent = replScope.getParent();
         auto temp_scope = currentScope;
+        replScope.setParent(temp_scope);
         currentScope = &replScope;
 
         auto result = visit(node);
 
         currentScope = temp_scope;
+        replScope.setParent(temp_repl_parent);
         return result;
     }
 }

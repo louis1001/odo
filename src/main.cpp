@@ -26,6 +26,55 @@ template<typename T> void add_module(Odo::Interpreting::Interpreter& inter) {
     inter.add_module(std::make_shared<T>(inter));
 }
 
+void repl(Odo::Interpreting::Interpreter& inter) {
+    bool continuing = true;
+
+    inter.add_function(EXIT_FN, [&continuing](){
+        continuing = false;
+    });
+
+//    inter.add_function(ABOUT_FN, [logo]() {
+//        std::cout << logo << std::endl;
+//    });
+
+    // NOLINTNEXTLINE
+    while (continuing)
+    {
+        // Show an interactive prompt
+        std::cout << "> " << std::flush;
+        std::string code;
+        std::cout << rang::fg::yellow;
+        std::getline(std::cin, code);
+        std::cout << rang::style::reset;
+
+        // Handle potential errors
+        try {
+            // Evaluate the input
+            auto result = inter.eval(code);
+
+            // Show the result
+            if (result != inter.get_null()){
+                auto as_str = result->to_string();
+                std::cout << rang::fg::green << as_str << rang::style::reset << "\n";
+            }
+
+            inter.set_repl_last(result);
+        } catch (Odo::Exceptions::OdoException& e) {
+            std::cout << std::endl << rang::fg::red;
+            if (e.should_show_traceback()) {
+                auto& calls = inter.get_call_stack();
+                for (const auto& frame : calls) {
+                    std::cout << MSG_LINE_TXT " " << frame.line_number << ", " MSG_COL_TXT  " " << frame.column_number << " " IN_TXT " " << frame.name << "\n";
+                }
+                calls.clear();
+            }
+
+            std::string msg = e.msg();
+            std::cout << msg << rang::style::reset << std::endl;
+        }
+    }
+}
+
 int entry(int argc, char* argv[]) {
     auto args = flags::args(argc, argv);
 
@@ -69,6 +118,13 @@ int entry(int argc, char* argv[]) {
         return 0;
     }
 
+    auto inline_code = args.get<std::string_view>("c");
+    if (args.get<std::string_view>("i")) {
+        std::cerr << rang::fg::red << "Error! The flag 'i' does not take any arguments.\n" << rang::fg::reset;
+        return 1;
+    }
+    auto use_repl = args.get<bool>("i", false);
+
     const auto& pos_args = args.positional();
 
     std::string input_file;
@@ -83,10 +139,10 @@ int entry(int argc, char* argv[]) {
     add_module<Modules::IOModule>(inter);
     add_module<Modules::MathModule>(inter);
 
-    // If there's a file to be read
+    // Opening file and reading contents:
+    std::string code;
+
     if (!input_file.empty()) {
-        // Opening file and reading contents:
-        std::string code;
         try{
             code = Odo::io::read_file(input_file);
         } catch (Odo::Exceptions::IOException& e) {
@@ -94,12 +150,17 @@ int entry(int argc, char* argv[]) {
             std::cerr << e.msg() << "\n" << std::flush;
             return 1;
         }
+    } else if (inline_code) {
+        code = *inline_code;
+    }
 
+    if (!code.empty()) {
         // Handle potential errors
         // Interpreting the text inside the file.
 
         try {
-            inter.interpret(code);
+            if (use_repl) inter.eval(code);
+            else inter.interpret(code);
         } catch(Odo::Exceptions::OdoException& e) {
             std::cout << std::endl << rang::fg::red;
             auto& calls = inter.get_call_stack();
@@ -113,55 +174,10 @@ int entry(int argc, char* argv[]) {
             std::cerr << e.msg() << rang::style::reset << std::flush;
             return 1;
         }
-    // Else
-    } else {
-        bool continuing = true;
+    }
 
-        inter.add_function(EXIT_FN, [&continuing](){
-            continuing = false;
-        });
-
-        inter.add_function(ABOUT_FN, [logo]() {
-            std::cout << logo << std::endl;
-        });
-
-        // NOLINTNEXTLINE
-        while (continuing)
-        {
-            // Show an interactive prompt
-            std::cout << "> " << std::flush;
-            std::string code;
-            std::cout << rang::fg::yellow;
-            std::getline(std::cin, code);
-            std::cout << rang::style::reset;
-
-            // Handle potential errors
-            try {
-                // Evaluate the input
-                auto result = inter.eval(code);
-
-                // Show the result
-                if (result != inter.get_null()){
-                    auto as_str = result->to_string();
-                    std::cout << rang::fg::green << as_str << rang::style::reset << "\n";
-                }
-
-                inter.set_repl_last(result);
-            } catch (Odo::Exceptions::OdoException& e) {
-                std::cout << std::endl << rang::fg::red;
-                if (e.should_show_traceback()) {
-                    auto& calls = inter.get_call_stack();
-                    for (const auto& frame : calls) {
-                        std::cout << MSG_LINE_TXT " " << frame.line_number << ", " MSG_COL_TXT  " " << frame.column_number << " " IN_TXT " " << frame.name << "\n";
-                    }
-                    calls.clear();
-                }
-
-                std::string msg = e.msg();
-                std::cout << msg << rang::style::reset << std::endl;
-            }
-        }
-        std::cout << BYE_MSG "! :)\n";
+    if (use_repl || code.empty()) {
+        repl(inter);
     }
     return 0;
 }
