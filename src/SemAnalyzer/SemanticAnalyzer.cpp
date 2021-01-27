@@ -1767,10 +1767,13 @@ namespace Odo::Semantics {
 
                 add_lazy_check(instanceInTable, {
                     [this, instance_scope, instance_body_node](auto) {
+                        // Make sure to check everything in the instance when creating it.
+                        push_lazy_scope();
                         auto temp = currentScope;
                         currentScope = instance_scope;
                         visit(instance_body_node);
                         currentScope = temp;
+                        pop_lazy_scope();
                     },
                     currentScope
                 });
