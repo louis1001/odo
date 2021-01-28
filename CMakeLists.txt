@@ -148,7 +148,9 @@ add_executable(odo
         include/Modules/NativeModule.h
         include/Modules/IOModule.h
         src/Modules/IOModule.cpp
-        include/Modules/MathModule.h)
+        include/Modules/MathModule.h
+        include/Modules/TermModule.h
+        include/Modules/TermColorsModule.h)
 
 target_compile_definitions(odo PUBLIC LANG_USE_ES=0)
 

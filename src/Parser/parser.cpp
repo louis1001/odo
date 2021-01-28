@@ -382,12 +382,11 @@ namespace Odo::Parsing{
 
         eat(ID);
 
-        Token inherits(NOTHING, "");
+        auto inherits = NoOpNode::create();
 
         if (current_token.tp == COLON) {
             eat(COLON);
-            inherits = current_token;
-            eat(ID);
+            inherits = get_type();
         }
 
         eat(LCUR);
@@ -678,15 +677,14 @@ namespace Odo::Parsing{
         auto params = parameters();
         eat(RPAR);
 
-        Token retType(NOTHING, "");
+        auto retType = NoOpNode::create();
         if (current_token.tp == COLON) {
             eat(COLON);
-            retType = current_token;
+            retType = get_type();
 
-            eat(ID);
             while (current_token.tp == LBRA) {
                 eat(LBRA);
-                retType.value += "[]";
+//                retType.value += "[]";
                 eat(RBRA);
             }
         }
@@ -707,14 +705,12 @@ namespace Odo::Parsing{
         std::vector<std::shared_ptr<Node>> params;
 
         if (current_token.tp != RPAR) {
-            auto typeToken = current_token;
-            eat(ID);
+            auto typeToken = get_type();
             params.push_back(declaration(typeToken));
 
             while (current_token.tp != RPAR) {
                 eat(COMMA);
-                auto typeToken2 = current_token;
-                eat(ID);
+                auto typeToken2 = get_type();
                 params.push_back(declaration(typeToken2));
             }
         }
@@ -738,7 +734,7 @@ namespace Odo::Parsing{
         return argList;
     }
 
-    std::shared_ptr<Node> Parser::declaration(const Token& token) {
+    std::shared_ptr<Node> Parser::declaration(std::shared_ptr<Node> tp) {
         auto ln = line();
         auto cl = column();
 
@@ -765,7 +761,7 @@ namespace Odo::Parsing{
                 assignment = ternary_op();
             }
 
-            auto result = ListDeclarationNode::create(token, varName, dimensions, assignment);
+            auto result = ListDeclarationNode::create(tp, varName, dimensions, assignment);
 
             result->line_number = ln;
             result->column_number = cl;
@@ -776,7 +772,7 @@ namespace Odo::Parsing{
             eat(LPAR);
             auto pars = call_args();
             eat(RPAR);
-            assignment = ClassInitializerNode::create(VariableNode::create(token), pars);
+            assignment = ClassInitializerNode::create(tp, pars);
         }
 
         if (current_token.tp == ASS) {
@@ -788,7 +784,7 @@ namespace Odo::Parsing{
             assignment = ternary_op();
         }
 
-        auto result = VarDeclarationNode::create(token, varName, assignment);
+        auto result = VarDeclarationNode::create(tp, varName, assignment);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -1140,6 +1136,10 @@ namespace Odo::Parsing{
             }
         }
 
+        if (current_token.tp == ID) {
+            node = declaration(node);
+        }
+
         return node;
     }
 
@@ -1173,7 +1173,7 @@ namespace Odo::Parsing{
             body = fbod;
         }
 
-        auto result = FuncExpressionNode::create(params, Token(NOTHING, ""), body);
+        auto result = FuncExpressionNode::create(params, NoOpNode::create(), body);
 
         result->line_number = ln;
         result->column_number = cl;
@@ -1243,12 +1243,7 @@ namespace Odo::Parsing{
                 auto idToken = current_token;
                 eat(ID);
 
-                auto result = VariableNode::create(idToken);
-                if (current_token.tp == ID) {
-                    return declaration(idToken);
-                }
-
-                return result;
+                return VariableNode::create(idToken);
             }
             case LBRA:
             {

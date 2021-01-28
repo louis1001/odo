@@ -951,7 +951,9 @@ namespace Odo::Interpreting {
         if (lst_value->kind() == ValueType::ListVal) {
             std::shared_ptr<Node> iterator_decl;
             auto empty_initial = NoOpNode::create();
-            auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value->type->name);
+            auto element_tp =
+                    VariableNode::create(
+                    Lexing::Token(Lexing::TokenType::ID, lst_value->type->name));
             if (lst_value->type->tp && lst_value->type->tp->kind == SymbolType::ListType) {
                 iterator_decl = ListDeclarationNode::create(
                     std::move(element_tp),
@@ -1000,7 +1002,7 @@ namespace Odo::Interpreting {
             lst_value->important = false;
         } else if (lst_value->type->name == STRING_TP) {
             auto iterator_decl = VarDeclarationNode::create(
-                Lexing::Token(Lexing::TokenType::ID, STRING_TP),
+                VariableNode::create(Lexing::Token(Lexing::TokenType::ID, STRING_TP)),
                 node->var,
                 NoOpNode::create()
             );
@@ -1077,7 +1079,7 @@ namespace Odo::Interpreting {
         std::shared_ptr<NormalValue> iter_as_normal;
         if (use_iterator) {
             std::shared_ptr<Node> iterator_decl = VarDeclarationNode::create(
-                    Lexing::Token(Lexing::TokenType::ID, INT_TP),
+                    VariableNode::create(Lexing::Token(Lexing::TokenType::ID, INT_TP)),
                     node->var,
                     NoOpNode::create()
             );
@@ -1168,7 +1170,7 @@ namespace Odo::Interpreting {
         value_t newValue;
         if (node->initial)
             newValue = visit(node->initial);
-        auto type_ = currentScope->findSymbol(node->var_type.value);
+        auto type_ = getSymbolFromNode(node->var_type);
 
         Symbol newVar;
         value_t valueReturn;
@@ -1211,7 +1213,8 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
-        auto base_type = currentScope->findSymbol(node->var_type.value);
+        // TODO: Handle the list type.
+        auto base_type = getSymbolFromNode(node->var_type);
         Symbol* newVar;
         value_t valueReturn = null;
 
@@ -1783,9 +1786,9 @@ namespace Odo::Interpreting {
 
     value_t Interpreter::visit_FuncExpression(const std::shared_ptr<FuncExpressionNode>& node){
         auto returnType =
-                node->retType.tp == Lexing::NOTHING
+                node->retType->kind() == Parsing::NodeType::NoOp
                 ? nullptr
-                : currentScope->findSymbol(node->retType.value);
+                : getSymbolFromNode(node->retType);
 
         auto paramTypes = getParamTypes(node->params);
 
@@ -1804,9 +1807,9 @@ namespace Odo::Interpreting {
 
     value_t Interpreter::visit_FuncDecl(const std::shared_ptr<FuncDeclNode>& node){
         auto returnType =
-                node->retType.tp == Lexing::NOTHING
+                node->retType->kind() == Parsing::NodeType::NoOp
                 ? nullptr
-                : currentScope->findSymbol(node->retType.value);
+                : getSymbolFromNode(node->retType);
 
         auto paramTypes = getParamTypes(node->params);
 
@@ -2023,10 +2026,8 @@ namespace Odo::Interpreting {
     value_t Interpreter::visit_Class(const std::shared_ptr<ClassNode>& node) {
         Symbol* typeSym = nullptr;
 
-        if (node->ty.tp != Lexing::NOTHING) {
-            auto sym = currentScope->findSymbol(node->ty.value);
-
-            typeSym = sym;
+        if (node->ty->kind() != Parsing::NodeType::NoOp) {
+            typeSym = getSymbolFromNode(node->ty);
         }
 
         Symbol newClassSym = {
@@ -2396,14 +2397,14 @@ namespace Odo::Interpreting {
             switch (par->kind()) {
                 case NodeType::VarDeclaration: {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
-                    auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    auto ft = getSymbolFromNode(as_var_declaration_node->var_type);
                     auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     ts.emplace_back(ft, is_not_optional);
                     break;
                 }
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
-                    auto ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    auto ft = getSymbolFromNode(as_var_declaration_node->var_type);
                     auto is_not_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     ts.emplace_back(ft, is_not_optional);
 

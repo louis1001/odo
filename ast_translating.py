@@ -107,12 +107,12 @@ node_members = {
         "std::shared_ptr<Parsing::Node> body"
     ],
     "VarDeclaration": [
-        "Lexing::Token var_type",
+        "std::shared_ptr<Parsing::Node> var_type",
         "Lexing::Token name",
         "std::shared_ptr<Parsing::Node> initial"
     ],
     "ListDeclaration": [
-        "Lexing::Token var_type",
+        "std::shared_ptr<Parsing::Node> var_type",
         "Lexing::Token name",
         "int dim",
         "std::shared_ptr<Parsing::Node> initial"
@@ -146,13 +146,13 @@ node_members = {
     ],
     "FuncExpression": [
         "std::vector<std::shared_ptr<Parsing::Node>> params",
-        "Lexing::Token retType",
+        "std::shared_ptr<Parsing::Node> retType",
         "std::shared_ptr<Parsing::Node> body"
     ],
     "FuncDecl": [
         "Lexing::Token name",
         "std::vector<std::shared_ptr<Parsing::Node>> params",
-        "Lexing::Token retType",
+        "std::shared_ptr<Parsing::Node> retType",
         "std::shared_ptr<Parsing::Node> body"
     ],
     "FuncCall": [
@@ -172,7 +172,7 @@ node_members = {
     ],
     "Class": [
         "Lexing::Token name",
-        "Lexing::Token ty",
+        "std::shared_ptr<Parsing::Node> ty",
         "std::shared_ptr<Parsing::Node> body"
     ],
     "ClassBody": [

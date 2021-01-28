@@ -64,7 +64,7 @@ namespace Odo::Parsing {
         std::vector<std::shared_ptr<Node>> parameters();
         std::vector<std::shared_ptr<Node>> call_args();
 
-        std::shared_ptr<Node> declaration(const Lexing::Token&);
+        std::shared_ptr<Node> declaration(std::shared_ptr<Node>);
 
         std::shared_ptr<Node> ternary_op();
 

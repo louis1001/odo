@@ -881,7 +881,10 @@ namespace Odo::Semantics {
             std::shared_ptr<Node> iterator_decl;
             auto empty_initial = NoOpNode::create();
             auto element_tp = Lexing::Token(Lexing::TokenType::ID, lst_value.type->tp->name);
-            iterator_decl = VarDeclarationNode::create(std::move(element_tp), node->var, std::move(empty_initial));
+            iterator_decl = VarDeclarationNode::create(
+                VariableNode::create(element_tp),
+                node->var, std::move(empty_initial)
+            );
 
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
@@ -889,9 +892,9 @@ namespace Odo::Semantics {
             visit(node->body);
         } else if (lst_value.type->name == STRING_TP) {
             auto iterator_decl = VarDeclarationNode::create(
-                    Lexing::Token(Lexing::TokenType::ID, STRING_TP),
-                    node->var,
-                    NoOpNode::create()
+                VariableNode::create(Lexing::Token(Lexing::TokenType::ID, STRING_TP)),
+                node->var,
+                NoOpNode::create()
             );
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
@@ -942,9 +945,9 @@ namespace Odo::Semantics {
 
         if (use_iterator) {
             std::shared_ptr<Node> iterator_decl = VarDeclarationNode::create(
-                    Lexing::Token(Lexing::TokenType::ID, INT_TP),
-                    node->var,
-                    NoOpNode::create()
+                VariableNode::create(Lexing::Token(Lexing::TokenType::ID, INT_TP)),
+                node->var,
+                NoOpNode::create()
             );
             visit(iterator_decl);
             currentScope->findSymbol(node->var.value)->is_initialized = true;
@@ -1058,11 +1061,11 @@ namespace Odo::Semantics {
             );
         }
 
-        auto type_ = currentScope->findSymbol(node->var_type.value);
+        auto type_ = getSymbolFromNode(node->var_type);
 
         if (type_ == nullptr) {
             throw Exceptions::NameException(
-                    UNKWN_TYPE_EXCP + node->var_type.value + "'.",
+                    UNKWN_TYPE_EXCP "?'.",
                     node->line_number,
                     node->column_number
             );
@@ -1122,10 +1125,10 @@ namespace Odo::Semantics {
             );
         }
 
-        auto base_type = currentScope->findSymbol(node->var_type.value);
+        auto base_type = getSymbolFromNode(node->var_type);
         if (!(base_type && base_type->isType)) {
             throw Exceptions::TypeException(
-                    INVALID_TYPE_EXCP + node->var_type.value + "'.",
+                    INVALID_TYPE_EXCP "?'.",
                     node->line_number,
                     node->column_number
             );
@@ -1311,14 +1314,14 @@ namespace Odo::Semantics {
             switch (par->kind()) {
                 case NodeType::VarDeclaration: {
                     auto as_var_declaration_node = Node::as<VarDeclarationNode>(par);
-                    ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    ft = getSymbolFromNode(as_var_declaration_node->var_type);
                     if (ft) {
                         is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
                         // TODO: Handle Error
                         // Error! Unknown type par.type.value
                         throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                UNKWN_TYPE_EXCP "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -1327,12 +1330,12 @@ namespace Odo::Semantics {
                 }
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
-                    ft = currentScope->findSymbol(as_var_declaration_node->var_type.value);
+                    ft = getSymbolFromNode(as_var_declaration_node->var_type);
                     if (ft) {
                         is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
                         throw Exceptions::TypeException(
-                                UNKWN_TYPE_EXCP + as_var_declaration_node->var_type.value + "'.",
+                                UNKWN_TYPE_EXCP "'.",
                                 par->line_number,
                                 par->column_number
                         );
@@ -1395,7 +1398,7 @@ namespace Odo::Semantics {
 
         if (accepted_return_type != returnType) {
             returnType = accepted_return_type;
-            node->retType = Lexing::Token(Lexing::TokenType::ID, returnType->name);
+            node->retType = VariableNode::create(Lexing::Token(Lexing::TokenType::ID, returnType->name));
         } else {
             returnType = nullptr;
         }
@@ -1432,12 +1435,12 @@ namespace Odo::Semantics {
 
         Interpreting::Symbol* returnType;
 
-        if (node->retType.tp == Lexing::NOTHING) {
+        if (node->retType->kind() == Parsing::NodeType::NoOp) {
             returnType = nullptr;
-        } else if (node->retType.value.ends_with("[]")) {
+        }/* else if (node->retType.value.ends_with("[]")) {
             returnType = string_to_list_type(node->retType.value);
-        } else {
-            returnType = currentScope->findSymbol(node->retType.value);
+        } */else {
+            returnType = getSymbolFromNode(node->retType);
         }
 
         auto paramTypes = getParamTypes(node->params);
@@ -1686,11 +1689,11 @@ namespace Odo::Semantics {
     NodeResult SemanticAnalyzer::visit_Class(const std::shared_ptr<Parsing::ClassNode>& node) {
         Interpreting::Symbol* typeSym = nullptr;
 
-        if (node->ty.tp != Lexing::NOTHING) {
-            auto sym = currentScope->findSymbol(node->ty.value);
+        if (node->ty->kind() != Parsing::NodeType::NoOp) {
+            auto sym = getSymbolFromNode(node->ty);
             if (!sym || !sym->isType || sym->kind != Interpreting::SymbolType::ClassType) {
                 throw Exceptions::TypeException(
-                    CLASS_MUST_INH_TYPE_EXCP + node->ty.value + IS_INVALID_EXCP,
+                    CLASS_MUST_INH_TYPE_EXCP /* NO NAME! */ IS_INVALID_EXCP,
                     node->line_number,
                     node->column_number
                 );
@@ -1709,6 +1712,7 @@ namespace Odo::Semantics {
 
         auto classScope = add_semantic_context(inTable, "class-" + node->name.value + "-scope");
 
+        // Why would the body be empty?
         add_lazy_check(inTable, {
             [this, inTable, node, classScope](Interpreting::SymbolTable* parentScope){
                 push_lazy_scope();
@@ -2182,15 +2186,12 @@ namespace Odo::Semantics {
     }
 
     NodeResult SemanticAnalyzer::from_repl(const std::shared_ptr<Parsing::Node> & node) {
-        auto temp_repl_parent = replScope.getParent();
         auto temp_scope = currentScope;
-        replScope.setParent(temp_scope);
         currentScope = &replScope;
 
         auto result = visit(node);
 
         currentScope = temp_scope;
-        replScope.setParent(temp_repl_parent);
         return result;
     }
 }
