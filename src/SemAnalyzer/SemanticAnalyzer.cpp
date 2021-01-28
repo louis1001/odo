@@ -1930,6 +1930,15 @@ namespace Odo::Semantics {
 //        auto constr_call = FuncCallNode::create(constr_name, {Lexing::NOTHING, ""}, node->params);
 
         auto constr = instance_scope->findSymbol("constructor");
+
+        if (!constr) {
+            if (node->params.empty()) return {class_symbol};
+            throw Exceptions::SemanticException(
+                CONSTR_CALL_TAKES_EXCP "0" ARGS_BUT_CALLED_EXCP + std::to_string(node->params.size()),
+                node->line_number,
+                node->column_number
+            );
+        }
         if (!constr->has_been_checked)
             consume_lazy(constr);
 
