@@ -61,7 +61,7 @@ class Lexer {
         return result
     }
 
-    func id() {
+    func id(): string {
         string result = current_char()
         advance()
 
