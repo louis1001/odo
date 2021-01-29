@@ -16,13 +16,14 @@ enum TType {
     cll,
     dot,
     com,
-    hlt
+    hlt,
+    eof
 }
 
 class Token {
-    string tp
+    TType tp
 
-    init (string _tp) {
+    init (TType _tp) {
         tp = _tp
     }
 
@@ -32,8 +33,8 @@ class Token {
 }
 
 class Lexer {
-    string text
-    int pos
+    string text = ""
+    int pos = 0
 
     static string operators[] = ["+", "-", ">", "<", ".", ",", "[", "]"]
     init(string _txt = "") {
@@ -43,13 +44,13 @@ class Lexer {
 
     func currChar(): string {
         if pos >= length(text) {
-            return null
+            return ""
         }
 
         return text[pos]
     }
 
-    func isOperator() {
+    func isOperator(): bool {
         string c = currChar()
         foreach op : Lexer::operators {
             if op == c { return true }
@@ -59,15 +60,15 @@ class Lexer {
     }
 
     func ignoreAny() {
-        while currChar() != null and !isOperator() {
+        while currChar() != "" and !isOperator() {
             pos++
         }
     }
 
-    func getNextToken(): Node {
+    func getNextToken(): Token {
         ignoreAny()
-        if currChar() == null or pos >= length(text) {
-            return new Token(null)
+        if currChar() == "" or pos >= length(text) {
+            return new Token(TType::eof)
         }
 
         if currChar() == "+" {
@@ -96,7 +97,7 @@ class Lexer {
             return new Token(TType::com)
         }
 
-        return new Token(null)
+        return new Token(TType::eof)
     }
 
     func setText(string _text) {
@@ -117,20 +118,20 @@ enum NodeType {
 }
 
 class AST {
-    string tp
-    AST children[]
-    init (string _tp, AST _children[] = []) {
+    NodeType tp = NodeType::block
+    AST children[] = []
+    init (NodeType _tp, AST _children[] = []) {
         tp = _tp
         children = _children
     }
 }
 
 class Parser {
-    Lexer lex
-    Token currToken
+    Lexer lex()
+    Token currToken(TType::eof)
     init (Lexer _lex = new Lexer()) {
         lex = _lex
-        currToken = new Token(null)
+        currToken = new Token(TType::eof)
     }
 
     func eat(TType tp) {
@@ -138,11 +139,14 @@ class Parser {
             currToken = lex.getNextToken()
         } else {
             writeln("Error! Expected *", tp, "* but got *", currToken.tp, "*.")
-            invalid_token = null
+            # Somehow break the parser...
+            1/1.0
+            # What was this supposed to mean!?
+            # invalid_token = null
         }
     }
 
-    func program(string text) {
+    func program(string text): AST {
         lex.setText(text)
         currToken = lex.getNextToken()
         AST result = block()
@@ -150,10 +154,9 @@ class Parser {
         return result
     }
 
-    func block() {
-        TType delimiters[] = [TType::cll, null]
+    func block(): AST {
         AST statements[] = []
-        while currToken.tp != null and currToken.tp != TType::cll {
+        while currToken.tp != TType::eof and currToken.tp != TType::cll {
             AST n = statement()
             statements += n
         }
@@ -161,7 +164,7 @@ class Parser {
         return new AST(NodeType::block, statements)
     }
 
-    func statement() {
+    func statement(): AST {
         if currToken.tp == TType::add {
             eat(TType::add)
             return new AST(NodeType::add)
@@ -191,36 +194,31 @@ class Parser {
 
 class Interpreter {
     int pointer = 0
-    int memory[]
+    int memory[] = []
     init() {
         memory = [0]*300
     }
 
     func visit(AST node) {
+        # Fix this!
         if node.tp == NodeType::block {
             foreach child : node.children {
                 visit(child)
             }
         } else if node.tp == NodeType::add {
             memory[pointer]++
-            return null
         } else if node.tp == NodeType::sub {
             memory[pointer]--
-            return null
         }  else if node.tp == NodeType::pta {
             pointer++
-            return null
         } else if node.tp == NodeType::pts {
             pointer--
-            return null
         } else if node.tp == NodeType::dot {
             write(fromAsciiCode(memory[pointer]))
-            return null
         } else if node.tp == NodeType::com {
             string c = read()[0]
             memory[pointer] = toAsciiCode(c)
 
-            return null
         } else if node.tp == NodeType::opl {
             while(memory[pointer] > 0){
                 visit(node.children)
