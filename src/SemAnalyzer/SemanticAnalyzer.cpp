@@ -1968,7 +1968,7 @@ namespace Odo::Semantics {
                 if (!counts_as(arg_result.type, par)) {
                     // Error! invalid type for call argument
                     throw Exceptions::TypeException(
-                            INVALID_TP_FOR_CONSTR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->tp->name + BUT_RECVD_EXCP + arg_result.type->name,
+                            INVALID_TP_FOR_CONSTR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->name + BUT_RECVD_EXCP + arg_result.type->name,
                             node->line_number,
                             node->column_number
                     );
