@@ -1,0 +1,10 @@
+int a = 20
+int a_coerced = 20.0
+
+double b = 20.0
+double b_coerced = 20
+
+string c = "20.0"
+bool twenty = true
+
+write("good")

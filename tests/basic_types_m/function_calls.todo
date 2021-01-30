@@ -1,0 +1,13 @@
+func simple_double(double a) { }
+func simple_int(int a) { }
+func simple_bool(bool b) { }
+func simple_string(string c) { }
+
+# Wish I didn't need to redefine the functions here.
+
+simple_double(1.0)
+simple_int(1)
+simple_bool(true)
+simple_string("1")
+
+write("good")

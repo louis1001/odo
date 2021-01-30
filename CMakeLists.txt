@@ -158,4 +158,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(odo PUBLIC DEBUG_MODE=1)
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
     target_compile_definitions(odo PUBLIC DEBUG_MODE=0)
+    add_custom_command(TARGET odo
+        POST_BUILD
+        COMMAND cd "../tests"
+        COMMAND python odo_tests.py
+    )
 endif()

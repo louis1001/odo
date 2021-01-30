@@ -1,0 +1,19 @@
+func simple_void() { }
+
+func simple_double(double a) { }
+
+func simple_int(int a) { }
+
+func simple_bool(bool b) { }
+
+func simple_string(string c) { }
+
+func simple_double_list(double a[]) { }
+
+func simple_int_list(int a[]) { }
+
+func simple_bool_list(bool b[]) { }
+
+func simple_string_list(string c[]) { }
+
+write("good")

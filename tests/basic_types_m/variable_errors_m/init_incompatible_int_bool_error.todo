@@ -1,0 +1,4 @@
+
+int a = true
+
+print("bad")

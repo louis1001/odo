@@ -1,0 +1,10 @@
+
+int a[] = []
+double b[] = []
+bool c[] = []
+string d[] = []
+
+int a_coerced = [1.0, 2.0]
+double b_coerced = [1, 2]
+
+write("good")
