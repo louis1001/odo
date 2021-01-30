@@ -211,6 +211,7 @@ namespace Odo::Semantics {
 
         auto base_type = currentScope->findSymbol(static_cast<std::string>(shortened_name));
 
+        if (dimensions == 0) return base_type;
 
         return handle_list_type(base_type, dimensions);
     }
@@ -1330,7 +1331,8 @@ namespace Odo::Semantics {
                 }
                 case NodeType::ListDeclaration: {// FIXME: List types are registered as their basetype and not as listtype
                     auto as_var_declaration_node = Node::as<ListDeclarationNode>(par);
-                    ft = getSymbolFromNode(as_var_declaration_node->var_type);
+                    auto base_type = getSymbolFromNode(as_var_declaration_node->var_type);
+                    ft = handle_list_type(base_type, as_var_declaration_node->dim);
                     if (ft) {
                         is_optional = as_var_declaration_node->initial && as_var_declaration_node->initial->kind() != NodeType::NoOp;
                     } else {
@@ -1437,9 +1439,7 @@ namespace Odo::Semantics {
 
         if (node->retType->kind() == Parsing::NodeType::NoOp) {
             returnType = nullptr;
-        }/* else if (node->retType.value.ends_with("[]")) {
-            returnType = string_to_list_type(node->retType.value);
-        } */else {
+        } else {
             returnType = getSymbolFromNode(node->retType);
         }
 
@@ -1571,7 +1571,12 @@ namespace Odo::Semantics {
                     const auto& argument = call_args.at(i);
                     auto arg_result = visit(argument);
 
-                    if (!counts_as(arg_result.type, par)) {
+                    auto is_empty_list = false;
+                    if (par->kind == Interpreting::SymbolType::ListType &&
+                        argument->kind() == Parsing::NodeType::ListExpression) {
+                        is_empty_list = Node::as<ListExpressionNode>(argument)->elements.empty();
+                    }
+                    if (!is_empty_list && !counts_as(arg_result.type, par)) {
                         // Error! invalid type for call argument
                         throw Exceptions::TypeException(
                                 INVALID_TP_FOR_ARG_EXCP + std::to_string(i) + EXPC_TP_EXCP + par->name + BUT_RECVD_EXCP + arg_result.type->name,
