@@ -1844,11 +1844,11 @@ namespace Odo::Interpreting {
             auto found_in_natives = native_functions.find(node->fname.value);
 
             if (found_in_natives != native_functions.end()) {
-                int num_args = node->args.size();
+                auto num_args = node->args.size();
                 std::vector<value_t> arguments_visited;
 
                 std::vector<bool> was_important{};
-                for(int i = 0; i < num_args; i++){
+                for(size_t i = 0; i < num_args; i++){
                     auto& arg = node->args[i];
                     auto v = visit(arg);
                     was_important.push_back(v->important);
