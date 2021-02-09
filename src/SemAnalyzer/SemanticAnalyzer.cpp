@@ -75,8 +75,8 @@ namespace Odo::Semantics {
         deactivate_cleanup = true;
     }
 
-    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, const Interpreting::SymbolTable& tb) {
-        semantic_contexts.insert(std::pair(sym, tb));
+    Interpreting::SymbolTable* SemanticAnalyzer::add_semantic_context(Interpreting::Symbol* sym, Interpreting::SymbolTable tb) {
+        semantic_contexts.emplace(sym, std::move(tb));
 
         sym->ondestruction = [this](auto* sym){
             if (deactivate_cleanup) return;

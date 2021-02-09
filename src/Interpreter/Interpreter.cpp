@@ -66,7 +66,7 @@ namespace Odo::Interpreting {
     Interpreter::Interpreter(Parser p): parser(std::move(p)) {
         auto any_symbol = Symbol{.name=ANY_TP, .isType=true, .kind=SymbolType::PrimitiveType};
 
-        std::unordered_map<std::string, Symbol> buildInTypes = {
+        std::unordered_map<std::string, Symbol> buildInTypes {
             {ANY_TP, any_symbol}
         };
         globalTable = SymbolTable("global", buildInTypes);

@@ -171,7 +171,7 @@ namespace Odo::Semantics {
         explicit SemanticAnalyzer(Interpreting::Interpreter&);
         ~SemanticAnalyzer();
 
-        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, const Interpreting::SymbolTable&);
+        Interpreting::SymbolTable* add_semantic_context(Interpreting::Symbol*, Interpreting::SymbolTable);
 
         std::map<Interpreting::Symbol*, arg_types>& get_function_context_map() { return functions_context; }
 
