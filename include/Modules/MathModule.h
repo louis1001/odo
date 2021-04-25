@@ -10,7 +10,7 @@
 #include <cmath>
 
 namespace Odo::Modules {
-    class MathModule : public NativeModule{
+    class MathModule final : public NativeModule{
     public:
         explicit MathModule(Interpreting::Interpreter& inter)
             : NativeModule(module_name(), inter)

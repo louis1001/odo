@@ -251,10 +251,10 @@ namespace Odo::Interpreting {
     }
 
     NativeFunctionValue::NativeFunctionValue(Symbol* tp, std::vector<std::pair<Symbol*, bool>> args, simple_primitives_function_type fn_)
-        : Value(tp), arguments(std::move(args)), fn(std::move(fn_)), function_kind(NativeFunctionType::Simple) {}
+        : Value(tp), fn(std::move(fn_)), arguments(std::move(args)), function_kind(NativeFunctionType::Simple) {}
 
     NativeFunctionValue::NativeFunctionValue(Symbol* tp, std::vector<std::pair<Symbol*, bool>> args, handle_values_function_type fn_)
-        : Value(tp), arguments(std::move(args)), values_fn(std::move(fn_)), function_kind(NativeFunctionType::Values) {}
+        : Value(tp), values_fn(std::move(fn_)), arguments(std::move(args)), function_kind(NativeFunctionType::Values) {}
 
     std::shared_ptr<NativeFunctionValue> NativeFunctionValue::create(Symbol* tp, const std::vector<std::pair<Symbol*, bool>>& args, const simple_primitives_function_type& fn_) {
         return std::make_shared<NativeFunctionValue>(tp, args, std::move(fn_));

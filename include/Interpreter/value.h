@@ -116,6 +116,8 @@ namespace Odo::Interpreting {
 
         ModuleValue(Symbol* tp, const SymbolTable& scope);
 
+        virtual ~ModuleValue(){}
+
         static std::shared_ptr<ModuleValue> create(Symbol* tp, const SymbolTable& scope);
     };
 

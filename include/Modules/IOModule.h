@@ -10,7 +10,7 @@
 #include "IO/io.h"
 
 namespace Odo::Modules {
-    class IOModule : public NativeModule {
+    class IOModule final : public NativeModule {
     public:
         explicit IOModule(Interpreting::Interpreter& inter)
         : NativeModule(module_name(), inter)
