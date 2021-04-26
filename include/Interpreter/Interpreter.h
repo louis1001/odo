@@ -69,6 +69,12 @@ namespace Odo::Interpreting {
         INTER_VISITOR(Block);
 
         INTER_VISITOR(BinOp);
+
+        value_t visit_BinOp_arit(const std::shared_ptr<Parsing::BinOpNode>& node);
+        value_t visit_BinOp_equa(const std::shared_ptr<Parsing::BinOpNode>& node);
+        value_t visit_BinOp_rela(const std::shared_ptr<Parsing::BinOpNode>& node);
+        value_t visit_BinOp_bool(const std::shared_ptr<Parsing::BinOpNode>& node);
+
         INTER_VISITOR(UnaryOp);
 
         INTER_VISITOR(TernaryOp);

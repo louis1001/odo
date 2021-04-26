@@ -1396,6 +1396,51 @@ namespace Odo::Interpreting {
     value_t Interpreter::visit_BinOp(const std::shared_ptr<BinOpNode>& node) {
         // TODO: Add shortcut-circuit evaluation now that I don't need
         //       to check the exact types of the values at runtime.
+
+        const auto arithmeticOps = std::set<Lexing::TokenType> {
+            Lexing::PLUS,
+            Lexing::MINUS,
+            Lexing::MUL,
+            Lexing::DIV,
+            Lexing::MOD,
+            Lexing::POW
+        };
+
+        const auto equalityOps = std::set<Lexing::TokenType> {
+            Lexing::EQU,
+            Lexing::NEQ
+        };
+
+        const auto relationOps = std::set<Lexing::TokenType> {
+            Lexing::LT,
+            Lexing::GT,
+            Lexing::LET,
+            Lexing::GET
+        };
+
+        const auto boolOps = std::set<Lexing::TokenType> {
+            Lexing::AND,
+            Lexing::OR
+        };
+
+        auto contains = [](auto arr, auto val) -> bool{
+            return arr.find(val) != arr.end();
+        };
+
+        auto& opType = node->token.tp;
+
+        if (contains(arithmeticOps, opType)) {
+            return visit_BinOp_arit(node);
+        } else if (contains(equalityOps, opType)) {
+            return visit_BinOp_equa(node);
+        } else if (contains(relationOps, opType)) {
+            return visit_BinOp_rela(node);
+        } else {
+            return visit_BinOp_bool(node);
+        }
+    }
+
+    value_t Interpreter::visit_BinOp_arit(const std::shared_ptr<BinOpNode>& node) {
         auto leftVisited = visit(node->left);
         leftVisited->important = true;
         auto rightVisited = visit(node->right);
@@ -1582,24 +1627,45 @@ namespace Odo::Interpreting {
                     }
                 }
                 break;
+            default:
+                return null;
+        }
+        return null;
+    }
+
+    value_t Interpreter::visit_BinOp_equa(const std::shared_ptr<BinOpNode>& node) {
+        auto leftVisited = visit(node->left);
+        leftVisited->important = true;
+        auto rightVisited = visit(node->right);
+        leftVisited->important = false;
+
+        switch (node->token.tp) {
             case Lexing::EQU: {
                 if (leftVisited == rightVisited)
                     return create_literal(true);
-
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
 
                 if (leftVisited->type == null->type || rightVisited->type == null->type) {
                     return create_literal(false);
                 }
 
                 if (leftVisited->type->name == INT_TP) {
+                    auto coerced = coerce_type(leftVisited, rightVisited);
+                    auto left_as_normal = Value::as<NormalValue>(coerced.first);
+                    auto right_as_normal = Value::as<NormalValue>(coerced.second);
                     auto result = left_as_normal->as_int() == right_as_normal->as_int();
                     return create_literal(result);
                 } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto coerced = coerce_type(leftVisited, rightVisited);
+                    auto left_as_normal = Value::as<NormalValue>(coerced.first);
+                    auto right_as_normal = Value::as<NormalValue>(coerced.second);
                     auto result = left_as_normal->as_double() == right_as_normal->as_double();
                     return create_literal(result);
-                } else if (leftVisited->type->name == BOOL_TP) {
+                }
+
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+
+                if (leftVisited->type->name == BOOL_TP) {
                     auto result = left_as_normal->as_bool() == right_as_normal->as_bool();
                     return create_literal(result);
                 } else if (leftVisited->type->name == STRING_TP) {
@@ -1618,15 +1684,24 @@ namespace Odo::Interpreting {
                     return create_literal(true);
                 }
 
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
                 if (leftVisited->type->name == INT_TP) {
+                    auto coerced = coerce_type(leftVisited, rightVisited);
+                    auto left_as_normal = Value::as<NormalValue>(coerced.first);
+                    auto right_as_normal = Value::as<NormalValue>(coerced.second);
                     auto result = left_as_normal->as_int() != right_as_normal->as_int();
                     return create_literal(result);
                 } else if (leftVisited->type->name == DOUBLE_TP) {
+                    auto coerced = coerce_type(leftVisited, rightVisited);
+                    auto left_as_normal = Value::as<NormalValue>(coerced.first);
+                    auto right_as_normal = Value::as<NormalValue>(coerced.second);
                     auto result = left_as_normal->as_double() != right_as_normal->as_double();
                     return create_literal(result);
-                } else if (leftVisited->type->name == BOOL_TP) {
+                }
+
+                auto left_as_normal = Value::as<NormalValue>(leftVisited);
+                auto right_as_normal = Value::as<NormalValue>(rightVisited);
+
+                if (leftVisited->type->name == BOOL_TP) {
                     auto result = left_as_normal->as_bool() != right_as_normal->as_bool();
                     return create_literal(result);
                 } else if (leftVisited->type->name == STRING_TP) {
@@ -1637,70 +1712,70 @@ namespace Odo::Interpreting {
                 }
                 break;
             }
+            default:
+                return null;
+        }
+        return null;
+    }
+
+    value_t Interpreter::visit_BinOp_rela(const std::shared_ptr<BinOpNode>& node) {
+        auto leftVisited = visit(node->left);
+        leftVisited->important = true;
+        auto rightVisited = visit(node->right);
+        leftVisited->important = false;
+
+        auto coerced = coerce_type(leftVisited, rightVisited);
+
+        auto left_as_normal = Value::as<NormalValue>(coerced.first);
+        auto right_as_normal = Value::as<NormalValue>(coerced.second);
+
+        double left_actual_value = 0;
+        double right_actual_value = 0;
+        if (leftVisited->type->name == INT_TP) {
+            left_actual_value = left_as_normal->as_int();
+            right_actual_value = right_as_normal->as_int();
+        } else {
+            left_actual_value = left_as_normal->as_double();
+            right_actual_value = right_as_normal->as_double();
+        }
+
+        switch (node->token.tp) {
             case Lexing::LT: {
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                if (leftVisited->type->name == INT_TP) {
-                    auto result = left_as_normal->as_int() < right_as_normal->as_int();
-                    return create_literal(result);
-                } else if (leftVisited->type->name == DOUBLE_TP) {
-                    auto result = left_as_normal->as_double() < right_as_normal->as_double();
-                    return create_literal(result);
-                }
-                break;
+                return create_literal(left_actual_value < right_actual_value);
             }
             case Lexing::GT: {
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                if (leftVisited->type->name == INT_TP) {
-                    auto result = left_as_normal->as_int() > right_as_normal->as_int();
-                    return create_literal(result);
-                } else if (leftVisited->type->name == DOUBLE_TP) {
-                    auto result = left_as_normal->as_double() > right_as_normal->as_double();
-                    return create_literal(result);
-                }
-                break;
+                return create_literal(left_actual_value > right_actual_value);
             }
             case Lexing::LET:
             {
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                if (leftVisited->type->name == INT_TP) {
-                    auto result = left_as_normal->as_int() <= right_as_normal->as_int();
-                    return create_literal(result);
-                } else if (leftVisited->type->name == DOUBLE_TP) {
-                    auto result = left_as_normal->as_double() <= right_as_normal->as_double();
-                    return create_literal(result);
-                }
-                break;
+                return create_literal(left_actual_value <= right_actual_value);
             }
             case Lexing::GET:
             {
-                auto left_as_normal = Value::as<NormalValue>(leftVisited);
-                auto right_as_normal = Value::as<NormalValue>(rightVisited);
-                if (leftVisited->type->name == INT_TP) {
-                    auto result = left_as_normal->as_int() >= right_as_normal->as_int();
-                    return create_literal(result);
-                } else if (leftVisited->type->name == DOUBLE_TP) {
-                    auto result = left_as_normal->as_double() >= right_as_normal->as_double();
-                    return create_literal(result);
-                }
-                break;
+                return create_literal(left_actual_value >= right_actual_value);
             }
+            default:
+                return null;
+        }
+        return null;
+    }
+
+    value_t Interpreter::visit_BinOp_bool(const std::shared_ptr<BinOpNode>& node) {
+        auto lhs = Value::as<NormalValue>(visit(node->left))->as_bool();
+        switch (node->token.tp) {
             case Lexing::AND:
             {
-                auto result = Value::as<NormalValue>(leftVisited)->as_bool() && Value::as<NormalValue>(rightVisited)->as_bool();
+                auto result = lhs && Value::as<NormalValue>(visit(node->right))->as_bool();
                 return create_literal(result);
             }
             case Lexing::OR:
             {
-                auto result = Value::as<NormalValue>(leftVisited)->as_bool() || Value::as<NormalValue>(rightVisited)->as_bool();
+                auto result = lhs || Value::as<NormalValue>(visit(node->right))->as_bool();
                 return create_literal(result);
             }
             default:
-                break;
+                return null;
         }
-
         return null;
     }
 
