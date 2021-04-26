@@ -803,14 +803,14 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::create_literal_from_string(std::string val, const std::string& kind) {
-        std::any newValue;
         if (kind == DOUBLE_TP) {
-            newValue = strtod(val.c_str(), nullptr);
+            auto newValue = strtod(val.c_str(), nullptr);
+            return create_literal(newValue);
         } else if (kind == INT_TP) {
             int a = (int) strtol(val.c_str(), nullptr, 10);
-            newValue = a;
+            return create_literal(a);
         } else if (kind == STRING_TP) {
-            newValue = val;
+            return create_literal(val);
         } else if (kind == BOOL_TP) {
             if (val != TRUE_TK && val != FALSE_TK){
                 throw Exceptions::ValueException(
@@ -819,16 +819,12 @@ namespace Odo::Interpreting {
                     current_col
                 );
             }
-            newValue = val == TRUE_TK;
+            return create_literal(val == TRUE_TK);
         } else {
             return null;
         }
 
         // Handle errors in conversions are incorrect.
-
-        auto normal_value = NormalValue::create(globalTable.findSymbol(kind), newValue);
-
-        return normal_value;
     }
 
     value_t Interpreter::create_literal(std::string val) {
