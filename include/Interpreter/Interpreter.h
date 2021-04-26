@@ -54,8 +54,12 @@ namespace Odo::Interpreting {
         std::pair<value_t, value_t>
         coerce_type(const value_t& lhs, const value_t& rhs);
 
+        Symbol* int_type;
+        Symbol* double_type;
+        Symbol* string_type;
+        Symbol* bool_type;
+
         value_t create_literal_from_string(std::string val, const std::string& kind);
-        value_t create_literal_from_any(const std::any& val, const std::string& kind);
         value_t create_literal(std::string val);
         value_t create_literal(int val);
         value_t create_literal(double val);

@@ -80,6 +80,11 @@ namespace Odo::Interpreting {
         globalTable.symbols[POINTER_TP] = {.tp=any_sym, .name=POINTER_TP, .isType=true, .kind=SymbolType::PrimitiveType};
         globalTable.symbols[NULL_TP] = {.tp=any_sym, .name=NULL_TP, .isType=true, .kind=SymbolType::PrimitiveType};
 
+        int_type = &globalTable.symbols[INT_TP];
+        double_type = &globalTable.symbols[DOUBLE_TP];
+        string_type = &globalTable.symbols[STRING_TP];
+        bool_type = &globalTable.symbols[BOOL_TP];
+
         currentScope = &globalTable;
 
         replScope = SymbolTable("repl", {}, &globalTable);
@@ -826,24 +831,20 @@ namespace Odo::Interpreting {
         return normal_value;
     }
 
-    value_t Interpreter::create_literal_from_any(const std::any& val, const std::string &kind) {
-        return NormalValue::create(globalTable.findSymbol(kind), val);
-    }
-
     value_t Interpreter::create_literal(std::string val) {
-        return create_literal_from_any(val, STRING_TP);
+        return NormalValue::create(string_type, val);
     }
 
     value_t Interpreter::create_literal(int val) {
-        return create_literal_from_any(val, INT_TP);
+        return NormalValue::create(int_type, val);
     }
 
     value_t Interpreter::create_literal(double val) {
-        return create_literal_from_any(val, DOUBLE_TP);
+        return NormalValue::create(double_type, val);
     }
 
     value_t Interpreter::create_literal(bool val) {
-        return create_literal_from_any(val, BOOL_TP);
+        return NormalValue::create(bool_type, val);
     }
 
     value_t Interpreter::visit_Double(const std::shared_ptr<DoubleNode>& node) {
