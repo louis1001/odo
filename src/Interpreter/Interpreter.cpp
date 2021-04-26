@@ -1397,46 +1397,22 @@ namespace Odo::Interpreting {
         // TODO: Add shortcut-circuit evaluation now that I don't need
         //       to check the exact types of the values at runtime.
 
-        const auto arithmeticOps = std::set<Lexing::TokenType> {
-            Lexing::PLUS,
-            Lexing::MINUS,
-            Lexing::MUL,
-            Lexing::DIV,
-            Lexing::MOD,
-            Lexing::POW
-        };
-
-        const auto equalityOps = std::set<Lexing::TokenType> {
-            Lexing::EQU,
-            Lexing::NEQ
-        };
-
-        const auto relationOps = std::set<Lexing::TokenType> {
-            Lexing::LT,
-            Lexing::GT,
-            Lexing::LET,
-            Lexing::GET
-        };
-
-        const auto boolOps = std::set<Lexing::TokenType> {
-            Lexing::AND,
-            Lexing::OR
-        };
-
-        auto contains = [](auto arr, auto val) -> bool{
-            return arr.find(val) != arr.end();
-        };
-
         auto& opType = node->token.tp;
 
-        if (contains(arithmeticOps, opType)) {
-            return visit_BinOp_arit(node);
-        } else if (contains(equalityOps, opType)) {
+        if (opType == Lexing::AND ||
+            opType == Lexing::OR) {
+            return visit_BinOp_bool(node);
+
+        } else if (opType == Lexing::EQU ||
+                   opType == Lexing::NEQ) {
             return visit_BinOp_equa(node);
-        } else if (contains(relationOps, opType)) {
+        } else if (opType == Lexing::LT ||
+                   opType == Lexing::GT ||
+                   opType == Lexing::LET ||
+                   opType == Lexing::GET) {
             return visit_BinOp_rela(node);
         } else {
-            return visit_BinOp_bool(node);
+            return visit_BinOp_arit(node);
         }
     }
 
