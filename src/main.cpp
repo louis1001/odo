@@ -1,3 +1,6 @@
+#undef LANG_USE_ES
+#define LANG_USE_ES 1
+
 #include <iostream>
 #include <signal.h>
 #include <IO/io.h>
@@ -13,14 +16,36 @@
 
 #include"Translations/lang.h"
 
-// This is temporary. I'll research how to bring it back.
-//#define RESET   ""//"\033[0m"
-//#define RED     ""//"\033[31m"      /* Red */
-//#define GREEN   ""//"\033[32m"      /* Green */
-//#define YELLOW  ""//"\033[33m"        /* Yellow */
-//#define BLUE    "\033[34m"      /* Blue */
-
 #define ODO_VERSION "v0.4-beta"
+
+const auto logo =
+#if DEBUG_MODE
+"               debug\n"
+"            (" __DATE__ "\n"
+"              " __TIME__ ")\n"
+#else
+"              release\n"
+#endif
+#if LANG_USE_ES
+"               español\n"
+#else
+"               english\n"
+#endif
+    R"(
+          (((((((((((((((
+       (((((((((((((((((((((
+     (((((((           ******
+     ((((((             ******
+     ((((((             **   *
+     ((((((             ******
+     ((((((((         *******
+       (((((((((((((((((((((
+          (((((((((((((((
+
+        odo(-lang) )" ODO_VERSION R"(
+      Luis Gonzalez (louis1001)
+             2019-2020
+)";
 
 template<typename T> void add_module(Odo::Interpreting::Interpreter& inter) {
     inter.add_module(std::make_shared<T>(inter));
@@ -33,9 +58,9 @@ void repl(Odo::Interpreting::Interpreter& inter) {
         continuing = false;
     });
 
-//    inter.add_function(ABOUT_FN, [logo]() {
-//        std::cout << logo << std::endl;
-//    });
+    inter.add_function(ABOUT_FN, []() {
+        std::cout << logo << std::endl;
+    });
 
     // NOLINTNEXTLINE
     while (continuing)
@@ -78,34 +103,7 @@ void repl(Odo::Interpreting::Interpreter& inter) {
 int entry(int argc, char* argv[]) {
     auto args = flags::args(argc, argv);
 
-    std::string logo =
-#if DEBUG_MODE
-"               debug\n"
-"            (" __DATE__ "\n"
-"              " __TIME__ ")\n"
-#else
-"              release\n"
-#endif
-#if LANG_USE_ES
-"               espanol\n"
-#else
-"               english\n"
-#endif
-    R"(
-          (((((((((((((((
-       (((((((((((((((((((((
-     (((((((           ******
-     ((((((             ******
-     ((((((             **   *
-     ((((((             ******
-     ((((((((         *******
-       (((((((((((((((((((((
-          (((((((((((((((
-
-        odo(-lang) )" ODO_VERSION R"(
-      Luis Gonzalez (louis1001)
-             2019-2020
-)";
+//    std::string logo = LOGO;
     using namespace Odo;
 
     if (args.get<bool>("version", false) || args.get<bool>("v", false)) {
