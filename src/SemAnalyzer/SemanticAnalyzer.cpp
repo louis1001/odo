@@ -186,9 +186,16 @@ namespace Odo::Semantics {
 
         if (type1->is_numeric() && type2->is_numeric()) return true;
 
-        if (type1->kind == type2->kind && type1->kind == Interpreting::SymbolType::ListType) {
-            return counts_as(type1->tp, type2->tp);
+        if (type1->kind == Interpreting::SymbolType::ListType
+         || type2->kind == Interpreting::SymbolType::ListType) {
+            if (type1->kind == type2->kind) {
+                return counts_as(type1->tp, type2->tp);
+            }
+
+            return false;
         }
+
+
 
         auto curr = type1;
         while (curr) {

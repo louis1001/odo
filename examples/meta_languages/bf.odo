@@ -1,7 +1,7 @@
 class Node {
-    string tp
-    Node children[]
-    init(string _tp, Node _children[]) {
+    var tp: string
+    var children: Node[]
+    init(_tp: string, _children: Node[]) {
         tp = _tp
         children = _children
     }
@@ -21,9 +21,9 @@ enum TType {
 }
 
 class Token {
-    TType tp
+    var tp: TType
 
-    init (TType _tp) {
+    init (_tp: TType) {
         tp = _tp
     }
 
@@ -33,11 +33,11 @@ class Token {
 }
 
 class Lexer {
-    string text = ""
-    int pos = 0
+    var text = ""
+    var pos = 0
 
-    static string operators[] = ["+", "-", ">", "<", ".", ",", "[", "]"]
-    init(string _txt = "") {
+    static var operators = ["+", "-", ">", "<", ".", ",", "[", "]"]
+    init(_txt = "") {
         text = _txt
         pos = 0
     }
@@ -51,7 +51,7 @@ class Lexer {
     }
 
     func isOperator(): bool {
-        string c = currChar()
+        var c = currChar()
         foreach op : Lexer::operators {
             if op == c { return true }
         }
@@ -100,7 +100,7 @@ class Lexer {
         return new Token(TType::eof)
     }
 
-    func setText(string _text) {
+    func setText(_text: string) {
         text = _text
         pos = 0
     }
@@ -118,23 +118,23 @@ enum NodeType {
 }
 
 class AST {
-    NodeType tp = NodeType::block
-    AST children[] = []
-    init (NodeType _tp, AST _children[] = []) {
+    var tp = NodeType::block
+    var children: AST[] = []
+    init (_tp: NodeType, _children: AST[] = []) {
         tp = _tp
         children = _children
     }
 }
 
 class Parser {
-    Lexer lex()
-    Token currToken(TType::eof)
-    init (Lexer _lex = new Lexer()) {
+    var lex = new Lexer()
+    var currToken = new Token(TType::eof)
+    init (_lex = new Lexer()) {
         lex = _lex
         currToken = new Token(TType::eof)
     }
 
-    func eat(TType tp) {
+    func eat(tp: TType) {
         if currToken.tp == tp {
             currToken = lex.getNextToken()
         } else {
@@ -146,18 +146,18 @@ class Parser {
         }
     }
 
-    func program(string text): AST {
+    func program(text: string): AST {
         lex.setText(text)
         currToken = lex.getNextToken()
-        AST result = block()
+        var result = block()
 
         return result
     }
 
-    func block(): AST {
-        AST statements[] = []
+    func block(): AST[] {
+        var statements: AST[] = []
         while currToken.tp != TType::eof and currToken.tp != TType::cll {
-            AST n = statement()
+            var n = statement()
             statements += n
         }
 
@@ -185,22 +185,23 @@ class Parser {
             return new AST(NodeType::com)
         } else if currToken.tp == TType::opl {
             eat(TType::opl)
-            AST body = block()
+            var body = block()
             eat(TType::cll)
-            return new AST(NodeType::opl, body)
+            return new AST(NodeType::opl, [body])
         }
     }
 }
 
 class Interpreter {
-    int pointer = 0
-    int memory[] = []
+    var pointer = 0
+    var memory: int[] = []
     init() {
         memory = [0]*300
     }
 
-    func visit(AST node) {
+    func visit(node: AST) {
         # Fix this!
+        debug
         if node.tp == NodeType::block {
             foreach child : node.children {
                 visit(child)
@@ -216,19 +217,21 @@ class Interpreter {
         } else if node.tp == NodeType::dot {
             write(fromAsciiCode(memory[pointer]))
         } else if node.tp == NodeType::com {
-            string c = read()[0]
+            var c = read()[0]
             memory[pointer] = toAsciiCode(c)
 
         } else if node.tp == NodeType::opl {
             while(memory[pointer] > 0){
-                visit(node.children)
+                foreach n : node.children {
+                    visit(n)
+                }
             }
         }
     }
 
-    func interpret(string code) {
-        Parser p = new Parser()
-        AST tree = p.program(code)
+    func interpret(code: string) {
+        var p = new Parser()
+        var tree = p.program(code)
         visit(tree)
     }
 }
@@ -240,15 +243,15 @@ class Interpreter {
 # Shows every character in the ascii set (It also show that my fromAsciiCode doesn't support all ascii)
 # .+[.+]
 
-string co = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<.>+
-++++++++++[<++++++++>-]<-.--------.+++.------.--------.[-]>++++++++[<++++>- ]<+.[-]++++++++++."
+var co = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-] <.>+++++++++++
+          [<++++++++>-]<-.--------.+++.------.--------.[-]>++++++++[<++++>- ]<+.[-]++++++++++."
 
-Interpreter p()
+var p = new Interpreter()
 
 p.interpret(co)
 
 # Set to true to print the memory
-bool debugging = false
+var debugging = false
 
 if debugging {
     forange i : 10{
