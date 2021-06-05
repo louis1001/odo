@@ -1,9 +1,9 @@
 
 writeln("Testing reversing a string")
 
-string first = "A palindrome is the ideal test for this file" # read()
+var first = "A palindrome is the ideal test for this file" # read()
 
-string result = ""
+var result = ""
 forange i ~: length(first) {
     result += first[i]
 }

@@ -1,8 +1,8 @@
 
 class Vector{
-    double x
-    double y
-    init(double x_ = 0, double y_ = 0){
+    var x: double
+    var y: double
+    init(x_ = 0.0, y_ = 0.0){
         x = x_
         y = y_
     }
@@ -17,8 +17,8 @@ class Vector{
 }
 
 class Printer{
-    Vector ref
-    init(Vector v){
+    var ref: Vector
+    init(v: Vector){
         ref = v
     }
 
@@ -33,20 +33,20 @@ class Printer{
     }
 }
 
-func printX(Vector v){
+func printX(v: Vector){
     writeln(v.x)
 }
 
-Vector a(1, 2)
+var a = new Vector(1, 2)
 write("a.x: ")
 printX(a)
 
-Vector some = a.copy()
+var some = a.copy()
 write("some.x: ")
 writeln(some.x)
 
 
-Printer pri(a)
+var pri = new Printer(a)
 write("pri.x: ")
 pri.printX()
 

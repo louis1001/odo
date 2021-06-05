@@ -1,21 +1,21 @@
 module math{
-    double e = 2.71828183198665
-    func sq(int x): double {
+    var e = 2.71828183198665
+    func sq(x: int): double {
         return x*x
     }
 
-    func exp(double x): double {
+    func exp(x: double): double {
         return e^x
     }
 
     module nested {
-        string works = "YES!!"
+        var works = "YES!!"
     }
 }
 
-double a = 3.5
+var a = 3.5
 
-double result = math::exp(a)
+var result = math::exp(a)
 writeln("E to the ", a, " is ", result)
 
 writeln("\nAccessing a value in a nested module:")

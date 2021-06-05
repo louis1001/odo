@@ -1,9 +1,9 @@
 # Any higher number would break int sizes.
-int n = 45
+var n = 45
 
-int x = 0
-int y = 0
-int z = 1
+var x = 0
+var y = 0
+var z = 1
 
 forange i : n{
     writeln(i, ":", z)

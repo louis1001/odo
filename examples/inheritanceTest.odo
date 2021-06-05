@@ -1,9 +1,9 @@
 class Color{
-    int r
-    int g
-    int b
+    var r: int
+    var g: int
+    var b: int
 
-    init(int _r, int _g, int _b){
+    init(_r: int, _g: int, _b: int){
         r = _r
         g = _g
         b = _b
@@ -15,10 +15,10 @@ class Color{
 }
 
 class Animal{
-    string name = "generic"
+    var name = "generic"
 
-    static string furry
-    init(string _name){
+    static var furry: string
+    init(_name: string){
         name = _name
     }
 
@@ -28,9 +28,9 @@ class Animal{
 }
 
 class Cat: Animal{
-    Color color
+    var color: Color
 
-    init(string _name, Color col){
+    init(_name: string, col: Color){
         name = _name
         color = col
     }
@@ -49,13 +49,13 @@ class Siamese : Cat{
 
 }
 
-func rgb(int r, int g, int b): Color{
+func rgb(r: int, g: int, b: int): Color{
     return new Color(r, g, b)
 }
 
-Color black = rgb(0, 0, 0)
+var black = rgb(0, 0, 0)
 
-Siamese a = new Siamese("Whiskers", black)
+var a = new Siamese("Whiskers", black)
 a::furry = "little"
 writeln(Cat::furry)
 

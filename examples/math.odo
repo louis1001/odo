@@ -1,10 +1,10 @@
-double e = 2.718281828459045
+var e = 2.718281828459045
 
-func exp(double x): double {
+func exp(x: double): double {
     return e ^ x
 }
 
-func abs(double x): double {
+func abs(x: double): double {
     if x > 0 {
         return x
     }
@@ -12,8 +12,8 @@ func abs(double x): double {
     return -x
 }
 
-func pow(double x, int p): double {
-    double result = 1.0
+func pow(x: double, p: int): double {
+    var result = 1.0
     forange _ ~: p {
         result = result * x
     }

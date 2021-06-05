@@ -1,7 +1,7 @@
 
 # Let's test the new character escape sequences.
 
-int MAX_COUNT = 50
+var MAX_COUNT = 50
 
 forange i : 1, MAX_COUNT+1 {
     write("\r[", "="*i, ">", " "*(MAX_COUNT-i), "] ", i, "/", MAX_COUNT)

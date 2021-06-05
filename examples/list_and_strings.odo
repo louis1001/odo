@@ -1,9 +1,9 @@
 # Find all fibonacci numbers up to n and store them in a list
-int n = 1000
+var n = 1000
 
-int a = 1
-int b = 0
-int c = 0
+var a = 1
+var b = 0
+var c = 0
 
 # List expression infers it's type from the first element in it
 # I need to define a currently accepted list type in SemAn
@@ -11,7 +11,7 @@ int c = 0
 # So that an empty list returns a valid value
 # And lists with incompatible types aren't accepted.
 
-int results[] = []
+var results: int[] = []
 
 while c < n {
     b = a

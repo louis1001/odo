@@ -1,4 +1,4 @@
-any greetings_func = func (string name, int messages, double temp) {
+var greetings_func = func (name: string, messages: int, temp: double) {
     writeln(
         "Hello, ", name, ". You have ", messages,
         " new messages. The temparature is ", temp,
@@ -6,11 +6,11 @@ any greetings_func = func (string name, int messages, double temp) {
     )
 }
 
-double i = read_double("Write a double: ")
+var i = read_double("Write a double: ")
 
-int j = read_int("Write a int: ")
+var j = read_int("Write a int: ")
 
-string name = read("Write your name: ")
+var name = read("Write your name: ")
 
 clear()
 greetings_func(name, j, i)
