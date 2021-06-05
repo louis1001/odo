@@ -308,11 +308,26 @@ namespace Odo::Parsing{
             eat(ID);
         }
 
+        while (current_token.tp == DCOLON) {
+            eat(DCOLON);
+            auto right_side = current_token;
+            eat(ID);
+            tp = StaticVarNode::create(tp, right_side);
+        }
+
         while (current_token.tp == LBRA) {
             eat(LBRA);
             eat(RBRA);
 
             tp = IndexNode::create(tp, NoOpNode::create());
+        }
+
+        if (!tp) {
+            // TODO: Translate this
+            throw Exceptions::SyntaxException(
+                    "Unexpected token. Expected a type for variable declaration",
+                    line(),
+                    column());
         }
 
         return tp;
