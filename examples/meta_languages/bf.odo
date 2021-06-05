@@ -37,7 +37,7 @@ class Lexer {
     var pos = 0
 
     static var operators = ["+", "-", ">", "<", ".", ",", "[", "]"]
-    init(_txt = "") {
+    init(_txt: string = "") {
         text = _txt
         pos = 0
     }

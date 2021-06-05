@@ -2,7 +2,7 @@
 class Vector{
     var x: double
     var y: double
-    init(x_ = 0.0, y_ = 0.0){
+    init(x_: double = 0.0, y_: double = 0.0){
         x = x_
         y = y_
     }

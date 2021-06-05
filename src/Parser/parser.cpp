@@ -746,11 +746,11 @@ namespace Odo::Parsing{
         std::vector<std::shared_ptr<Node>> params;
 
         if (current_token.tp != RPAR) {
-            params.push_back(declaration());
+            params.push_back(declaration(true));
 
             while (current_token.tp != RPAR) {
                 eat(COMMA);
-                params.push_back(declaration());
+                params.push_back(declaration(true));
             }
         }
 
@@ -773,7 +773,7 @@ namespace Odo::Parsing{
         return argList;
     }
 
-    std::shared_ptr<Node> Parser::declaration() {
+    std::shared_ptr<Node> Parser::declaration(bool force_type) {
         auto ln = line();
         auto cl = column();
 
@@ -787,7 +787,7 @@ namespace Odo::Parsing{
         std::shared_ptr<Node> tp;
         int list_dimensions = 0;
 
-        if (current_token.tp == COLON) {
+        if (force_type || current_token.tp == COLON) {
             eat(COLON);
             tp = get_full_type();
 

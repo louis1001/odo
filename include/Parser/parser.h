@@ -65,7 +65,7 @@ namespace Odo::Parsing {
         std::vector<std::shared_ptr<Node>> parameters();
         std::vector<std::shared_ptr<Node>> call_args();
 
-        std::shared_ptr<Node> declaration();
+        std::shared_ptr<Node> declaration(bool force_type = false);
 
         std::shared_ptr<Node> ternary_op();
 
