@@ -49,10 +49,11 @@ namespace Odo::Lexing {
         AND,            // and
         OR,             // or
 
+        VAR,            // var
+        ASS,            // =
+
         POW,            // ^
         POWE,           // ^=
-
-        ASS,            // =
 
         EQU,            // ==
         NOT,            // !

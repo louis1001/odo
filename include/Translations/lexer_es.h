@@ -10,6 +10,7 @@
 #define FALSE_TK "falso"
 #define AND_TK "y"
 #define OR_TK "o"
+#define VAR_TK "var"
 #define IF_TK "si"
 #define ELSE_TK "obien"
 #define FUNC_TK "func"

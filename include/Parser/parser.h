@@ -42,6 +42,7 @@ namespace Odo::Parsing {
         std::shared_ptr<Node> module_statement();
 
         std::shared_ptr<Node> get_type();
+        std::shared_ptr<Node> get_full_type();
 
         function_type get_arg_types();
         std::shared_ptr<Node> define_statement();
@@ -64,7 +65,7 @@ namespace Odo::Parsing {
         std::vector<std::shared_ptr<Node>> parameters();
         std::vector<std::shared_ptr<Node>> call_args();
 
-        std::shared_ptr<Node> declaration(std::shared_ptr<Node>);
+        std::shared_ptr<Node> declaration();
 
         std::shared_ptr<Node> ternary_op();
 
@@ -86,6 +87,8 @@ namespace Odo::Parsing {
         std::shared_ptr<Node> program();
         std::vector<std::shared_ptr<Node>> program_content();
         void set_text(std::string t);
+
+//        std::shared_ptr<Node> declaration_();
     };
 }
 #endif //ODO_PORT_PARSER_H

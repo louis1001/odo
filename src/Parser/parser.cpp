@@ -150,6 +150,10 @@ namespace Odo::Parsing{
                 ex = block();
                 eat(RCUR);
                 break;
+            case VAR:
+                eat(VAR);
+                ex = declaration();
+                break;
             case MODULE:
                 eat(MODULE);
                 ex = module_statement();
@@ -290,6 +294,28 @@ namespace Odo::Parsing{
             eat(ID);
         }
         return nd;
+    }
+
+    std::shared_ptr<Node> Parser::get_full_type() {
+        std::shared_ptr<Node> tp;
+
+//        if (current_token.tp == LT) {
+//            auto func_tp = get_arg_types();
+//        }
+
+        if (current_token.tp == ID) {
+            tp = VariableNode::create(current_token);
+            eat(ID);
+        }
+
+        while (current_token.tp == LBRA) {
+            eat(LBRA);
+            eat(RBRA);
+
+            tp = IndexNode::create(tp, NoOpNode::create());
+        }
+
+        return tp;
     }
 
     Parser::function_type Parser::get_arg_types() {
@@ -705,13 +731,11 @@ namespace Odo::Parsing{
         std::vector<std::shared_ptr<Node>> params;
 
         if (current_token.tp != RPAR) {
-            auto typeToken = get_type();
-            params.push_back(declaration(typeToken));
+            params.push_back(declaration());
 
             while (current_token.tp != RPAR) {
                 eat(COMMA);
-                auto typeToken2 = get_type();
-                params.push_back(declaration(typeToken2));
+                params.push_back(declaration());
             }
         }
 
@@ -734,7 +758,7 @@ namespace Odo::Parsing{
         return argList;
     }
 
-    std::shared_ptr<Node> Parser::declaration(std::shared_ptr<Node> tp) {
+    std::shared_ptr<Node> Parser::declaration() {
         auto ln = line();
         auto cl = column();
 
@@ -743,54 +767,134 @@ namespace Odo::Parsing{
 
         std::shared_ptr<Node> assignment{nullptr};
 
-        bool using_direct_init = false;
+//        bool using_direct_init = false;
 
-        if (current_token.tp == LBRA) {
-            eat(LBRA);
-            eat(RBRA);
+        std::shared_ptr<Node> tp;
+        int list_dimensions = 0;
 
-            int dimensions = 1;
-            while (current_token.tp == LBRA) {
-                eat(LBRA);
-                dimensions++;
-                eat(RBRA);
+        if (current_token.tp == COLON) {
+            eat(COLON);
+            tp = get_full_type();
+
+            while (tp->kind() == NodeType::Index) {
+                tp = Node::as<IndexNode>(tp)->val;
+                list_dimensions++;
             }
-
-            if (current_token.tp == ASS) {
-                eat(ASS);
-                assignment = ternary_op();
-            }
-
-            auto result = ListDeclarationNode::create(tp, varName, dimensions, assignment);
-
-            result->line_number = ln;
-            result->column_number = cl;
-
-            return result;
-        } else if (current_token.tp == LPAR) {
-            using_direct_init = true;
-            eat(LPAR);
-            auto pars = call_args();
-            eat(RPAR);
-            assignment = ClassInitializerNode::create(tp, pars);
+        } else {
+            tp = VariableNode::create(Token(ID, "any"));
         }
 
+//        if (tp.is lists?)
+
+//        if (current_token.tp == LBRA) {
+//            eat(LBRA);
+//            eat(RBRA);
+//
+//            int dimensions = 1;
+//            while (current_token.tp == LBRA) {
+//                eat(LBRA);
+//                dimensions++;
+//                eat(RBRA);
+//            }
+//
+//            if (current_token.tp == ASS) {
+//                eat(ASS);
+//                assignment = ternary_op();
+//            }
+//
+//            auto result = ListDeclarationNode::create(tp, varName, dimensions, assignment);
+//
+//            result->line_number = ln;
+//            result->column_number = cl;
+//
+//            return result;
+//        } else if (current_token.tp == LPAR) {
+//            using_direct_init = true;
+//            eat(LPAR);
+//            auto pars = call_args();
+//            eat(RPAR);
+//            assignment = ClassInitializerNode::create(tp, pars);
+//        }
+
         if (current_token.tp == ASS) {
-            if (using_direct_init) {
-                std::string err_msg = INVALID_DIRECT_EXCP;
-                throw Exceptions::OdoException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
-            }
+//            if (using_direct_init) {
+//                std::string err_msg = INVALID_DIRECT_EXCP;
+//                throw Exceptions::OdoException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
+//            }
             eat(ASS);
             assignment = ternary_op();
         }
 
-        auto result = VarDeclarationNode::create(tp, varName, assignment);
+        std::shared_ptr<Node> result;
+        if (list_dimensions > 0) {
+            result = ListDeclarationNode::create(tp, varName, list_dimensions, assignment);
+        } else {
+            result = VarDeclarationNode::create(tp, varName, assignment);
+        }
 
         result->line_number = ln;
         result->column_number = cl;
 
         return result;
     }
+
+//    std::shared_ptr<Node> Parser::declaration(std::shared_ptr<Node> tp) {
+//        auto ln = line();
+//        auto cl = column();
+//
+//        auto varName = current_token;
+//        eat(ID);
+//
+//        std::shared_ptr<Node> assignment{nullptr};
+//
+//        bool using_direct_init = false;
+//
+//        if (current_token.tp == LBRA) {
+//            eat(LBRA);
+//            eat(RBRA);
+//
+//            int dimensions = 1;
+//            while (current_token.tp == LBRA) {
+//                eat(LBRA);
+//                dimensions++;
+//                eat(RBRA);
+//            }
+//
+//            if (current_token.tp == ASS) {
+//                eat(ASS);
+//                assignment = ternary_op();
+//            }
+//
+//            auto result = ListDeclarationNode::create(tp, varName, dimensions, assignment);
+//
+//            result->line_number = ln;
+//            result->column_number = cl;
+//
+//            return result;
+//        } else if (current_token.tp == LPAR) {
+//            using_direct_init = true;
+//            eat(LPAR);
+//            auto pars = call_args();
+//            eat(RPAR);
+//            assignment = ClassInitializerNode::create(tp, pars);
+//        }
+//
+//        if (current_token.tp == ASS) {
+//            if (using_direct_init) {
+//                std::string err_msg = INVALID_DIRECT_EXCP;
+//                throw Exceptions::OdoException(err_msg, lexer.getCurrentLine(), lexer.getCurrentCol());
+//            }
+//            eat(ASS);
+//            assignment = ternary_op();
+//        }
+//
+//        auto result = VarDeclarationNode::create(tp, varName, assignment);
+//
+//        result->line_number = ln;
+//        result->column_number = cl;
+//
+//        return result;
+//    }
 
     std::shared_ptr<Node> Parser::ternary_op() {
         ignore_nl();
@@ -1136,9 +1240,9 @@ namespace Odo::Parsing{
             }
         }
 
-        if (current_token.tp == ID) {
-            node = declaration(node);
-        }
+//        if (current_token.tp == ID) {
+//            node = declaration(node);
+//        }
 
         return node;
     }

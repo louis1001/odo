@@ -21,6 +21,7 @@ namespace Odo::Lexing {
             {FALSE_TK, Token(BOOL, FALSE_TK)},
             {AND_TK, Token(AND, AND_TK)},
             {OR_TK, Token(OR, OR_TK)},
+            {VAR_TK, Token(VAR, VAR_TK)},
             {IF_TK, Token(IF, IF_TK)},
             {ELSE_TK, Token(ELSE, ELSE_TK)},
             {FUNC_TK, Token(FUNC, FUNC_TK)},
