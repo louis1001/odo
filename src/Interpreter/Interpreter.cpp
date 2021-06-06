@@ -2394,13 +2394,27 @@ namespace Odo::Interpreting {
                 auto visited_indx = visit(as_index_node->expr);
                 auto& as_list = Value::as<ListValue>(visited_source)->elements;
                 auto as_int = Value::as<NormalValue>(visited_indx)->as_int();
+
+                auto as_size_t = static_cast<size_t>(as_int);
                 // TODO: Add funcionality of reverse indexing.
-                if (as_int < 0 || static_cast<size_t>(as_int) > as_list.size()-1) {
-                    throw Exceptions::ValueException(
-                            INDX_STR_OB_EXCP,
-                            current_line,
-                            current_col
-                    );
+                if (as_int < 0) {
+                    if ((as_list.size() + as_size_t) < 0) {
+                        throw Exceptions::ValueException(
+                                INDX_STR_OB_EXCP,
+                                current_line,
+                                current_col
+                        );
+                    }
+
+                    as_int = as_list.size() + as_size_t;
+                } else {
+                    if (as_size_t > as_list.size()-1) {
+                        throw Exceptions::ValueException(
+                                INDX_STR_OB_EXCP,
+                                current_line,
+                                current_col
+                        );
+                    }
                 }
                 return &as_list[as_int];
             }
