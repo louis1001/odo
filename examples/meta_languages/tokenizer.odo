@@ -11,9 +11,9 @@ enum TokenType {
 }
 
 class Token {
-    TokenType type
-    string name
-    init(TokenType tp, string m) {
+    var type: TokenType
+    var name: string
+    init(tp: TokenType, m: string) {
         type = tp
         name = m
     }
@@ -24,10 +24,10 @@ class Token {
 }
 
 class Lexer {
-    string text = ""
-    int current_pos = 0
+    var text = ""
+    var current_pos = 0
 
-    init(string txt) {
+    init(txt: string) {
         text = txt
     }
 
@@ -50,7 +50,7 @@ class Lexer {
     }
 
     func number(): string {
-        string result = current_char()
+        var result = current_char()
 
         advance()
         while isAlphaNum(current_char()) {
@@ -62,7 +62,7 @@ class Lexer {
     }
 
     func id(): string {
-        string result = current_char()
+        var result = current_char()
         advance()
 
         while isAlphaNum(current_char()) {
@@ -109,12 +109,12 @@ class Lexer {
     }
 }
 
-string numbers = "0123456789"
-string alpha = "abcdefghijklmnopqrstuvwxyz"
+var numbers = "0123456789"
+var alpha = "abcdefghijklmnopqrstuvwxyz"
 
-func isSomething (string val, string lst): bool {
-    for (int i = 0; i < length(lst); i++) {
-        if val == lst[i] {
+func isSomething (val: string, lst: string): bool {
+    foreach c : lst{
+        if val == c {
             return true
         }
     }
@@ -122,11 +122,11 @@ func isSomething (string val, string lst): bool {
     return false
 }
 
-func isNumber(string char): bool {
+func isNumber(char: string): bool {
     return isSomething(char, numbers)
 }
 
-func isAlpha(string char, bool check_undescore = false): bool {
+func isAlpha(char: string, check_undescore: bool = false): bool {
     if check_undescore {
         return isSomething(char, alpha) or char == "_"
     }
@@ -134,21 +134,21 @@ func isAlpha(string char, bool check_undescore = false): bool {
     return isSomething(char, alpha)
 }
 
-func isAlphaNum(string char): bool {
+func isAlphaNum(char: string): bool {
     return isNumber(char) or isAlpha(char, true)
 }
 
-func isWhitespace(string char): bool {
+func isWhitespace(char: string): bool {
     return isSomething(char, " \n\t\r")
 }
 
-func tokenize(string text) {
+func tokenize(text: string) {
 
-    int current_pos = 0
+    var current_pos = 0
 
-    Lexer lx(text)
+    var lx = new Lexer(text)
 
-    Token current_token = lx.get_next_token()
+    var current_token = lx.get_next_token()
     while current_token.type != TokenType::Eof {
         writeln(current_token.to_string())
 
@@ -156,9 +156,9 @@ func tokenize(string text) {
     }
 }
 
-string code = "pi * (100/20) - 10 * 29 / x"
+var code = "pi * (100/20) - 10 * 29 / x"
 
-string user_code = read("> ")
+var user_code = read("> ")
 if user_code != "" {
     code = user_code
 }

@@ -721,13 +721,13 @@ namespace Odo::Parsing{
         auto retType = NoOpNode::create();
         if (current_token.tp == COLON) {
             eat(COLON);
-            retType = get_type();
+            retType = get_full_type();
 
-            while (current_token.tp == LBRA) {
-                eat(LBRA);
-//                retType.value += "[]";
-                eat(RBRA);
-            }
+//            while (current_token.tp == LBRA) {
+//                eat(LBRA);
+////                retType.value += "[]";
+//                eat(RBRA);
+//            }
         }
 
         eat(LCUR);

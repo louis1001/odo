@@ -1209,6 +1209,34 @@ namespace Odo::Interpreting {
         return valueReturn;
     }
 
+    Interpreting::Symbol* Interpreter::handle_list_type(Interpreting::Symbol* sym, int dimensions) {
+        auto prev_sym = sym;
+        Interpreting::Symbol* tp;
+
+        if (dimensions == 0) return sym;
+
+        do {
+            tp = globalTable.addListType(prev_sym);
+
+            auto element_template_name = "__$" + tp->name + "_list_element";
+
+            auto in_table = currentScope->findSymbol(element_template_name);
+            if (!in_table) {
+                auto list_el = currentScope->addSymbol({
+                    prev_sym,
+                    element_template_name
+                });
+
+                list_el->is_initialized = true;
+            }
+
+            prev_sym = tp;
+            dimensions--;
+        } while (dimensions > 0);
+
+        return tp;
+    }
+
     value_t Interpreter::visit_ListDeclaration(const std::shared_ptr<ListDeclarationNode>& node) {
         // TODO: Handle the list type.
         auto base_type = getSymbolFromNode(node->var_type);
@@ -1304,7 +1332,7 @@ namespace Odo::Interpreting {
                 std::string result(1, str[int_indx]);
                 return create_literal_from_string(result, STRING_TP);
             } else if (int_indx < 0 && static_cast<size_t>(abs(int_indx)) <= str.size()) {
-                size_t actual_indx = str.size() - int_indx;
+                size_t actual_indx = str.size() + int_indx;
                 std::string result(1, str[actual_indx]);
                 return create_literal_from_string(result, STRING_TP);
             } else {
@@ -1322,7 +1350,7 @@ namespace Odo::Interpreting {
             if (int_indx >= 0 && static_cast<size_t>(int_indx) < list_value.size()) {
                 return list_value[int_indx];
             } else if (int_indx < 0 && static_cast<size_t>(abs(int_indx)) <= list_value.size()) {
-                size_t actual_indx = list_value.size() - int_indx;
+                size_t actual_indx = list_value.size() + int_indx;
                 return list_value[actual_indx];
             } if (int_indx >= 0 && static_cast<size_t>(int_indx) < list_value.size()) {
                 return list_value[int_indx];
@@ -1854,10 +1882,23 @@ namespace Odo::Interpreting {
     }
 
     value_t Interpreter::visit_FuncDecl(const std::shared_ptr<FuncDeclNode>& node){
-        auto returnType =
-                node->retType->kind() == Parsing::NodeType::NoOp
-                ? nullptr
-                : getSymbolFromNode(node->retType);
+        Interpreting::Symbol* returnType = nullptr;
+
+        if (node->retType->kind() != Parsing::NodeType::NoOp) {
+            if (node->retType->kind() == Parsing::NodeType::Index) {
+                auto current = Node::as<IndexNode>(node->retType)->val;
+                int dimensions = 1;
+
+                while (current && current->kind() == Parsing::NodeType::Index) {
+                    dimensions++;
+                    current = Node::as<IndexNode>(current)->val;
+                }
+
+                returnType = handle_list_type(getSymbolFromNode(current), dimensions);
+            } else {
+                returnType = getSymbolFromNode(node->retType);
+            }
+        }
 
         auto paramTypes = getParamTypes(node->params);
 
@@ -2291,6 +2332,10 @@ namespace Odo::Interpreting {
     value_t Interpreter::visit_MemberVar(const std::shared_ptr<MemberVarNode>& node) {
         auto instance = visit(node->inst);
         auto as_instance_value = Value::as<InstanceValue>(instance);
+
+        if (instance == get_null()) {
+            throw Exceptions::ValueException("Trying to access a member variable o null instance.");
+        }
 
         auto foundSymbol = as_instance_value->ownScope.findSymbol(node->name.value);
 

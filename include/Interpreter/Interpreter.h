@@ -129,6 +129,8 @@ namespace Odo::Interpreting {
 
         value_t interpret_as_module(const std::string &path, const Lexing::Token& name);
 
+        Interpreting::Symbol* handle_list_type(Interpreting::Symbol* sym, int dimensions);
+
         std::vector<std::pair<Symbol*, bool>> getParamTypes(const std::vector<std::shared_ptr<Parsing::Node>>&);
 
         Symbol *getSymbolFromNode(const std::shared_ptr<Parsing::Node>& mem);

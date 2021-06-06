@@ -26,72 +26,76 @@
  #
  }#
 
-func to_percent(int n, int m): double {
-    double cn = n / (m+0.0)
+func to_percent(n: int, m: int): double {
+    var cn = n / (m+0.0)
     return cn * 100
 }
 
 class Cell {
-    int x
-    int y
-                        # up     right  down   left
-    bool walls[] =       [ false, false, false, false]
-    Cell neighbors[] =  [ null,  null,  null,  null ]
+    var x: int
+    var y: int
+                       # up     right  down   left
+    var walls     =  [ false, false, false, false]
+    var neighbors: Neighbor[] =  [ null,  null,  null,  null ]
 
-    bool visited = false
+    var visited = false
 
-    init(int x_, int y_) {
+    init(x_: int, y_: int) {
         x = x_
         y = y_
     }
 }
 
 class Neighbor {
-    Cell cell
-    int dir
-    init(Cell c_, int dir_) { cell = c_; dir = dir_ }
+    var cell: Cell
+    var dir: int
+    init(c_: Cell, dir_: int) { cell = c_; dir = dir_ }
 }
 
 class Maze {
-    int width = 1
-    int height = 1
+    var width = 1
+    var height = 1
 
 # I'm not handling this syntax for bi-dimensional lists.
-    Cell cells[][] = []
+    var cells: Cell[][] = []
 
-    func find_neighbors(int x, int y): Cell[] {
-        Cell ns[] = [null, null, null, null]
+    func find_neighbors(x: int, y: int): Neighbor[] {
+        var ns: Neighbor[] = [null, null, null, null]
 
         if y > 0 {
-            ns[0] = cells[y-1][x]
+            ns[0] = new Neighbor(cells[y-1][x], 0)
         }
         if x > 0 {
-            ns[1] = cells[y][x-1]
+            ns[1] = new Neighbor(cells[y][x-1], 1)
         }
 
         if y < height-1 {
-            ns[2] = cells[y+1][x]
+            ns[2] = new Neighbor(cells[y+1][x], 2)
         }
 
         if x < width-1 {
-            ns[3] = cells[y][x+1]
+            ns[3] = new Neighbor(cells[y][x+1], 3)
         }
 
         return ns
     }
 
-    init(int w, int h) {
+    init(w: int, h: int) {
+
         width = w
         height = h
 
         cells = []#mu::create_matrix(w, h, func(int x, int y) -> new Cell(x, y))
+
         forange y: h {
-            Cell row[] = []
+
+            var row: Cell[] = []
             forange x: w {
                 push(row, new Cell(x, y))
             }
             push(cells, row)
         }
+
 
 # Debug this line. It should be working now.
         foreach row : cells {
@@ -101,43 +105,44 @@ class Maze {
         }
     }
 
-    static func choose(Neighbor lst[]): Neighbor {
-        int rnd_index = randInt(0, length(lst))
+    static func choose(lst: Neighbor[]): Neighbor {
+        var rnd_index = randInt(0, length(lst))
 
         return lst[rnd_index]
     }
 
     func generate() {
-        Cell initial = cells[0][0];
+        var initial = cells[0][0];
 
-        Cell stack[] = [initial]
+        var stack = [initial]
         initial.visited = true
-        int n_visited = 1
-        int max_visit = width * height
+        var n_visited = 1
+        var max_visit = width * height
 
         while length(stack) > 0 {
             # Need to fine a way of knowing what type will pop have
-            Cell current = pop(stack)
+            var current: Cell = stack[-1]
+            pop(stack)
             write("Generating Maze: ", trunc(to_percent(n_visited, max_visit)), "%\r")
 
-            Neighbor possible_neighbors[] = []
+            var possible_neighbors: Neighbor[] = []
 
-            int i = 0
-            foreach neigh_cell : current.neighbors {
-                if (neigh_cell != null) {
-                    if (!neigh_cell.visited) {
-                        push(possible_neighbors, new Neighbor(neigh_cell, i))
-                    }
+            var i = 0
+            foreach neigh : current.neighbors {
+                if neigh == null { continue }
+                var neigh_cell = neigh.cell
+                if (!neigh_cell.visited) {
+                    push(possible_neighbors, new Neighbor(neigh_cell, i))
                 }
 
                 i++
             }
 
-            int neigh_amount = length(possible_neighbors)
+            var neigh_amount = length(possible_neighbors)
 
             if (neigh_amount > 0) {
                 stack += current
-                Neighbor next = this::choose(possible_neighbors)
+                var next = this::choose(possible_neighbors)
 
                 current.walls[next.dir] = true
                 next.cell.walls[(next.dir+2)%4] = true
@@ -149,27 +154,27 @@ class Maze {
         }
     }
 
-    func print_maze(int x = 0, int y = 0) {
+    func print_maze(x: int = 0, y: int = 0) {
         writeln()
-        int canvas_height = height*2+1
-        int canvas_width = width*2+1
+        var canvas_height = height*2+1
+        var canvas_width = width*2+1
 
-        string path_spaces = " "
-        string wall_char = "0"
+        var path_spaces = " "
+        var wall_char = "0"
 
-        string b[][] = [[wall_char]*canvas_width]*canvas_height
+        var b = [[wall_char]*canvas_width]*canvas_height
 
-        int canvas_max = canvas_width*canvas_height
-        int counter = 0
+        var canvas_max = canvas_width*canvas_height
+        var counter = 0
 
         foreach row : cells {
             foreach c : row {
-                int x = c.x*2 + 1
-                int y = c.y*2 + 1
+                var x = c.x*2 + 1
+                var y = c.y*2 + 1
 
                 b[y][x] = path_spaces
 
-                any ws = c.walls
+                var ws = c.walls
                 if ws[0] {
                     b[y - 1][x + 0] = path_spaces
                 }
@@ -194,9 +199,9 @@ class Maze {
     }
 }
 
-int w = 40
-int h = 40
+var w = 30
+var h = 30
 
-Maze main(w, h)
+var main = new Maze(w, h)
 main.generate()
 main.print_maze()

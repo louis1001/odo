@@ -386,6 +386,8 @@ namespace Odo::Semantics {
                     if (visited_indx.type->name == INT_TP) {
                         auto element_template_name = "__$" + visited_source.type->name + "_list_element";
 
+                        string_to_list_type(visited_source.type->name);
+
                         varSym = currentScope->findSymbol(element_template_name);
                     } else {
                         throw Exceptions::TypeException(
@@ -1442,12 +1444,22 @@ namespace Odo::Semantics {
             );
         }
 
-        Interpreting::Symbol* returnType;
+        Interpreting::Symbol* returnType = nullptr;
 
-        if (node->retType->kind() == Parsing::NodeType::NoOp) {
-            returnType = nullptr;
-        } else {
-            returnType = getSymbolFromNode(node->retType);
+        if (node->retType->kind() != Parsing::NodeType::NoOp) {
+            if (node->retType->kind() == Parsing::NodeType::Index) {
+                auto current = Node::as<IndexNode>(node->retType)->val;
+                int dimensions = 1;
+
+                while (current && current->kind() == Parsing::NodeType::Index) {
+                    dimensions++;
+                    current = Node::as<IndexNode>(current)->val;
+                }
+
+                returnType = handle_list_type(getSymbolFromNode(current), dimensions);
+            } else {
+                returnType = getSymbolFromNode(node->retType);
+            }
         }
 
         auto paramTypes = getParamTypes(node->params);
